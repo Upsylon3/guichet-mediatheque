@@ -32,14 +32,14 @@ La suite `npm test` utilise deux contextes Chromium indépendants, Agent et Admi
 
 Les fiches créées par la suite sont supprimées à la fin par sa session Administrateur. Les comptes fictifs sont conservés pour rejouer la recette. Les mots de passe et la configuration locale restent exclus du dépôt. Les fichiers `test-results/recette.json` et les deux captures de session constituent les preuves locales.
 
-**Contrôle Auth à finaliser :** lors de la dernière lecture, `/auth/v1/settings` renvoyait encore `disable_signup: false`, malgré une première action signalée dans le tableau de bord. Le dernier contrôle automatisé reste donc en échec jusqu’à la désactivation effective de l’inscription publique. Les contrôles fonctionnels précédents ont passé. Ne pas présenter cette suite comme entièrement verte avant confirmation de ce réglage.
+**Contrôle Auth validé :** après enregistrement du réglage dans le tableau de bord, `/auth/v1/settings` renvoie `disable_signup: true`. Le test automatisé « Supabase Auth : inscription publique désactivée » a été rejoué seul et passe, sans échec. Le scénario fonctionnel à deux sessions avait déjà passé sur ce même code. Les deux tests de cette tranche sont donc validés ; le blocage de configuration est levé.
 
 Les conseillers Supabase ne signalent pas de table publique sans RLS. Ils relèvent deux avertissements de configuration distincts de cette tranche : protection contre les mots de passe compromis désactivée sur ce projet d’essai, et politiques SELECT redondantes préexistantes sur `postes`. Aucune dépendance n’est ajoutée à l’application livrée ; Playwright sert uniquement à la recette.
 
 ## Essais restant à faire
 
-- Rejouer le dernier contrôle Auth après désactivation effective des inscriptions publiques.
 - Rejouer sur deux ordinateurs physiques du guichet, avec douchette réelle, clavier et réseau représentatifs ; mesurer les cibles de latence proposées au cahier des charges.
 - Vérifier sur le Supabase local Docker lorsque cet environnement est disponible ; il n’a pas été exécuté sur ce poste.
 - Après raccordement des activités : contraintes globales sur les fiches liées, réservations atomiques, conflits de capacité, réglages partagés, clôture Europe/Paris et reprise après interruption.
 - Avant tout pilote réel : accessibilité complète, sauvegarde/restauration, purge et validations institutionnelles du dossier de revue.
+
