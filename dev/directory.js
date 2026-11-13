@@ -61,6 +61,9 @@ globalThis.guichetDirectory = (() => {
     directory.profile=await request('/rest/v1/rpc/mon_profil',{method:'POST',body:{}});
     if(!['agent','administrateur'].includes(directory.profile))throw new Error('Compte sans habilitation.');
     await directory.onReady();
+    for(const message of document.querySelectorAll('#personMsg,#notice,#vfmsg,#guestmsg')){
+     if(message.textContent.includes('Session expirée'))message.textContent='Session rétablie. Saisie conservée, à enregistrer.';
+    }
     f.password.value='';form.hidden=true;document.querySelector('main').hidden=false;
     document.getElementById('sessionProfile').textContent='Session : '+directory.profile+' · recharger la page pour se déconnecter';
     document.getElementById('sessionProfile').hidden=false;

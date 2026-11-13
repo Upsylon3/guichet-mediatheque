@@ -164,6 +164,7 @@ test('Annuaire partagé : deux sessions et API Supabase réelle', {timeout:18000
   await a.locator('#login [name=email]').fill(accounts.agent.email);await a.locator('#login [name=password]').fill(accounts.agent.password);await a.locator('#login button').click();
   await a.locator('#login').waitFor({state:'hidden'});
   assert.equal(await a.locator('#personForm [name=last]').inputValue(),'Brouillon conservé');
+  assert.match(await a.locator('#personMsg').innerText(),/Session rétablie/);
   passed('Session expirée : reconnexion sans rechargement et brouillon conservé');
 
   // Une réponse perdue après commit ne doit pas doubler la fiche lors de la reprise.
