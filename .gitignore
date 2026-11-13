@@ -1,0 +1,9 @@
+*.xlsx
+*.xls
+*.csv
+*.tsv
+*.sqlite*
+*.db
+.env
+imports/
+sauvegardes/
