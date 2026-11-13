@@ -1,5 +1,7 @@
 # Recette de l’annuaire partagé
 
+Ce document conserve la première tranche de recette. Pour l’état actuel, lire [la recette complète du guichet](RECETTE-GUICHET.md).
+
 Recette du 13 novembre 2026, avec des identités exclusivement fictives. Reprise du dépôt à `77981a8` ; depuis le point de départ `25c98e3` de la passation, seul le document de passation avait été ajouté.
 
 ## Environnement et périmètre

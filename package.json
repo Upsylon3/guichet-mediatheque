@@ -4,7 +4,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "test": "python scripts/check-csp.py && node --test tests/annuaire.test.cjs"
+    "check": "python scripts/check-csp.py && node --check dev/app.js && node --check dev/directory.js && python -m py_compile scripts/serve-dev.py scripts/build-dev.py scripts/prepare-dev-accounts.py",
+    "test": "npm run check && node --test --test-concurrency=1 tests/activites.test.cjs tests/annuaire.test.cjs tests/demo.test.cjs tests/parcours.test.cjs",
+    "test:demo": "npm run check && node --test tests/demo.test.cjs"
   },
   "devDependencies": {
     "playwright": "1.58.2"

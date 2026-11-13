@@ -1,15 +1,22 @@
-const {test}=require('node:test');
+const {test,before,after}=require('node:test');
+const {spawn}=require('node:child_process');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {chromium}=require('playwright');
 
-const origin=process.env.GUICHET_ORIGIN||'http://127.0.0.1:8000';
+let origin=process.env.GUICHET_ORIGIN,server;
+before(async()=>{
+ if(origin)return;
+ server=spawn(process.env.PYTHON||'python',['scripts/serve-dev.py','--port','0'],{stdio:['ignore','pipe','pipe']});
+ origin=await new Promise((resolve,reject)=>{let output='';const timer=setTimeout(()=>reject(new Error('Serveur de test non démarré')),10000);server.stdout.on('data',chunk=>{output+=chunk;const match=output.match(/http:\/\/127\.0\.0\.1:(\d+)/);if(match){clearTimeout(timer);resolve(match[0])}});server.on('error',reject)});
+});
+after(()=>server?.kill());
 const config=JSON.parse(fs.readFileSync('.env.local.json','utf8'));
 const accounts=JSON.parse(fs.readFileSync('.env.accounts.json','utf8'));
 const base=config.SUPABASE_URL;
 const key=config.ANON_KEY;
 const cards=new Set();
-const checks=[];
+const checks=[];const eventTitle='Atelier de recette fictif '+Date.now();
 const passed=name=>{checks.push(name);console.log('OK : '+name)};
 async function api(path,{token,method='GET',body,prefer}={}){
  const r=await fetch(base+path,{method,headers:{apikey:key,...(token?{Authorization:'Bearer '+token}:{}),'Content-Type':'application/json',...(prefer?{Prefer:prefer}:{})},...(body?{body:JSON.stringify(body)}:{})});
@@ -124,25 +131,25 @@ test('Annuaire partagé : deux sessions et API Supabase réelle', {timeout:18000
   passed('Deux scans concurrents : une seule fiche ; identité facultative complétée après passage');
 
   await b.locator('[data-tab=ani]').click();await b.locator('#calendar button.today').click();await b.locator('#new').click();
-  await b.locator('#af [name=title]').fill('Atelier de recette fictif');await b.locator('#af [name=cap]').fill('1');await b.locator('#af button').click();
+  await b.locator('#af [name=title]').fill(eventTitle);await b.locator('#af [name=cap]').fill('1');await b.locator('#af button').click();
   const refused=await freshCard(adminToken);
-  await b.locator('#guest [name=card]').fill(refused);await b.locator('#guest [name=companions]').fill('2');await b.locator('#guest button').click();
+  await b.locator('#guest [name=card]').fill(refused);await b.locator('#guest [name=companions]').fill('2');await b.locator('#guest button.primary').click();
   await waitText(b,'#guestmsg','Plafond dépassé');
   assert.equal((await api(rowPath(refused),{token:adminToken})).data.length,0);
   await b.locator('#guest [name=card]').fill(concurrent);await b.locator('#guest [name=companions]').fill('0');
   assert.equal(await b.locator('#guest [name=known]').textContent(),'Ariane Fictive');
-  await b.locator('#guest button').click();await waitText(b,'#guests','Ariane Fictive');await b.locator('#close').click();
+  await b.locator('#guest button.primary').click();await waitText(b,'#guests','Ariane Fictive');await b.locator('#close').click();
   passed('Identité partagée retrouvée dans les animations ; inscription refusée sans créer de fiche');
 
   const failed=await freshCard(adminToken);
   const matcher=base+'/rest/v1/usagers**';
-  await a.route(matcher,route=>route.request().method()==='POST'?route.abort():route.continue());
+  await a.route(base+'/rest/v1/rpc/commande_guichet',route=>route.abort());
   await board(a,failed);await waitText(a,'#notice','Saisie conservée');
   assert.equal(await a.locator('#board [name=card]').inputValue(),failed);
   assert.equal(await a.locator('#board [name=box]').inputValue(),'BOITE-FICTIVE');
   assert.equal((await api(rowPath(failed),{token:adminToken})).data.length,0);
-  assert.equal(await a.locator('#pending').isVisible(),false);
-  await a.unroute(matcher);await a.locator('#board button').click();
+  assert.equal(await a.locator('#identity [name=reader]').locator('option').filter({hasText:failed}).count(),0);
+  await a.unroute(base+'/rest/v1/rpc/commande_guichet');await a.locator('#board button').click();
   await waitText(a,'#notice','Consultation enregistrée.');
   assert.equal((await api(rowPath(failed),{token:adminToken})).data.length,1);
   passed('Échec réseau : carte et boîte conservées, aucune fiche en attente avant confirmation, reprise réussie');
@@ -169,10 +176,10 @@ test('Annuaire partagé : deux sessions et API Supabase réelle', {timeout:18000
 
   // Une réponse perdue après commit ne doit pas doubler la fiche lors de la reprise.
   const lost=await freshCard(adminToken);
-  await a.route(matcher,async route=>{if(route.request().method()==='POST'){await route.fetch();await route.abort()}else await route.continue()});
+  await a.route(base+'/rest/v1/rpc/commande_guichet',async route=>{await route.fetch();await route.abort()});
   await board(a,lost);await waitText(a,'#notice','Saisie conservée');
   assert.equal((await api(rowPath(lost),{token:adminToken})).data.length,1);
-  await a.unroute(matcher);await a.locator('#board button').click();await waitText(a,'#notice','Consultation enregistrée.');
+  await a.unroute(base+'/rest/v1/rpc/commande_guichet');await a.locator('#board button').click();await waitText(a,'#notice','Consultation enregistrée.');
   assert.equal((await api(rowPath(lost),{token:adminToken})).data.length,1);
   passed('Réponse perdue après écriture : nouvelle tentative sans doublon');
 
@@ -183,28 +190,18 @@ test('Annuaire partagé : deux sessions et API Supabase réelle', {timeout:18000
   assert.equal((await api(rowPath(card),{token:adminToken})).data.length,0);cards.delete(card);
   passed('Suppression administrateur effective et propagée à la session agent');
 
-  // La page publique conserve sa CSP sans connexions et ses trois activités.
-  const demo=await browser.newPage({viewport:{width:360,height:900}});const connections=[];
-  demo.on('request',r=>{if(r.url().startsWith('https://'))connections.push(r.url())});
-  demo.on('pageerror',e=>errors.push(e.message));await demo.goto(origin+'/');
-  await board(demo,'ESSAI-01');await waitText(demo,'#notice','Consultation enregistrée.');
-  await demo.locator('#identity [name=first]').fill('Démo');await demo.locator('#identity button').click();
-  await demo.locator('[data-tab=vid]').click();await demo.locator('#addvideo').click();
-  await demo.locator('#vf [name=game]').selectOption({index:1});await demo.locator('#vf [name=card]').fill('ESSAI-01');
-  await demo.locator('#vf button').click();await waitText(demo,'#vfmsg','Inscription enregistrée.');await demo.locator('#close').click();
-  await demo.locator('#role').selectOption('Administrateur');await demo.locator('[data-tab=ani]').click();
-  await demo.locator('#calendar button.today').click();await demo.locator('#new').click();
-  await demo.locator('#af [name=title]').fill('Atelier fictif');await demo.locator('#af button').click();
-  await demo.locator('#guest [name=card]').fill('ESSAI-01');await demo.locator('#guest button').click();await waitText(demo,'#guests','Démo');
-  await demo.locator('#close').click();
-  assert.deepEqual(connections,[]);assert.equal(await demo.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-  await demo.reload();assert.equal(await demo.locator('#boards').innerText(),'Aucune saisie.');
-  assert.deepEqual(errors,[]);
-  passed('Démonstration autonome : trois parcours ESSAI, CSP active, largeur 360 px et effacement au rechargement');
   await a.screenshot({path:'test-results/session-agent.png',fullPage:true});
   await b.screenshot({path:'test-results/session-administrateur.png',fullPage:true});
  }finally{
-  if(adminToken)for(const card of cards){await api('/rest/v1/rpc/supprimer_usager',{method:'POST',token:adminToken,body:{numero:card}})}
+  if(adminToken){
+   const result=await api('/rest/v1/rpc/etat_guichet',{method:'POST',token:adminToken,body:{}});
+   if(result.status===200){
+    const s=result.data,owned=[...s.boards,...s.videos,...s.events,...s.events.flatMap(e=>[...e.guests,...e.counts]),...s.trash].filter(x=>cards.has(x.card)||x.title===eventTitle);
+    let previous={ids:[],cards:[],operations:[]};try{previous=JSON.parse(fs.readFileSync('.env.test-cleanup.json'))}catch{}
+    previous.ids=[...new Set([...previous.ids,...owned.map(x=>x.id)])];previous.cards=[...new Set([...previous.cards,...cards])];
+    fs.writeFileSync('.env.test-cleanup.json',JSON.stringify(previous));
+   }
+  }
   await browser?.close();
   fs.writeFileSync('test-results/recette.json',JSON.stringify({date:new Date().toISOString(),base,checks},null,2));
  }
