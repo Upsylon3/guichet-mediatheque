@@ -1,0 +1,12 @@
+{
+  "name": "guichet-mediatheque",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "python scripts/check-csp.py && node --test tests/annuaire.test.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.58.2"
+  }
+}

@@ -17,6 +17,8 @@ Un seul porteur de projet peut développer, documenter, exécuter les essais suc
 
 ### Fiche de traitement proposée pour le pilote interne
 
+**Développement de l’annuaire partagé.** Une entrée locale distincte `/dev.html` utilise une base Supabase de développement à Paris avec deux comptes attribués et des données exclusivement fictives. L’annuaire et l’authentification quittent alors le navigateur vers ce service. Les notes sont chargées à l’ouverture d’une fiche détaillée seulement. La page publique `index.html` reste autonome et bloque les connexions applicatives. Les activités demeurent en mémoire et leurs liens ne sont pas encore contrôlés entre postes. Ce raccordement de développement ne constitue pas une validation d’hébergement pour les données du service. Voir [le guide de développement](DEVELOPPEMENT.md) et [la recette](RECETTE-ANNUAIRE.md).
+
 | Élément à inscrire au registre | Proposition à instruire |
 |---|---|
 | Responsable, contacts et périmètre | Identifier la personne morale effectivement responsable (Ville ou Métropole selon l’organisation), le service gestionnaire, le DPD et les éventuels prestataires. |

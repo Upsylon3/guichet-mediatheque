@@ -8,6 +8,8 @@ Lire [le cahier des charges](CAHIER-DES-CHARGES.md), [le guide de lancement](REA
 
 ## Prochaine tâche proposée : un annuaire partagé en développement
 
+**État de la reprise du 13 novembre 2026.** L’annuaire est maintenant raccordé par l’entrée distincte `/dev.html`. À la demande du porteur, la recette utilise Supabase distant à Paris, sans virtualisation ni modification de Vanguard. La page publique garde ses cartes ESSAI et ses données en mémoire. Lire désormais [le guide de développement](DEVELOPPEMENT.md) et [le rapport de recette](RECETTE-ANNUAIRE.md) avant les étapes du pilote ci-dessous. Les consignes numérotées suivantes décrivent la tâche initiale.
+
 1. Conserver la démonstration publique autonome et ses cartes ESSAI. Ajouter un point d’entrée de développement relié à Supabase local, avec deux comptes fictifs fournis par le service et sans inscription publique.
 2. Raccorder l’annuaire existant à la base. Une carte y est une chaîne de sept chiffres, zéros initiaux compris. Un agent peut créer et compléter une fiche. Seul un administrateur peut la supprimer. Conserver le prénom, le nom et la naissance facultatifs après validation de l’activité, dans la page. La note reste dans la fiche détaillée.
 3. Vérifier dans deux sessions qu’une fiche créée dans la première se retrouve dans la seconde, que deux scans concurrents ne créent qu’une fiche et que le serveur refuse la suppression par un agent. Conserver la saisie en cas d’échec d’écriture. Utiliser exclusivement des données fictives.
