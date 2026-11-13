@@ -4,13 +4,15 @@ Une carte commune pour les consultations de jeux de société, les créneaux de 
 
 **[Lire le cahier des charges](CAHIER-DES-CHARGES.md)** · **[Ouvrir la démonstration](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/index.html)**
 
+**[Dossier de revue pour la collectivité](REVUE-COLLECTIVITE.md)** · **[Droits et composants](DROITS.md)**
+
 ### Essayer à deux collègues
 
 1. En **Jeux de société**, enregistrer une consultation en Jeunesse avec la carte fictive `ESSAI-01` et un nom inventé.
 2. En **Jeux vidéo**, cliquer sur **Inscrire** et ressaisir cette carte. Le nom est proposé. Enchaîner avec une deuxième carte sur le même créneau.
 3. En **Animations**, cliquer sur une date, créer une séance et y inscrire la première carte. Rouvrir la fiche pour modifier la séance ou retirer une inscription.
 
-La démonstration conserve les saisies dans le navigateur utilisé. Les jeux et les horaires proposés servent aux essais. La base partagée entre postes, les récurrences, la reprise des classeurs et les règles fines d’accompagnement figurent au cahier des charges pour le pilote interne. Utiliser uniquement des données fictives dans cette page publique.
+La démonstration accepte des cartes fictives préfixées par ESSAI-. Les saisies restent en mémoire et disparaissent au rechargement. Les jeux et les horaires proposés servent aux essais. La base partagée entre postes, les récurrences, la reprise des classeurs et les règles fines d’accompagnement figurent au cahier des charges pour le pilote interne. Utiliser uniquement des données fictives dans cette page publique.
 
 ### Travailler depuis chez soi
 
