@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Guichet médiathèque</title>
+<html lang="fr"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-MbylvCymZVs/ct6RrsjRWtWsqY2TbE903JO72wEQ/ps='; style-src 'sha256-IOVEbTqrEe8tO9m2DBaUbCSjc4t3dh8UZwGI5qsCrRw='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Guichet médiathèque</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f6f4ee;color:#19382f;font:16px/1.5 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:28px clamp(14px,4vw,48px)}header,.bar,nav,.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}header,.bar{justify-content:space-between}h1,h2{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(32px,5vw,55px);margin:8px 0}h2{font-size:28px}p{margin:8px 0}a{color:#235345}nav{margin:24px 0;border-bottom:1px solid #b6c6bc;padding-bottom:12px}button,input,select{font:inherit;border:1px solid #a8b9ad;border-radius:6px;padding:8px 12px;color:inherit;background:white;max-width:100%}button{cursor:pointer}button[aria-current=true],.primary{background:#225546;color:white;border-color:#225546}button:hover{border-color:#225546}section,dialog{background:#fff;border:1px solid #d4dccf;padding:clamp(14px,3vw,28px);border-radius:12px}dialog{color:inherit;width:min(500px,95vw);max-height:90vh}dialog::backdrop{background:#173d3266}label{display:grid;gap:3px;font-size:14px;font-weight:600;align-content:start}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(175px,100%),1fr));gap:12px}form>.actions,.actions{margin-top:14px}.muted,small{color:#51665b}.row{border-top:1px solid #dce3da;padding:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;overflow-wrap:anywhere}.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}.day{min-height:60px;padding:4px}.day small{display:block;overflow-wrap:anywhere;font-size:12px}.today{outline:2px solid #47755a}.day.busy{background:#e5efdc}.actions button{flex-shrink:0}dialog form{display:grid;gap:8px}#notice{min-height:1.6em;font-weight:600}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #c98b26;outline-offset:2px}[hidden]{display:none!important}@media(max-width:530px){nav{gap:5px}nav button{padding:6px;font-size:14px}.day{min-height:48px}.day small{font-size:10px}}
 </style>
-<main><header><div><h1>Guichet médiathèque</h1><p class="muted">Démonstration locale · utiliser uniquement des données fictives</p></div><a href="https://mediatheques.montpellier3m.fr/accueil-general.aspx" target="_blank" rel="noopener">Catalogue du réseau ↗</a></header>
+<main><header><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · saisies effacées au rechargement</p></div><a href="https://mediatheques.montpellier3m.fr/accueil-general.aspx" target="_blank" rel="noopener">Catalogue du réseau ↗</a></header>
 <nav aria-label="Activités"><button data-tab="soc" aria-current="true">Jeux de société</button><button data-tab="vid">Jeux vidéo</button><button data-tab="ani">Animations</button></nav>
 <section id="soc"><div class="bar"><h2>Consultation sur place</h2><label>Secteur<select id="sector"><option>Jeunesse</option><option>Pop Zone</option></select></label></div>
-<form id="board"><div class="fields"><label>Carte fictive<input name="card" required placeholder="ESSAI-01"></label><label>Nom facultatif<input name="person"></label><label>Numéro de boîte<input name="box" required></label><label>Enfants<input name="kids" type="number" min="0" value="1" required></label><label>Adultes<input name="adults" type="number" min="0" value="0" required></label></div><div class="actions"><button class="primary">Enregistrer</button></div></form><h3>Consultations du secteur</h3><div id="boards"></div></section>
+<form autocomplete="off" id="board"><div class="fields"><label>Carte fictive<input name="card" required placeholder="ESSAI-01"></label><label>Nom facultatif<input name="person"></label><label>Numéro de boîte<input name="box" required></label><label>Enfants<input name="kids" type="number" min="0" value="1" required></label><label>Adultes<input name="adults" type="number" min="0" value="0" required></label></div><div class="actions"><button class="primary">Enregistrer</button></div></form><h3>Consultations du secteur</h3><div id="boards"></div></section>
 <section id="vid" hidden><div class="bar"><h2>Créneaux de jeux vidéo</h2><button id="addvideo" class="primary">Inscrire</button></div><div id="videos"></div></section>
 <section id="ani" hidden><div class="bar"><h2 id="month"></h2><div><button id="prev" aria-label="Mois précédent">‹</button> <button id="now">Aujourd’hui</button> <button id="next" aria-label="Mois suivant">›</button></div></div><div class="week" id="calendar"></div></section>
-<p id="notice" role="status"></p><footer><a href="https://github.com/Upsylon3/guichet-mediatheque/blob/main/CAHIER-DES-CHARGES.md">Cahier des charges</a></footer></main>
-<dialog id="modal"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>
+<p id="notice" role="status"></p><footer><a href="https://github.com/Upsylon3/guichet-mediatheque/blob/main/REVUE-COLLECTIVITE.md">Confidentialité et revue du projet</a> · <a href="https://github.com/Upsylon3/guichet-mediatheque/blob/main/CAHIER-DES-CHARGES.md">Cahier des charges</a></footer></main>
+<dialog id="modal" aria-labelledby="heading"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
@@ -18,17 +18,17 @@ const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<
 const today=new Date();
 const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
 const dateLabel=s=>new Date(s+'T12:00:00').toLocaleDateString('fr-FR');
-const key='guichet-demo-v1';
-let state=JSON.parse(localStorage.getItem(key)||'null')||{people:{},boards:[],videos:[],events:[],sector:'Jeunesse'};
+try { localStorage.removeItem('guichet-demo-v1') } catch {}
+let state={people:{},boards:[],videos:[],events:[],sector:'Jeunesse'};
 let cursor=new Date(today.getFullYear(),today.getMonth(),1);
 const posts={ZELDA:[1,'Exploration'],PEACH:[2,'Course'],MARIO:[4,'Circuit'],ELLIE:[2,'Aventure'],SACKBOY:[2,'Sports'],SPYRO:[1,'Voyage']};
 let last=state.last||{date:iso(today),post:'MARIO',slot:'10:15',game:''};
-function save(msg){localStorage.setItem(key,JSON.stringify(state));render();$('notice').textContent=msg}
+function save(msg){render();$('notice').textContent=msg}
 function dialog(title,html){$('heading').textContent=title;$('body').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
 $('close').onclick=()=>$('modal').close();
 function nameOf(card){return Object.hasOwn(state.people,card)?state.people[card]:''}
 function remember(card,name){if(name.trim())Object.defineProperty(state.people,card,{value:name.trim(),enumerable:true,writable:true,configurable:true})}
-function linkName(form){form.elements.card.oninput=()=>{form.elements.person.value=nameOf(form.elements.card.value.trim())}}
+function linkName(form){form.autocomplete="off";const card=form.elements.card;card.pattern="ESSAI-[0-9]{1,4}";card.placeholder="ESSAI-01";card.title="Carte fictive de la forme ESSAI-01";card.oninput=()=>{form.elements.person.value=nameOf(form.elements.card.value.trim())}}
 linkName($('board'));
 document.querySelector('nav').onclick=e=>{if(!e.target.dataset.tab)return;for(const b of document.querySelectorAll('[data-tab]')){const active=b===e.target;$(b.dataset.tab).hidden=!active;b.setAttribute('aria-current',active)}$('notice').textContent=''};
 $('sector').value=state.sector;$('sector').onchange=()=>{state.sector=$('sector').value;save('')};
