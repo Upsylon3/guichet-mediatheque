@@ -52,7 +52,7 @@ Application web interne, une adresse commune sur les postes autorisés de l’é
 
 | Objet | Relations et règles |
 |---|---|
-| Usager | Identifiant technique stable, carte unique, nom facultatif. |
+| Usager | Identifiant technique stable, carte unique, prénom, nom, date de naissance et note facultatifs. |
 | Jeu de société / exemplaire | Le numéro scanné désigne une boîte et son secteur. Une consultation relie boîte, carte, secteur de consultation, date et effectifs. |
 | Poste / jeu vidéo | Plusieurs postes de même matériel peuvent avoir des capacités, horaires et jeux différents. Un jeu peut être disponible sur plusieurs postes. |
 | Série / séance | Le modèle définit une récurrence et ses paramètres. Chaque occurrence datée peut porter des exceptions. |
@@ -85,7 +85,9 @@ Le service démarre avec une base vide. Aucun historique nominatif des trois cla
 - **SPYRO le samedi.** La grille fait foi : 10 h 15–11 h 45, 13 h 45–15 h 15, 15 h 15–16 h 45 et 16 h 45–17 h 45.
 - **Recherche par carte.** Un scan ou une saisie depuis n’importe quel onglet indique les consultations du jour avec secteur et boîte, ainsi que les inscriptions du jour et à venir avec activité, poste ou lieu, date, heure et jeu. Les 15 secondes évoquées décrivent le temps de recherche actuel.
 - **Droits proposés.** L’agent peut consulter, rechercher, inscrire, désinscrire et compléter une identité après passage. Par défaut, l’administration gère les séances, les paramètres, les habilitations, les exports nominatifs et les opérations en masse. Prévoir une attribution configurable par action. Les contrôles doivent aussi porter sur les requêtes au serveur. Aucun agent ne peut s’attribuer un rôle.
-- **Questions encore ouvertes.** Une note libre est-elle utile au guichet ? Donner un exemple inventé et préciser si elle doit rester sur une séance, un secteur ou une fiche. Après une séance terminée, dans quel cas et pendant combien de temps faut-il pouvoir retrouver qui était inscrit ? Examiner séparément les décomptes anonymes de fréquentation.
+- **Fiche usager.** L’agent peut créer et compléter une fiche, y compris après un passage. Prénom, nom et date de naissance sont proposés ensemble et restent facultatifs. La note interne, facultative, est accessible en ouvrant la fiche dans l’annuaire. Elle est absente des listes, résultats de recherche et formulaires de passage. Seul un administrateur peut supprimer une fiche. Signaler les activités encore liées avant suppression.
+- **Historique.** Les liens entre carte et activité sont utiles pour le jour courant et les réservations futures. Dès le changement de date à Montpellier, conserver seulement des totaux par jour et par activité. La fiche usager existe indépendamment de cet historique. Pour le serveur, prévoir une clôture transactionnelle rejouable après interruption et vérifier que les journaux, exports et restaurations ne réintroduisent pas d’historique individuel accessible.
+- **Tableau d’administration.** Réunir les réglages dans une interface dédiée. La démonstration permet de créer un poste, choisir ses jeux, sa capacité, ses horaires de début et de fin, les valeurs par défaut des animations et la délégation de gestion des séances. Une modification incompatible avec une réservation doit identifier le conflit et préserver la réservation. Les règles communes de confidentialité et la suppression réservée aux administrateurs sont fixes.
 
 ### 9. Revue avant le pilote
 

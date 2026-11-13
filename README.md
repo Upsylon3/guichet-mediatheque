@@ -12,7 +12,7 @@ Une carte commune pour les consultations de jeux de société, les créneaux de 
 2. En **Jeux vidéo**, cliquer sur **Inscrire**, choisir le jeu et ressaisir cette carte. Si la fiche a été complétée, son nom apparaît. Enchaîner avec une deuxième carte sur le même créneau.
 3. Choisir le profil de démonstration **Administrateur**. En **Animations**, cliquer sur une date, créer une séance et y inscrire la première carte. Rouvrir la fiche pour modifier la séance ou retirer une inscription.
 
-La démonstration accepte des cartes fictives préfixées par ESSAI-. Les saisies restent en mémoire et disparaissent au rechargement. Les jeux et les horaires proposés servent aux essais. La recherche par carte couvre les trois activités. Le sélecteur de profil sert à comparer les commandes dans une session fictive. Utiliser uniquement des données fictives dans cette page publique.
+La démonstration accepte des cartes fictives préfixées par ESSAI-. Les fiches, activités et totaux restent en mémoire et disparaissent au rechargement. Les réglages de démonstration seuls sont enregistrés sur ce navigateur. Les jeux et les horaires proposés servent aux essais. La recherche par carte couvre les trois activités. Le sélecteur de profil sert à comparer les commandes dans une session fictive. Utiliser uniquement des données fictives dans cette page publique.
 
 ### Travailler depuis chez soi
 
@@ -27,3 +27,10 @@ Le dossier `supabase/` prépare un environnement local reproductible. Installer 
 La première migration fournit les cartes, les postes et leurs politiques d’accès. Un compte sans habilitation n’a aucun accès aux données. Un agent peut compléter une fiche et lire les postes. Un administrateur peut aussi gérer les postes et supprimer une fiche. Les tables d’activité, les transactions de réservation et le raccordement de l’interface restent à réaliser. La page publique autonome utilise des données en mémoire. Les essais de base locale emploient exclusivement des identités inventées. Le serveur interne est prévu pour l’exploitation.
 
 GitHub Pages peut servir les fichiers statiques du dépôt. L’activation se fait dans les paramètres Pages, branche `main`, dossier racine. La prévisualisation en tête de page fonctionne également sans cette activation. [Documentation GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) · [Documentation Supabase locale](https://supabase.com/docs/guides/local-development/cli/getting-started)
+
+
+### Annuaire et administration
+
+**Usagers** ouvre la recherche par nom ou carte et la création de fiche. Après un passage, **Fiches à compléter** propose le prénom, le nom et la date de naissance. La note se trouve dans la fiche de l’annuaire. Le profil Administrateur dispose également du bouton **Administration** pour configurer les postes, jeux, capacités, horaires, valeurs par défaut des animations et délégation de leur gestion. Les modifications de réglages s’appliquent aux formulaires de ce navigateur. La suppression des usagers est réservée aux administrateurs.
+
+Les totaux du tableau d’administration comptent les personnes déclarées en jeux de société et les places ou personnes inscrites aux autres activités, accompagnateurs compris. Les données de présence effective ne sont pas mesurées. Les réglages partagés entre postes et la clôture serveur des activités seront à raccorder avec les tables métier.

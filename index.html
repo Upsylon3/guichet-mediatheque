@@ -1,17 +1,35 @@
 <!doctype html>
-<html lang="fr"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-tkdYaKhpSpoDzExGhAmC9GmQ/Vm/+IlYc+ot3/RIFTQ='; style-src 'sha256-IOVEbTqrEe8tO9m2DBaUbCSjc4t3dh8UZwGI5qsCrRw='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Guichet médiathèque</title>
+<html lang="fr"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-kZvKfqcyDnAfhCYoCAQdUjUK5dl/tuuDlhkpK56/qjk='; style-src 'sha256-zn9UJypQvlOHe35BsWVO4F2OiiEaDx/ib+WtrlvadeM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Guichet médiathèque</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f6f4ee;color:#19382f;font:16px/1.5 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:28px clamp(14px,4vw,48px)}header,.bar,nav,.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}header,.bar{justify-content:space-between}h1,h2{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(32px,5vw,55px);margin:8px 0}h2{font-size:28px}p{margin:8px 0}a{color:#235345}nav{margin:24px 0;border-bottom:1px solid #b6c6bc;padding-bottom:12px}button,input,select{font:inherit;border:1px solid #a8b9ad;border-radius:6px;padding:8px 12px;color:inherit;background:white;max-width:100%}button{cursor:pointer}button[aria-current=true],.primary{background:#225546;color:white;border-color:#225546}button:hover{border-color:#225546}section,dialog{background:#fff;border:1px solid #d4dccf;padding:clamp(14px,3vw,28px);border-radius:12px}dialog{color:inherit;width:min(500px,95vw);max-height:90vh}dialog::backdrop{background:#173d3266}label{display:grid;gap:3px;font-size:14px;font-weight:600;align-content:start}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(175px,100%),1fr));gap:12px}form>.actions,.actions{margin-top:14px}.muted,small{color:#51665b}.row{border-top:1px solid #dce3da;padding:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;overflow-wrap:anywhere}.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}.day{min-height:60px;padding:4px}.day small{display:block;overflow-wrap:anywhere;font-size:12px}.today{outline:2px solid #47755a}.day.busy{background:#e5efdc}.actions button{flex-shrink:0}dialog form{display:grid;gap:8px}#notice{min-height:1.6em;font-weight:600}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #c98b26;outline-offset:2px}[hidden]{display:none!important}@media(max-width:530px){nav{gap:5px}nav button{padding:6px;font-size:14px}.day{min-height:48px}.day small{font-size:10px}}
+*{box-sizing:border-box}body{margin:0;background:#f6f4ee;color:#19382f;font:16px/1.5 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:28px clamp(14px,4vw,48px)}header,.bar,nav,.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}header,.bar{justify-content:space-between}h1,h2{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(32px,5vw,55px);margin:8px 0}h2{font-size:28px}p{margin:8px 0}a{color:#235345}nav{margin:24px 0;border-bottom:1px solid #b6c6bc;padding-bottom:12px}button,input,select,textarea{font:inherit;border:1px solid #a8b9ad;border-radius:6px;padding:8px 12px;color:inherit;background:white;max-width:100%}button{cursor:pointer}button[aria-current=true],.primary{background:#225546;color:white;border-color:#225546}button:hover{border-color:#225546}section,dialog{background:#fff;border:1px solid #d4dccf;padding:clamp(14px,3vw,28px);border-radius:12px}dialog{color:inherit;width:min(500px,95vw);max-height:90vh}dialog::backdrop{background:#173d3266}label{display:grid;gap:3px;font-size:14px;font-weight:600;align-content:start}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(175px,100%),1fr));gap:12px}form>.actions,.actions{margin-top:14px}.muted,small{color:#51665b}.row{border-top:1px solid #dce3da;padding:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;overflow-wrap:anywhere}.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}.day{min-height:60px;padding:4px}.day small{display:block;overflow-wrap:anywhere;font-size:12px}.today{outline:2px solid #47755a}.day.busy{background:#e5efdc}.actions button{flex-shrink:0}dialog form{display:grid;gap:8px}#notice{min-height:1.6em;font-weight:600}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #c98b26;outline-offset:2px}[hidden]{display:none!important}@media(max-width:530px){nav{gap:5px}nav button{padding:6px;font-size:14px}.day{min-height:48px}.day small{font-size:10px}}
 </style>
-<main><header><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · saisies effacées au rechargement</p></div><a href="https://mediatheques.montpellier3m.fr/accueil-general.aspx" target="_blank" rel="noopener">Catalogue du réseau ↗</a></header>
+<main><header><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · données usagers effacées au rechargement</p></div><a href="https://mediatheques.montpellier3m.fr/accueil-general.aspx" target="_blank" rel="noopener">Catalogue du réseau ↗</a></header>
 <div class="bar"><label>Recherche par carte<input id="lookup" placeholder="ESSAI-01" autocomplete="off"></label><label>Profil de démonstration<select id="role"><option>Agent</option><option>Administrateur</option></select></label></div><div id="results" role="status"></div>
+<div class="actions"><button id="openUsers">Usagers</button><button id="openAdmin" hidden>Administration</button></div>
+<section id="users" hidden><div class="bar"><h2>Usagers</h2><button id="createUser">Ajouter un usager</button></div>
+<label>Rechercher par carte ou par nom<input id="filterUsers" autocomplete="off"></label><div id="userList"></div>
+<form id="personForm" hidden autocomplete="off"><h3 id="personTitle"></h3><div class="fields">
+<label>Carte fictive<input name="card" required pattern="ESSAI-[0-9]{1,4}" placeholder="ESSAI-01"></label>
+<label>Prénom<input name="first"></label><label>Nom<input name="last"></label><label>Date de naissance<input type="date" name="birth"></label></div>
+<details id="noteDetails"><summary>Note interne</summary><label>Note sur la fiche<input maxlength="500" name="note"></label></details>
+<div class="actions"><button>Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form></section>
+<section id="settings" hidden><h2>Administration</h2><form id="config"><h3>Postes de jeux vidéo</h3>
+<label>Poste à régler<select id="editPost"></select></label><div class="fields">
+<label>Nom du poste<input name="postName" required maxlength="50"></label><label>Places<input name="capacity" type="number" required min="1" max="4"></label>
+<label>Jeux disponibles (un par ligne)<textarea name="games" rows="5" required></textarea></label>
+<label>Créneaux (un par ligne, 10:15–11:15)<textarea name="slots" rows="6" required></textarea></label></div>
+<h3>Valeurs par défaut des animations</h3><div class="fields"><label>Plafond facultatif<input name="limit" type="number" min="1"></label>
+<label>Accompagnateurs<select name="count"><option value="oui">Inclus dans la jauge</option><option value="non">Hors jauge</option></select></label></div>
+<h3>Droits des agents</h3><label><span><input name="manageEvents" type="checkbox"> Gérer les séances d’animation</span></label>
+<div class="actions"><button>Enregistrer les réglages</button></div><p id="configMsg" role="status"></p></form>
+<h3>Totaux des jours précédents</h3><div id="totals"></div></section>
 <nav aria-label="Activités"><button data-tab="soc" aria-current="true">Jeux de société</button><button data-tab="vid">Jeux vidéo</button><button data-tab="ani">Animations</button></nav>
 <section id="soc"><div class="bar"><h2>Consultation sur place</h2><label>Secteur<select id="sector"><option>Jeunesse</option><option>Pop Zone</option></select></label></div>
 <form autocomplete="off" id="board"><div class="fields"><label>Carte fictive<input name="card" required placeholder="ESSAI-01"></label><output name="known"></output><label>Numéro de boîte<input name="box" required></label><label>Enfants<input name="kids" type="number" min="0" value="1" required></label><label>Adultes<input name="adults" type="number" min="0" value="0" required></label></div><div class="actions"><button class="primary">Enregistrer</button></div></form><h3>Consultations du secteur</h3><div id="boards"></div></section>
 <section id="vid" hidden><div class="bar"><h2>Créneaux de jeux vidéo</h2><button id="addvideo" class="primary">Inscrire</button></div><div id="videos"></div></section>
 <section id="ani" hidden><div class="bar"><h2 id="month"></h2><div><button id="prev" aria-label="Mois précédent">‹</button> <button id="now">Aujourd’hui</button> <button id="next" aria-label="Mois suivant">›</button></div></div><div class="week" id="calendar"></div></section>
 <p id="notice" role="status"></p><section id="pending" hidden><h2>Fiches à compléter</h2>
-<form id="identity" autocomplete="off"><div class="fields"><label>Carte<select name="reader"></select></label><label>Prénom facultatif<input name="first"></label><label>Nom facultatif<input name="last"></label></div><div class="actions"><button>Enregistrer la fiche</button></div></form></section><footer><a href="https://github.com/Upsylon3/guichet-mediatheque/blob/main/REVUE-COLLECTIVITE.md">Confidentialité et revue du projet</a> · <a href="https://github.com/Upsylon3/guichet-mediatheque/blob/main/CAHIER-DES-CHARGES.md">Cahier des charges</a></footer></main>
+<form id="identity" autocomplete="off"><div class="fields"><label>Carte<select name="reader"></select></label><label>Prénom facultatif<input name="first"></label><label>Nom facultatif<input name="last"></label><label>Date de naissance facultative<input name="birth" type="date"></label></div><div class="actions"><button>Enregistrer la fiche</button></div></form></section><footer><a href="https://github.com/Upsylon3/guichet-mediatheque/blob/main/REVUE-COLLECTIVITE.md">Confidentialité et revue du projet</a> · <a href="https://github.com/Upsylon3/guichet-mediatheque/blob/main/CAHIER-DES-CHARGES.md">Cahier des charges</a></footer></main>
 <dialog id="modal" aria-labelledby="heading"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>
 <script>
 'use strict';
@@ -26,12 +44,116 @@ let cursor=new Date(today.getFullYear(),today.getMonth(),1);
 const posts={ZELDA:[1,'Exploration'],PEACH:[2,'Course'],MARIO:[4,'Circuit','Rallye'],ELLIE:[2,'Aventure'],SACKBOY:[2,'Sports'],SPYRO:[1,'Voyage']};
 let last=state.last||{date:iso(today),post:'MARIO',slot:'10:15',game:''};
 const admin=()=>$('role').value==='Administrateur';
-$('role').onchange=()=>{if($('modal').open)$('modal').close();render()};
+$('role').onchange=()=>{$('settings').hidden=true;$('personForm').hidden=true;if($('modal').open)$('modal').close();render()};
+const parisDay=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Paris'}).format(new Date());
+const configKey='guichet-parametres-v1';
+const ranges=['10:15–11:15','11:15–12:15','13:45–14:45','14:45–15:45','15:45–16:45','16:45–17:45'];
+const regular=Object.fromEntries(Object.keys(posts).map(key=>[key,{capacity:posts[key][0],games:posts[key].slice(1),slots:key==='SPYRO'?['10:15–11:45','13:45–15:15','15:15–16:45','16:45–17:45']:[...ranges]}]));
+let settings={stations:regular,limit:'',count:'oui',manageEvents:false};
+try{const saved=JSON.parse(localStorage.getItem(configKey));if(saved?.stations && Object.hasOwn(saved.stations,'MARIO'))settings=saved}catch{}
+const mayEditEvents=()=>admin()||settings.manageEvents;
+const historic=new Map();
+function closePastDays(){
+ const day=parisDay();
+ function add(date,kind,number){const key=date+' · '+kind;historic.set(key,(historic.get(key)||0)+number)}
+ for(const x of state.boards)if(x.date<day)add(x.date,'Jeux de société',x.kids+x.adults);
+ for(const x of state.videos)if(x.date<day)add(x.date,'Jeux vidéo',1+x.companions);
+ for(const x of state.events)if(x.date<day){add(x.date,'Animations',x.guests.reduce((n,g)=>n+1+g.companions,0));x.guests=[]}
+ state.boards=state.boards.filter(x=>x.date>=day);
+ state.videos=state.videos.filter(x=>x.date>=day);
+ state.events=state.events.filter(x=>x.date>=day);
+ $('totals').textContent=Array.from(historic,([key,n])=>key+' : '+n).join(' | ')||'Aucun jour clôturé.';
+}
+let observedDay=parisDay();
+function checkDay(){
+ if(parisDay()===observedDay)return;
+ observedDay=parisDay();if($('modal').open)$('modal').close();render()
+}
+setInterval(checkDay,10000);
+document.addEventListener('visibilitychange',checkDay);
+window.addEventListener('focus',checkDay);
+function userList(){
+ const text=$('filterUsers').value.trim().toLocaleLowerCase('fr');
+ const list=$('userList');list.replaceChildren();
+ for(const card of Object.keys(state.people).sort()){
+  const label=[card,nameOf(card)].filter(Boolean).join(' · ');
+  if(!label.toLocaleLowerCase('fr').includes(text))continue;
+  const button=document.createElement('button');button.textContent=label;button.onclick=()=>openPerson(card);list.append(button)
+ }
+}
+function openPerson(card=''){
+ const form=$('personForm'),f=form.elements,p=state.people[card]||{};
+ form.hidden=false;form.reset();f.card.readOnly=Boolean(card);f.card.value=card;
+ for(const key of ['first','last','birth','note'])f[key].value=p[key]||'';
+ f.birth.max=parisDay();$('noteDetails').open=false;$('personMsg').textContent='';
+ $('personTitle').textContent=card?'Fiche usager':'Nouvel usager';
+ $('noteDetails').hidden=!card;$('deleteUser').hidden=!card||!admin();
+}
+function clearPending(card){
+ pending.delete(card);
+ for(const opt of Array.from(identity.reader.options))if(opt.value===card)opt.remove();
+ identity.reader.onchange();$('pending').hidden=pending.size===0
+}
+$('openUsers').onclick=()=>{$('users').hidden=!$('users').hidden;$('settings').hidden=true;userList()};
+$('filterUsers').oninput=userList;
+$('createUser').onclick=()=>openPerson();
+$('personForm').onsubmit=e=>{
+ e.preventDefault();const f=e.target.elements,card=f.card.value.trim();
+ if(!e.target.reportValidity())return;
+ if(!f.card.readOnly&&state.people[card]){$('personMsg').textContent='Cette carte existe déjà.';return}
+ state.people[card]={first:f.first.value.trim(),last:f.last.value.trim(),birth:f.birth.value,note:f.note.value.trim()};
+ clearPending(card);openPerson(card);save('Fiche enregistrée.')
+};
+$('deleteUser').onclick=()=>{
+ if(!admin())return;
+ const card=$('personForm').elements.card.value;
+ if([...state.boards,...state.videos].some(x=>x.card===card)||state.events.some(x=>x.guests.some(g=>g.card===card))){
+  $('personMsg').textContent='Cette carte est liée à une activité du jour ou à venir.';return
+ }
+ if(!confirm('Supprimer cette fiche usager ?'))return;
+ delete state.people[card];clearPending(card);$('personForm').hidden=true;save('Fiche supprimée.')
+};
+function readConfig(){
+ const f=$('config').elements, key=$('editPost').value, station=settings.stations[key];
+ f.postName.value=key;f.postName.readOnly=Boolean(station);f.capacity.value=station?.capacity||1;
+ f.games.value=station?.games.join('\n')||'';f.slots.value=(station?.slots||ranges).join('\n');
+ f.limit.value=settings.limit;f.count.value=settings.count;f.manageEvents.checked=settings.manageEvents;$('configMsg').textContent=''
+}
+function configList(selected){
+ $('editPost').replaceChildren(...Object.keys(settings.stations).map(x=>new Option(x,x)),new Option('Ajouter un poste',''));
+ $('editPost').value=selected;readConfig()
+}
+$('openAdmin').onclick=()=>{
+ if(!admin())return;
+ $('settings').hidden=!$('settings').hidden;$('users').hidden=true;configList(Object.keys(settings.stations)[0])
+};
+$('editPost').onchange=readConfig;
+$('config').onsubmit=e=>{
+ e.preventDefault();if(!admin()||!e.target.reportValidity())return;
+ const f=e.target.elements,key=f.postName.value.trim(),games=[...new Set(f.games.value.split('\n').map(s=>s.trim()).filter(Boolean))];
+ const slots=f.slots.value.split('\n').map(s=>s.trim().replace(/\s*[-–]\s*/g,'–')).filter(Boolean).sort();
+ const time='(?:[01]\\d|2[0-3]):[0-5]\\d',valid=new RegExp('^'+time+'–'+time+'$');
+ const msg=$('configMsg');
+ if(!key||Object.hasOwn(Object.prototype,key)||(!$('editPost').value&&Object.hasOwn(settings.stations,key))||!games.length){msg.textContent='Vérifiez le nom du poste et la liste des jeux.';return}
+ if(!slots.length||slots.some((r,i)=>!valid.test(r)||r.slice(0,5)>=r.slice(6)||(i&&slots[i-1].slice(6)>r.slice(0,5)))){msg.textContent='Vérifiez les horaires et les chevauchements.';return}
+ const used=new Map();
+ for(const b of state.videos.filter(x=>x.post===key)){
+  const group=b.date+b.slot;used.set(group,(used.get(group)||0)+1+b.companions);
+  if(!games.includes(b.game)||!slots.includes(settings.stations[key].slots.find(r=>r.startsWith(b.slot)))||used.get(group)>+f.capacity.value){
+   msg.textContent='Une réservation utilise déjà ce jeu, cet horaire ou ces places.';return
+  }
+ }
+ settings.stations[key]={capacity:+f.capacity.value,games,slots};
+ settings.limit=f.limit.value;settings.count=f.count.value;settings.manageEvents=f.manageEvents.checked;
+ configList(key);save('Réglages appliqués.');
+ try{localStorage.setItem(configKey,JSON.stringify(settings));msg.textContent='Réglages enregistrés sur ce navigateur.'}catch{msg.textContent='Réglages appliqués pour cette session.'}
+};
+
 function searchCard(){
  const card=$('lookup').value.trim();
  const results=$('results');results.replaceChildren();
  if(!card)return;
- const day=iso(new Date());
+ const day=parisDay();
  const lines=[
   ...state.boards.filter(x=>x.card===card && x.date===day).map(x=>x.sector+' · consultation du jour · boîte '+x.box),
   ...state.videos.filter(x=>x.card===card && x.date>=day).map(x=>dateLabel(x.date)+' · '+x.slot+' · '+x.post+' · '+x.game),
@@ -46,59 +168,58 @@ function dialog(title,html){$('heading').textContent=title;$('body').innerHTML=h
 $('close').onclick=()=>$('modal').close();
 const pending = new Map();
 const identity = $('identity').elements;
-function nameOf(card){return state.people[card] || ''}
+function nameOf(card){const p=state.people[card];return p?[p.first,p.last].filter(Boolean).join(' '):''}
 function queueIdentity(card){
- if(nameOf(card) || pending.has(card)) return;
+ if(state.people[card])return;
+ state.people[card]={};
  pending.set(card,{first:'',last:''});
  identity.reader.add(new Option(card,card));
  $('pending').hidden=false;
 }
+identity.birth.max=parisDay();
 identity.reader.onchange=()=>{
  const draft=pending.get(identity.reader.value);
+ identity.birth.value=draft?.birth || '';
  identity.first.value=draft?.first || '';
  identity.last.value=draft?.last || '';
 };
 $('identity').oninput=()=>{
  const draft=pending.get(identity.reader.value);
- if(draft){draft.first=identity.first.value;draft.last=identity.last.value}
+ if(draft){draft.birth=identity.birth.value;draft.first=identity.first.value;draft.last=identity.last.value}
 };
 $('identity').onsubmit=e=>{
  e.preventDefault();
  const card=identity.reader.value;
- const name=[identity.first.value.trim(),identity.last.value.trim()].filter(Boolean).join(' ');
- if(!name || !pending.has(card)) return;
- state.people[card]=name;
- pending.delete(card);
- identity.reader.remove(identity.reader.selectedIndex);
- identity.reader.onchange();
- $('pending').hidden=pending.size===0;
+ if(!pending.has(card)||!e.target.reportValidity())return;
+ state.people[card]={...state.people[card],first:identity.first.value.trim(),last:identity.last.value.trim(),birth:identity.birth.value};
+ clearPending(card);
  save('Fiche enregistrée.');
 };
 function linkName(form){form.autocomplete="off";const card=form.elements.card;card.pattern="ESSAI-[0-9]{1,4}";card.placeholder="ESSAI-01";card.title="Carte fictive de la forme ESSAI-01";card.oninput=()=>{form.elements.known.value=nameOf(card.value.trim())}}
 linkName($('board'));
 document.querySelector('nav').onclick=e=>{if(!e.target.dataset.tab)return;for(const b of document.querySelectorAll('[data-tab]')){const active=b===e.target;$(b.dataset.tab).hidden=!active;b.setAttribute('aria-current',active)}$('notice').textContent=''};
 $('sector').value=state.sector;$('sector').onchange=()=>{state.sector=$('sector').value;save('')};
-$('board').onsubmit=e=>{e.preventDefault();const f=e.target.elements,c=f.card.value.trim(),b=f.box.value.trim();if(!c||!b)return;queueIdentity(c);state.boards.unshift({id:crypto.randomUUID(),card:c,box:b,kids:+f.kids.value,adults:+f.adults.value,sector:state.sector,date:iso(new Date())});e.target.reset();save('Consultation enregistrée.');f.card.focus()};
+$('board').onsubmit=e=>{e.preventDefault();const f=e.target.elements,c=f.card.value.trim(),b=f.box.value.trim();if(!c||!b)return;queueIdentity(c);state.boards.unshift({id:crypto.randomUUID(),card:c,box:b,kids:+f.kids.value,adults:+f.adults.value,sector:state.sector,date:parisDay()});e.target.reset();save('Consultation enregistrée.');f.card.focus()};
 function rows(id,list,describe,collection){$(id).replaceChildren();if(!list.length){$(id).textContent='Aucune saisie.';return}
  for(const item of list){const row=document.createElement('div'),label=document.createElement('span'),button=document.createElement('button');row.className='row';label.textContent=describe(item);button.textContent='Retirer';button.onclick=()=>{state[collection]=state[collection].filter(x=>x.id!==item.id);save('Saisie retirée.')};row.append(label,button);$(id).append(row)}}
-function render(){searchCard();rows('boards',state.boards.filter(x=>x.sector===state.sector),x=>[dateLabel(x.date),nameOf(x.card)||x.card,'Boîte '+x.box,x.kids+' enf. + '+x.adults+' ad.'].join(' · '),'boards');rows('videos',state.videos,x=>[dateLabel(x.date),x.slot,x.post,nameOf(x.card)||x.card,x.game].filter(Boolean).join(' · '),'videos');calendar()}
+function render(){closePastDays();userList();$('openAdmin').hidden=!admin();searchCard();rows('boards',state.boards.filter(x=>x.sector===state.sector),x=>[dateLabel(x.date),nameOf(x.card)||x.card,'Boîte '+x.box,x.kids+' enf. + '+x.adults+' ad.'].join(' · '),'boards');rows('videos',state.videos,x=>[dateLabel(x.date),x.slot,x.post,nameOf(x.card)||x.card,x.game].filter(Boolean).join(' · '),'videos');calendar()}
 const opts=items=>items.map(x=>'<option>'+escapeHtml(x)+'</option>').join('');
-$('addvideo').onclick=()=>{dialog('Inscrire aux jeux vidéo','<form id="vf"><label>Jour<input name="date" type="date" required></label><label>Poste<select name="post">'+opts(Object.keys(posts))+'</select></label><label>Créneau<select name="slot"></select></label><label>Jeu<select name="game" required></select></label><label>Carte fictive<input name="card" required></label><output name="known"></output><label>Accompagnateurs<input name="companions" type="number" min="0" value="0" required></label><p id="vfmsg" role="status"></p><button class="primary">Inscrire</button></form>');
- const form=$('vf'),f=form.elements;f.date.value=last.date;f.post.value=last.post;
+$('addvideo').onclick=()=>{dialog('Inscrire aux jeux vidéo','<form id="vf"><label>Jour<input name="date" type="date" required></label><label>Poste<select name="post">'+opts(Object.keys(settings.stations))+'</select></label><label>Créneau<select name="slot"></select></label><label>Jeu<select name="game" required></select></label><label>Carte fictive<input name="card" required></label><output name="known"></output><label>Accompagnateurs<input name="companions" type="number" min="0" value="0" required></label><p id="vfmsg" role="status"></p><button class="primary">Inscrire</button></form>');
+ const form=$('vf'),f=form.elements;f.date.min=parisDay();f.date.value=last.date<parisDay()?parisDay():last.date;f.post.value=last.post;
  const occupied=()=>state.videos.filter(x=>x.date===f.date.value && x.slot===f.slot.value && x.post===f.post.value);
  function availability(){
   const bookings=occupied();
-  const remaining=posts[f.post.value][0]-bookings.reduce((sum,x)=>sum+1+x.companions,0);
+  const remaining=settings.stations[f.post.value].capacity-bookings.reduce((sum,x)=>sum+1+x.companions,0);
   const shared=bookings[0]?.game;
   const previous=f.game.value || (last.post===f.post.value?last.game:'');
-  const games=posts[f.post.value].slice(1);
+  const games=settings.stations[f.post.value].games;
   f.game.innerHTML='<option value="">Choisir un jeu</option>'+opts(shared?[shared]:games);
   f.game.value=shared || (games.includes(previous)?previous:'');
-  $('vfmsg').textContent=remaining+' place(s) disponible(s). '+(shared?'Jeu en cours : '+shared:posts[f.post.value][0]>1?'Les places libres sont ouvertes aux autres joueurs sur le même jeu.':'');
+  $('vfmsg').textContent=remaining+' place(s) disponible(s). '+(shared?'Jeu en cours : '+shared:settings.stations[f.post.value].capacity>1?'Les places libres sont ouvertes aux autres joueurs sur le même jeu.':'');
   return remaining;
  }
  function refresh(){
-  const times=f.post.value==='SPYRO'?['10:15','13:45','15:15','16:45']:['10:15','11:15','13:45','14:45','15:45','16:45'];
+  const times=settings.stations[f.post.value].slots.map(r=>r.slice(0,5));
   f.slot.innerHTML=opts(times);if(times.includes(last.slot))f.slot.value=last.slot;
   availability();
  }
@@ -109,7 +230,7 @@ $('addvideo').onclick=()=>{dialog('Inscrire aux jeux vidéo','<form id="vf"><lab
   if(!card || !form.reportValidity())return;
   const same=state.videos.filter(x=>x.date===f.date.value);
   const minutes=time=>Number(time.slice(0,2))*60+Number(time.slice(3));
-  const end=(post,slot)=>minutes(slot)+(post==='SPYRO'&&slot!=='16:45'?90:60);
+  const end=(post,slot)=>minutes(settings.stations[post].slots.find(r=>r.startsWith(slot)).slice(6));
   if(same.some(x=>x.card===card && minutes(x.slot)<end(f.post.value,f.slot.value) && minutes(f.slot.value)<end(x.post,x.slot))){
    $('vfmsg').textContent='Carte déjà inscrite sur cet horaire.';return
   }
@@ -122,11 +243,11 @@ $('addvideo').onclick=()=>{dialog('Inscrire aux jeux vidéo','<form id="vf"><lab
 function calendar(){$('month').textContent=cursor.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});const grid=$('calendar');grid.innerHTML=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(x=>'<b>'+x+'</b>').join('');for(let i=0;i<(cursor.getDay()+6)%7;i++)grid.append(document.createElement('span'));
  for(let n=1;n<=new Date(cursor.getFullYear(),cursor.getMonth()+1,0).getDate();n++){const d=iso(new Date(cursor.getFullYear(),cursor.getMonth(),n)),events=state.events.filter(x=>x.date===d),b=document.createElement('button');b.className='day'+(d===iso(today)?' today':'')+(events.length?' busy':'');b.textContent=n;for(const ev of events){const s=document.createElement('small');s.textContent=ev.title;b.append(s)}b.onclick=()=>day(d);grid.append(b)}}
 $('prev').onclick=()=>{cursor.setMonth(cursor.getMonth()-1);calendar()};$('next').onclick=()=>{cursor.setMonth(cursor.getMonth()+1);calendar()};$('now').onclick=()=>{cursor=new Date(today.getFullYear(),today.getMonth(),1);calendar()};
-function day(d){dialog(dateLabel(d),'<div id="agenda"></div><button id="new" class="primary">Ajouter une animation</button>');for(const ev of state.events.filter(x=>x.date===d)){const b=document.createElement('button');b.textContent=ev.time+' · '+ev.title;b.onclick=()=>detail(ev);$('agenda').append(b)}$('new').hidden=!admin();$('new').onclick=()=>edit(d)}
+function day(d){dialog(dateLabel(d),'<div id="agenda"></div><button id="new" class="primary">Ajouter une animation</button>');for(const ev of state.events.filter(x=>x.date===d)){const b=document.createElement('button');b.textContent=ev.time+' · '+ev.title;b.onclick=()=>detail(ev);$('agenda').append(b)}$('new').hidden=!mayEditEvents()||d<parisDay();$('new').onclick=()=>edit(d)}
 function places(ev,count=ev.count){return ev.guests.reduce((sum,g)=>sum+1+(count?g.companions:0),0)}
-function edit(d,ev){if(!admin())return;dialog(ev?'Modifier la séance':'Nouvelle animation','<form id="af"><label>Titre<input name="title" required></label><label>Jour<input type="date" name="date" required></label><label>Heure<input type="time" name="time" required></label><label>Lieu et renseignements<input name="info"></label><label>Accompagnateurs<select name="count"><option value="oui">Inclus dans la jauge</option><option value="non">Hors jauge</option></select></label><label>Plafond strict (facultatif)<input type="number" name="cap" min="1"></label><button class="primary">Enregistrer</button></form>');const f=$('af').elements;f.title.value=ev?.title||'';f.date.value=d;f.time.value=ev?.time||'14:00';f.info.value=ev?.info||'';f.cap.value=ev?.cap??'';f.count.value=ev?.count===false?'non':'oui';function minimum(){f.cap.min=ev?Math.max(1,places(ev,f.count.value==='oui')):1}minimum();f.count.onchange=minimum;$('af').onsubmit=e=>{e.preventDefault();const item=ev||{id:crypto.randomUUID(),guests:[]};Object.assign(item,{date:f.date.value,time:f.time.value,title:f.title.value,info:f.info.value,cap:f.cap.value?+f.cap.value:null,count:f.count.value==='oui'});if(!ev)state.events.push(item);cursor=new Date(item.date.slice(0,7)+'-01T12:00:00');save('Séance enregistrée.');detail(item)}}
-function detail(ev){dialog(ev.title,'<p>'+escapeHtml(dateLabel(ev.date)+' · '+ev.time+' · '+ev.info)+'</p><p>'+places(ev)+(ev.cap?' / '+ev.cap:'')+' place(s) · accompagnateurs '+(ev.count?'inclus':'hors jauge')+'</p><div id="guests"></div><form id="guest"><label>Carte fictive<input name="card" required></label><output name="known"></output><label>Âge facultatif (années)<input name="age" type="number" min="0"></label><label>Accompagnateurs<input type="number" min="0" value="0" required name="companions"></label><p role="status" id="guestmsg"></p><button class="primary" '+(ev.cap!==null && places(ev)>=ev.cap?'disabled':'')+'>Inscrire une personne</button></form><div class="actions"><button id="change">Modifier</button><button id="remove">Supprimer la séance</button></div>');
+function edit(d,ev){if(!mayEditEvents()||d<parisDay())return;dialog(ev?'Modifier la séance':'Nouvelle animation','<form id="af"><label>Titre<input name="title" required></label><label>Jour<input type="date" name="date" required></label><label>Heure<input type="time" name="time" required></label><label>Lieu et renseignements<input name="info"></label><label>Accompagnateurs<select name="count"><option value="oui">Inclus dans la jauge</option><option value="non">Hors jauge</option></select></label><label>Plafond strict (facultatif)<input type="number" name="cap" min="1"></label><button class="primary">Enregistrer</button></form>');const f=$('af').elements;f.title.value=ev?.title||'';f.date.min=parisDay();f.date.value=d;f.time.value=ev?.time||'14:00';f.info.value=ev?.info||'';f.cap.value=ev?(ev.cap??''):settings.limit;f.count.value=ev?(ev.count?'oui':'non'):settings.count;function minimum(){f.cap.min=ev?Math.max(1,places(ev,f.count.value==='oui')):1}minimum();f.count.onchange=minimum;$('af').onsubmit=e=>{e.preventDefault();const item=ev||{id:crypto.randomUUID(),guests:[]};Object.assign(item,{date:f.date.value,time:f.time.value,title:f.title.value,info:f.info.value,cap:f.cap.value?+f.cap.value:null,count:f.count.value==='oui'});if(!ev)state.events.push(item);cursor=new Date(item.date.slice(0,7)+'-01T12:00:00');save('Séance enregistrée.');detail(item)}}
+function detail(ev){if(ev.date<parisDay()){checkDay();return}dialog(ev.title,'<p>'+escapeHtml(dateLabel(ev.date)+' · '+ev.time+' · '+ev.info)+'</p><p>'+places(ev)+(ev.cap?' / '+ev.cap:'')+' place(s) · accompagnateurs '+(ev.count?'inclus':'hors jauge')+'</p><div id="guests"></div><form id="guest"><label>Carte fictive<input name="card" required></label><output name="known"></output><label>Âge facultatif (années)<input name="age" type="number" min="0"></label><label>Accompagnateurs<input type="number" min="0" value="0" required name="companions"></label><p role="status" id="guestmsg"></p><button class="primary" '+(ev.cap!==null && places(ev)>=ev.cap?'disabled':'')+'>Inscrire une personne</button></form><div class="actions"><button id="change">Modifier</button><button id="remove">Supprimer la séance</button></div>');
  for(const g of ev.guests){const r=document.createElement('div'),b=document.createElement('button');r.className='row';r.textContent=[nameOf(g.card)||g.card,g.age?g.age+' ans':'',g.companions?g.companions+' accompagnateur(s)':''].filter(Boolean).join(' · ');b.textContent='Retirer';b.onclick=()=>{ev.guests=ev.guests.filter(x=>x!==g);save('Inscription retirée.');detail(ev)};r.append(b);$('guests').append(r)}
- linkName($('guest'));$('guest').onsubmit=e=>{e.preventDefault();const f=e.target.elements,c=f.card.value.trim();if(!c)return;const companions=Number(f.companions.value);if(ev.cap!==null && places(ev)+1+(ev.count?companions:0)>ev.cap){$('guestmsg').textContent='Plafond dépassé pour ce groupe.';return}queueIdentity(c);ev.guests.push({card:c,age:f.age.value,companions});save('Personne inscrite.');detail(ev)};$('change').hidden=$('remove').hidden=!admin();$('change').onclick=()=>edit(ev.date,ev);$('remove').onclick=()=>{if(!admin())return;dialog('Supprimer cette séance ?', '<p>Les inscriptions de cette séance seront également supprimées.</p><div class="actions"><button id="cancel">Conserver</button><button id="yes">Supprimer</button></div>');$('cancel').onclick=()=>detail(ev);$('yes').onclick=()=>{state.events=state.events.filter(x=>x!==ev);save('Séance supprimée.');$('modal').close()}}}
+ linkName($('guest'));$('guest').onsubmit=e=>{e.preventDefault();const f=e.target.elements,c=f.card.value.trim();if(ev.date<parisDay()){checkDay();return}if(!c)return;const companions=Number(f.companions.value);if(ev.cap!==null && places(ev)+1+(ev.count?companions:0)>ev.cap){$('guestmsg').textContent='Plafond dépassé pour ce groupe.';return}queueIdentity(c);ev.guests.push({card:c,age:f.age.value,companions});save('Personne inscrite.');detail(ev)};$('change').hidden=$('remove').hidden=!mayEditEvents();$('change').onclick=()=>edit(ev.date,ev);$('remove').onclick=()=>{if(!mayEditEvents())return;dialog('Supprimer cette séance ?', '<p>Les inscriptions de cette séance seront également supprimées.</p><div class="actions"><button id="cancel">Conserver</button><button id="yes">Supprimer</button></div>');$('cancel').onclick=()=>detail(ev);$('yes').onclick=()=>{state.events=state.events.filter(x=>x!==ev);save('Séance supprimée.');$('modal').close()}}}
 render();
 </script></html>
