@@ -1,7 +1,7 @@
 # Guichet médiathèque
 ## Cahier des charges fonctionnel · version de travail du 13 novembre 2026
 
-**Objectif.** Depuis n’importe quel poste d’accueil, un agent doit pouvoir scanner une carte, retrouver le même usager dans les trois activités et terminer la saisie pendant que la personne est devant lui. Tous les collègues disposent des mêmes commandes. Aucun compte applicatif individuel à créer.
+**Objectif.** Depuis n’importe quel poste d’accueil, un agent doit pouvoir scanner une carte, retrouver le même usager dans les trois activités et terminer la saisie pendant que la personne est devant lui. Les agents assurent le service courant. Les administrateurs gardent la maîtrise de tous les réglages. Les comptes sont attribués par le service, sans inscription publique.
 
 ### 1. Ce que les classeurs nous apprennent
 
@@ -11,13 +11,13 @@
 | POPZONE – JEUX EN CSP, 18 feuilles | Même circuit, avec janvier 2027 en plus. Les listes ont des en-têtes et une colonne de notes. Les libellés de la liste des jeux et le sens de recherche de la formule mensuelle doivent être rapprochés. | Détecter la carte ou le numéro de boîte sur les valeurs et soumettre un aperçu au secteur. Une position de colonne commune aux deux fichiers ne suffit pas. |
 | INSCRIPTION AUX ANIMATIONS 2026, 105 feuilles | Calendrier annuel, feuilles par séance, modèles de semaine, samedi et vacances, fiches d’activités, listes de jeux par poste et feuille DATABASE pour les paramètres. Certains modèles affichent des erreurs de référence. | Reconstituer séances et inscriptions depuis les feuilles datées. Utiliser le calendrier pour contrôler les dates. Les modèles et les catalogues alimentent les réglages, jamais les effectifs. |
 
-Le spectacle distingue les enfants, leur âge et les adultes, avec un exemple de jauge à 50 places. Créazone possède des modèles avec et sans inscription. Des spectacles proposent deux séances le même jour. Le modèle du samedi prévoit des inscriptions individuelles sur certains postes multijoueurs, des consignes d’accompagnement selon l’âge et un repérage visuel des doublons. Ces différences justifient des paramètres par activité, par poste et par séance.
+Le spectacle distingue les enfants, leur âge et les adultes, avec un exemple de jauge à 50 places. Créazone possède des modèles avec et sans inscription. Des spectacles proposent deux séances le même jour. Le modèle du samedi prévoit des inscriptions individuelles sur certains postes multijoueurs, des consignes historiques d’accompagnement selon l’âge et un repérage visuel des doublons. Ces différences justifient des paramètres par activité, par poste et par séance.
 
 ### 2. Les trois écrans du guichet
 
-**Jeux de société.** Choisir Jeunesse ou Pop Zone. Le poste conserve son dernier secteur et l’affiche en permanence. Scanner la carte, puis la boîte, saisir enfants et adultes, valider avec Entrée. La date du jour est proposée et reste corrigeable. Afficher immédiatement le titre et le total. Une valeur inconnue peut rester à compléter. Après validation, effacer carte et boîte, conserver le secteur et replacer le curseur sur la carte. La liste du jour permet de corriger, déplacer de secteur, supprimer et annuler la dernière opération. Un jeu consulté sur place ne déclenche aucun mouvement de prêt.
+**Jeux de société.** Choisir Jeunesse ou Pop Zone. Le poste conserve son dernier secteur et l’affiche en permanence. Scanner la carte, puis la boîte, saisir enfants et adultes, valider avec Entrée. La date du jour est proposée et reste corrigeable. Afficher immédiatement le titre et le total. Une valeur inconnue peut rester à compléter. Après validation, effacer carte et boîte, conserver le secteur et replacer le curseur sur la carte. Selon les droits accordés, la liste du jour permet de corriger, déplacer de secteur, supprimer et annuler la dernière opération. Un numéro de carte est indispensable pour valider. Un jeu consulté sur place ne déclenche aucun mouvement de prêt.
 
-**Jeux vidéo.** Ouvrir « Inscrire », choisir le jour, le poste et le créneau. Afficher horaire de fin, places restantes, consigne éventuelle et jeux compatibles. Le jeu est facultatif. Scanner une carte par joueur ou ajouter plusieurs joueurs dans le même formulaire. Vérifier doublons, chevauchements, capacité et compatibilité avant de confirmer tout le groupe en une opération. Si le groupe dépasse la capacité, proposer le créneau disponible suivant ou la modification explicite de la jauge. L’équipe peut déplacer une personne ou tout le groupe, annuler une place ou réserver l’usage individuel d’un poste autorisé. Pour l’inscription suivante, garder jour, heure, poste et jeu, vider les identités.
+**Jeux vidéo.** Ouvrir « Inscrire », choisir le jour, le poste et le créneau. Afficher horaire de fin, places restantes, consigne éventuelle et jeux compatibles. Le premier joueur choisit obligatoirement un jeu. Les places restantes sont ouvertes aux autres usagers qui rejoignent la partie sur ce même jeu. Après annulation de la dernière inscription, le choix du jeu redevient libre. Chaque accompagnateur compte pour une personne dans les jeux, y compris dans les effectifs de consultation sur place. Scanner une carte par joueur ou ajouter plusieurs joueurs dans le même formulaire. Vérifier doublons, chevauchements, capacité et compatibilité avant de confirmer tout le groupe en une opération. Si le groupe dépasse la capacité, proposer le créneau suivant ou une place disponible sur un autre poste compatible. L’équipe peut déplacer une personne ou tout le groupe ou annuler une place. Pour l’inscription suivante, garder jour, heure, poste et jeu, vider les identités.
 
 | Poste du modèle du samedi | Matériel / usage | Places du modèle |
 |---|---|---:|
@@ -32,7 +32,7 @@ Les capacités de 1 à 4, y compris 3, doivent être configurables. Une grille d
 
 **Animations.** Ouvrir directement le calendrier mensuel, naviguer au clavier ou par mois et revenir à aujourd’hui. Un clic sur une date crée une animation. Un clic sur son titre ouvre sa fiche et sa liste d’inscrits. Prévoir titre, lieu, dates, horaires, intervenant ou référent, public, conditions d’âge, date d’ouverture des inscriptions, texte d’annonce, visuel facultatif, jauge et mode « entrée libre » ou « sur inscription ». Ajouter, corriger, déplacer, dupliquer ou supprimer une séance depuis sa fiche. Pour une série (Café Repair, par exemple), proposer « cette séance », « celle-ci et les suivantes » ou « toute la série », avec aperçu des inscriptions touchées. Une exception de vacances ne doit pas être écrasée lors d’une régénération.
 
-Sur inscription, scanner la carte et proposer le nom connu. Permettre plusieurs participants rattachés à une carte, avec places adultes/enfants et âge facultatif si l’activité le demande, en mois pour les tout-petits si nécessaire. L’entrée libre permet un simple comptage. Une séance complète signale les alternatives. La liste d’attente et la feuille de présence imprimable sont des améliorations proposées.
+Sur inscription, scanner la carte et proposer le nom connu. Permettre plusieurs participants rattachés à une carte, avec places adultes/enfants et âge facultatif si l’activité le demande, en mois pour les tout-petits si nécessaire. À la création de chaque animation, préciser si les accompagnateurs comptent dans la jauge et, si nécessaire, fixer un plafond strict. Une inscription de groupe qui dépasserait ce plafond est refusée en entier. L’entrée libre permet un simple comptage. Une séance complète signale les alternatives. La liste d’attente et la feuille de présence imprimable sont des améliorations proposées.
 
 ### 3. Une fiche usager commune
 
@@ -42,7 +42,7 @@ Le scan et la saisie manuelle du numéro imprimé empruntent le même champ dans
 
 ### 4. Liberté de travail et périmètre
 
-Les trois onglets restent fixes. Un menu commun « Réglages » permet à chaque agent de gérer jeux, exemplaires, postes, horaires, capacités, types d’animation, modèles récurrents et champs facultatifs. Une vue tableau complète chaque activité pour filtrer, modifier une ligne, coller plusieurs lignes avec aperçu, exporter une sélection et corriger en lot. Prévoir une corbeille et une annulation. Les conflits présentent les deux versions et permettent de reprendre la saisie. L’interface se limite à des libellés courts et à une aide contextuelle au moment où elle est nécessaire.
+Les trois onglets restent fixes. Un menu commun « Réglages » permet aux administrateurs de gérer jeux, exemplaires, postes, horaires, capacités, types d’animation, modèles récurrents et champs facultatifs. Une vue tableau complète chaque activité pour filtrer, modifier une ligne, coller plusieurs lignes avec aperçu, exporter une sélection et corriger en lot. Prévoir une corbeille et une annulation. Les conflits présentent les deux versions et permettent de reprendre la saisie. L’interface se limite à des libellés courts et à une aide contextuelle au moment où elle est nécessaire.
 
 Un raccourci permanent ouvre le catalogue public du réseau pour chercher un document, sa cote, son site et son état de disponibilité. Un deuxième raccourci configurable sur l’intranet ouvre V-smart pour les prêts, retours, opérations financières et recherches internes. Aucune synchronisation V-smart n’est acquise. Une lecture d’identité ne pourra être étudiée qu’après confirmation d’une interface documentée et de son périmètre par la collectivité. Pour le conseil de lecture, proposer des raccourcis vers les sélections du réseau. Le tri physique reste dans l’organisation actuelle.
 
@@ -64,11 +64,7 @@ Prévoir des modules distincts pour les trois métiers et des services communs p
 
 ### 6. Reprise et mise en service
 
-1. Travailler sur une copie interne datée des trois classeurs. Choisir avec l’équipe les périodes à reprendre.
-2. Classer les feuilles par rôle. Lire les valeurs source, les dates réelles et les regroupements de cellules. Écarter des comptages les modèles, lignes vides, zéros de formules et références cassées. Conserver les lignes historiques incomplètes dans une liste de vérification.
-3. Présenter un aperçu par feuille et secteur. Rapprocher les cartes identiques, proposer les noms complémentaires et soumettre les conflits à l’équipe. Proposer séparément le traitement des notes libres. Éviter tout transfert automatique d’une note de secteur vers une fiche commune.
-4. Simuler l’import. Comparer à période égale le nombre de consultations, les effectifs adultes/enfants et les places réservées par séance. Fournir un relevé des écarts avec feuille et ligne d’origine. Rejouer le même import sans doublon.
-5. Piloter avec deux postes. Vérifier une restauration et le retour aux classeurs avant de basculer. Garder le dernier export en lecture seule selon la durée convenue, puis supprimer les copies de travail à l’échéance fixée.
+Le service démarre avec une base vide. Aucun historique nominatif des trois classeurs à importer. Les horaires, les postes et les jeux utiles au démarrage peuvent être recréés comme paramètres. Le serveur interne est prévu pour la mise en service. La vérification des sauvegardes relève de l’exploitation, par le service informatique ou un membre désigné sur place.
 
 ### 7. Scénarios de réception
 
@@ -82,16 +78,14 @@ Prévoir des modules distincts pour les trois métiers et des services communs p
 | Même PS5, deux postes différents | Le choix d’ELLIE ou de SACKBOY change la liste des jeux disponibles. |
 | Décaler une seule séance du Café Repair | Les inscrits suivent la séance, les autres dates demeurent en place. |
 | Créer décembre puis janvier et annuler une erreur de saisie | Les dates traversent l’année sans copie de feuille. L’agent retrouve la ligne restaurée. |
-| Changer un libellé, une jauge ou un champ facultatif | Tout agent peut le faire depuis un poste autorisé, sans intervention de développement. |
+| Changer un libellé, une jauge ou un champ facultatif | Un administrateur peut le faire depuis un poste autorisé, sans intervention de développement. |
 
-### 8. Décisions à prendre en équipe
+### 8. Décisions du guichet
 
-- Le samedi, la consigne SPYRO annonce trois créneaux de 90 minutes et la grille affiche aussi 16 h 45–17 h 45. Quels créneaux sont effectivement ouverts ?
-- Lorsqu’une personne joue seule sur un poste multijoueur, réserve-t-elle tout le poste ? Un accompagnateur occupe-t-il une place de joueur ou seulement une place à l’animation ?
-- Quelle pratique adopter pour une carte oubliée et pour plusieurs enfants inscrits par un adulte ? Quels champs et quelles notes l’équipe doit-elle retrouver ?
-- Quels historiques conserver, combien de temps, sur quel serveur interne, et qui effectuera le test de restauration ?
-
-**Ordre de réalisation proposé.** Valider les trois parcours avec des données fictives. Livrer ensuite base commune, consultations et reprise à blanc. Ajouter créneaux et inscriptions de groupe, puis calendrier, récurrences et exceptions. Ouvrir le pilote partagé après les essais de concurrence et de restauration. Les sélections de lecture, listes d’attente et statistiques anonymes par période peuvent suivre selon les priorités du terrain.
+- **SPYRO le samedi.** La grille fait foi : 10 h 15–11 h 45, 13 h 45–15 h 15, 15 h 15–16 h 45 et 16 h 45–17 h 45.
+- **Recherche par carte.** Un scan ou une saisie depuis n’importe quel onglet indique les consultations du jour avec secteur et boîte, ainsi que les inscriptions du jour et à venir avec activité, poste ou lieu, date, heure et jeu. Les 15 secondes évoquées décrivent le temps de recherche actuel.
+- **Droits proposés.** L’agent peut consulter, rechercher, inscrire, désinscrire et compléter une identité après passage. Par défaut, l’administration gère les séances, les paramètres, les habilitations, les exports nominatifs et les opérations en masse. Prévoir une attribution configurable par action. Les contrôles doivent aussi porter sur les requêtes au serveur. Aucun agent ne peut s’attribuer un rôle.
+- **Questions encore ouvertes.** Une note libre est-elle utile au guichet ? Donner un exemple inventé et préciser si elle doit rester sur une séance, un secteur ou une fiche. Après une séance terminée, dans quel cas et pendant combien de temps faut-il pouvoir retrouver qui était inscrit ? Examiner séparément les décomptes anonymes de fréquentation.
 
 ### 9. Revue avant le pilote
 
