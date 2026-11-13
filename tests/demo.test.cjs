@@ -31,6 +31,7 @@ test('Démonstration publique autonome et entrée connectée séparée',async()=
 
 
   const connected=await browser.newPage();connected.on('pageerror',e=>errors.push(e.message));await connected.goto(origin+'/dev/index.html');
-  assert.equal(await connected.locator('#login').isVisible(),true);assert.equal(await connected.locator('main').isVisible(),false);assert.deepEqual(errors,[]);
+  assert.equal(await connected.locator('#login').isVisible(),true);assert.equal(await connected.locator('main').isVisible(),false);assert.equal(await connected.locator('#login button').isEnabled(),true);assert.deepEqual(errors,[]);
+  const noScript=await browser.newPage({javaScriptEnabled:false});await noScript.goto(origin+'/dev/index.html');assert.equal(await noScript.locator('#login button').isDisabled(),true);
  }finally{await browser.close()}
 });

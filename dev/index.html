@@ -8,7 +8,7 @@
 <form id="login"><div class="fields">
 <label>Adresse du compte<input name="email" type="email" required autocomplete="username"></label>
 <label>Mot de passe<input name="password" type="password" required autocomplete="current-password"></label>
-</div><button name="submit">Se connecter</button><p id="loginMsg" role="status"></p></form>
+</div><button name="submit" disabled>Se connecter</button><p id="loginMsg" role="status"></p></form>
 <p id="sessionProfile" hidden></p><p id="syncStatus" role="status"></p></section><main hidden><header><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · données usagers effacées au rechargement</p></div><a href="https://mediatheques.montpellier3m.fr/accueil-general.aspx" target="_blank" rel="noopener">Catalogue du réseau ↗</a></header>
 <div class="bar"><label>Recherche par carte<input id="lookup" placeholder="ESSAI-01" autocomplete="off"></label><label>Profil de démonstration<select id="role"><option>Agent</option><option>Administrateur</option></select></label></div><div id="results" role="status"></div>
 <div class="actions"><button id="openUsers">Usagers</button><button id="openAdmin" hidden>Administration</button></div>
