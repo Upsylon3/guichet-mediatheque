@@ -6,7 +6,7 @@ Une carte commune pour les consultations de jeux de société, les créneaux de 
 
 **[Dossier de revue pour la collectivité](REVUE-COLLECTIVITE.md)** · **[Droits et composants](DROITS.md)**
 
-### Essayer à deux collègues
+### Tester seul les trois parcours
 
 1. En **Jeux de société**, enregistrer une consultation en Jeunesse avec la carte fictive `ESSAI-01` et un nom inventé.
 2. En **Jeux vidéo**, cliquer sur **Inscrire** et ressaisir cette carte. Le nom est proposé. Enchaîner avec une deuxième carte sur le même créneau.
