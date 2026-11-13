@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-kZvKfqcyDnAfhCYoCAQdUjUK5dl/tuuDlhkpK56/qjk='; style-src 'sha256-zn9UJypQvlOHe35BsWVO4F2OiiEaDx/ib+WtrlvadeM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Guichet médiathèque</title>
+<html lang="fr"><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-kQTpioIGNVmt5TynaTDyofc24t/1co0Ayf+FGWhH8ZQ='; style-src 'sha256-zn9UJypQvlOHe35BsWVO4F2OiiEaDx/ib+WtrlvadeM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Guichet médiathèque</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f6f4ee;color:#19382f;font:16px/1.5 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:28px clamp(14px,4vw,48px)}header,.bar,nav,.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}header,.bar{justify-content:space-between}h1,h2{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(32px,5vw,55px);margin:8px 0}h2{font-size:28px}p{margin:8px 0}a{color:#235345}nav{margin:24px 0;border-bottom:1px solid #b6c6bc;padding-bottom:12px}button,input,select,textarea{font:inherit;border:1px solid #a8b9ad;border-radius:6px;padding:8px 12px;color:inherit;background:white;max-width:100%}button{cursor:pointer}button[aria-current=true],.primary{background:#225546;color:white;border-color:#225546}button:hover{border-color:#225546}section,dialog{background:#fff;border:1px solid #d4dccf;padding:clamp(14px,3vw,28px);border-radius:12px}dialog{color:inherit;width:min(500px,95vw);max-height:90vh}dialog::backdrop{background:#173d3266}label{display:grid;gap:3px;font-size:14px;font-weight:600;align-content:start}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(175px,100%),1fr));gap:12px}form>.actions,.actions{margin-top:14px}.muted,small{color:#51665b}.row{border-top:1px solid #dce3da;padding:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;overflow-wrap:anywhere}.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;text-align:center}.day{min-height:60px;padding:4px}.day small{display:block;overflow-wrap:anywhere;font-size:12px}.today{outline:2px solid #47755a}.day.busy{background:#e5efdc}.actions button{flex-shrink:0}dialog form{display:grid;gap:8px}#notice{min-height:1.6em;font-weight:600}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #c98b26;outline-offset:2px}[hidden]{display:none!important}@media(max-width:530px){nav{gap:5px}nav button{padding:6px;font-size:14px}.day{min-height:48px}.day small{font-size:10px}}
 </style>
@@ -34,6 +34,27 @@
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
+const directory=globalThis.guichetDirectory;
+const validCard=card=>directory?/^[0-9]{7}$/.test(card):/^ESSAI-[0-9]{1,4}$/.test(card);
+const cardHint=()=>directory?'Saisir les 7 chiffres imprimés sous le code-barres':'Carte fictive de la forme ESSAI-01';
+async function writeForm(form,message,action){
+ if(form.dataset.saving)return;
+ form.dataset.saving='true';
+ const controls=Array.from(form.querySelectorAll('input,select,textarea,button')).filter(b=>!b.disabled);
+ controls.forEach(b=>b.disabled=true);
+ let focus;
+ try{focus=await action()}catch(error){$(message).textContent='Écriture non confirmée. Saisie conservée. '+error.message}
+ finally{delete form.dataset.saving;controls.forEach(b=>b.disabled=false);focus?.focus()}
+}
+async function refreshPeople(){
+ if(!directory)return;
+ const people=await directory.list();
+ state.people=Object.fromEntries(people.map(p=>[p.carte,fromRow(p)]));
+ render();
+ for(const form of document.querySelectorAll('form'))if(form.elements.card&&form.elements.known)form.elements.known.value=nameOf(form.elements.card.value.trim());
+}
+const fromRow=p=>({first:p.prenom||'',last:p.nom||'',birth:p.date_naissance||'',note:p.note_interne||''});
+const toRow=p=>({prenom:p.first||null,nom:p.last||null,date_naissance:p.birth||null,note_interne:p.note||null});
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=new Date();
 const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
@@ -43,7 +64,7 @@ let state={people:{},boards:[],videos:[],events:[],sector:'Jeunesse'};
 let cursor=new Date(today.getFullYear(),today.getMonth(),1);
 const posts={ZELDA:[1,'Exploration'],PEACH:[2,'Course'],MARIO:[4,'Circuit','Rallye'],ELLIE:[2,'Aventure'],SACKBOY:[2,'Sports'],SPYRO:[1,'Voyage']};
 let last=state.last||{date:iso(today),post:'MARIO',slot:'10:15',game:''};
-const admin=()=>$('role').value==='Administrateur';
+const admin=()=>directory?directory.profile==='administrateur':$('role').value==='Administrateur';
 $('role').onchange=()=>{$('settings').hidden=true;$('personForm').hidden=true;if($('modal').open)$('modal').close();render()};
 const parisDay=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Paris'}).format(new Date());
 const configKey='guichet-parametres-v1';
@@ -81,8 +102,13 @@ function userList(){
   const button=document.createElement('button');button.textContent=label;button.onclick=()=>openPerson(card);list.append(button)
  }
 }
-function openPerson(card=''){
- const form=$('personForm'),f=form.elements,p=state.people[card]||{};
+let personRequest=0;
+async function openPerson(card=''){
+ const request=++personRequest;
+ let remote;
+ if(directory&&card){try{remote=fromRow(await directory.get(card))}catch(error){$('notice').textContent=error.message;return}}
+ if(request!==personRequest)return;
+ const form=$('personForm'),f=form.elements,p=remote||state.people[card]||{};
  form.hidden=false;form.reset();f.card.readOnly=Boolean(card);f.card.value=card;
  for(const key of ['first','last','birth','note'])f[key].value=p[key]||'';
  f.birth.max=parisDay();$('noteDetails').open=false;$('personMsg').textContent='';
@@ -97,21 +123,29 @@ function clearPending(card){
 $('openUsers').onclick=()=>{$('users').hidden=!$('users').hidden;$('settings').hidden=true;userList()};
 $('filterUsers').oninput=userList;
 $('createUser').onclick=()=>openPerson();
-$('personForm').onsubmit=e=>{
+$('personForm').onsubmit=async e=>{
  e.preventDefault();const f=e.target.elements,card=f.card.value.trim();
+ if(!validCard(card)){$('personMsg').textContent=cardHint();return}
  if(!e.target.reportValidity())return;
  if(!f.card.readOnly&&state.people[card]){$('personMsg').textContent='Cette carte existe déjà.';return}
- state.people[card]={first:f.first.value.trim(),last:f.last.value.trim(),birth:f.birth.value,note:f.note.value.trim()};
- clearPending(card);openPerson(card);save('Fiche enregistrée.')
+ await writeForm(e.target,'personMsg',async()=>{
+ const person={first:f.first.value.trim(),last:f.last.value.trim(),birth:f.birth.value,note:f.note.value.trim()};
+ if(directory)await directory.save(card,toRow(person),!f.card.readOnly);
+ state.people[card]=person;
+ clearPending(card);await openPerson(card);save('Fiche enregistrée.')
+ })
 };
-$('deleteUser').onclick=()=>{
+$('deleteUser').onclick=async()=>{
  if(!admin())return;
  const card=$('personForm').elements.card.value;
  if([...state.boards,...state.videos].some(x=>x.card===card)||state.events.some(x=>x.guests.some(g=>g.card===card))){
   $('personMsg').textContent='Cette carte est liée à une activité du jour ou à venir.';return
  }
  if(!confirm('Supprimer cette fiche usager ?'))return;
+ await writeForm($('personForm'),'personMsg',async()=>{
+ if(directory)await directory.remove(card);
  delete state.people[card];clearPending(card);$('personForm').hidden=true;save('Fiche supprimée.')
+ })
 };
 function readConfig(){
  const f=$('config').elements, key=$('editPost').value, station=settings.stations[key];
@@ -159,7 +193,8 @@ function searchCard(){
   ...state.videos.filter(x=>x.card===card && x.date>=day).map(x=>dateLabel(x.date)+' · '+x.slot+' · '+x.post+' · '+x.game),
   ...state.events.filter(x=>x.date>=day && x.guests.some(g=>g.card===card)).map(x=>[dateLabel(x.date),x.time,x.title,x.info].filter(Boolean).join(' · '))
  ];
- if(!lines.length){results.textContent='Aucune consultation du jour ni inscription à partir d’aujourd’hui.';return}
+ if(state.people[card]){const p=document.createElement('p');p.textContent=[card,nameOf(card)].filter(Boolean).join(' · ');results.append(p)}
+ if(!lines.length){const p=document.createElement('p');p.textContent='Aucune consultation du jour ni inscription à partir d’aujourd’hui.';results.append(p);return}
  for(const line of lines){const p=document.createElement('p');p.textContent=line;results.append(p)}
 }
 $('lookup').oninput=searchCard;
@@ -169,9 +204,17 @@ $('close').onclick=()=>$('modal').close();
 const pending = new Map();
 const identity = $('identity').elements;
 function nameOf(card){const p=state.people[card];return p?[p.first,p.last].filter(Boolean).join(' '):''}
-function queueIdentity(card){
- if(state.people[card])return;
- state.people[card]={};
+async function queueIdentity(card){
+ if(!validCard(card))throw new Error(cardHint());
+ if(directory){
+  const person=fromRow(await directory.ensure(card));
+  state.people[card]=person;
+  if(person.first||person.last||person.birth)return;
+ }else{
+  if(state.people[card])return;
+  state.people[card]={};
+ }
+ if(pending.has(card))return;
  pending.set(card,{first:'',last:''});
  identity.reader.add(new Option(card,card));
  $('pending').hidden=false;
@@ -187,19 +230,22 @@ $('identity').oninput=()=>{
  const draft=pending.get(identity.reader.value);
  if(draft){draft.birth=identity.birth.value;draft.first=identity.first.value;draft.last=identity.last.value}
 };
-$('identity').onsubmit=e=>{
+$('identity').onsubmit=async e=>{
  e.preventDefault();
  const card=identity.reader.value;
  if(!pending.has(card)||!e.target.reportValidity())return;
- state.people[card]={...state.people[card],first:identity.first.value.trim(),last:identity.last.value.trim(),birth:identity.birth.value};
- clearPending(card);
- save('Fiche enregistrée.');
+ await writeForm(e.target,'notice',async()=>{
+ const person={first:identity.first.value.trim(),last:identity.last.value.trim(),birth:identity.birth.value};
+ if(directory)await directory.save(card,{prenom:person.first||null,nom:person.last||null,date_naissance:person.birth||null});
+ state.people[card]={...state.people[card],...person};
+ clearPending(card);save('Fiche enregistrée.');
+ });
 };
-function linkName(form){form.autocomplete="off";const card=form.elements.card;card.pattern="ESSAI-[0-9]{1,4}";card.placeholder="ESSAI-01";card.title="Carte fictive de la forme ESSAI-01";card.oninput=()=>{form.elements.known.value=nameOf(card.value.trim())}}
+function linkName(form){form.addEventListener('invalid',e=>{if(e.target.name==='card')e.target.value=e.target.value.trim()},true);form.autocomplete="off";const card=form.elements.card;card.pattern=directory?"[0-9]{7}":"ESSAI-[0-9]{1,4}";card.placeholder=directory?"0000001":"ESSAI-01";card.title=cardHint();card.oninvalid=()=>card.setCustomValidity(cardHint());card.oninput=()=>{card.setCustomValidity('');form.elements.known.value=nameOf(card.value.trim())}}
 linkName($('board'));
 document.querySelector('nav').onclick=e=>{if(!e.target.dataset.tab)return;for(const b of document.querySelectorAll('[data-tab]')){const active=b===e.target;$(b.dataset.tab).hidden=!active;b.setAttribute('aria-current',active)}$('notice').textContent=''};
 $('sector').value=state.sector;$('sector').onchange=()=>{state.sector=$('sector').value;save('')};
-$('board').onsubmit=e=>{e.preventDefault();const f=e.target.elements,c=f.card.value.trim(),b=f.box.value.trim();if(!c||!b)return;queueIdentity(c);state.boards.unshift({id:crypto.randomUUID(),card:c,box:b,kids:+f.kids.value,adults:+f.adults.value,sector:state.sector,date:parisDay()});e.target.reset();save('Consultation enregistrée.');f.card.focus()};
+$('board').onsubmit=async e=>{e.preventDefault();const f=e.target.elements,c=f.card.value.trim(),b=f.box.value.trim();if(!c||!b)return;await writeForm(e.target,'notice',async()=>{await queueIdentity(c);state.boards.unshift({id:crypto.randomUUID(),card:c,box:b,kids:+f.kids.value,adults:+f.adults.value,sector:state.sector,date:parisDay()});e.target.reset();save('Consultation enregistrée.');return f.card})};
 function rows(id,list,describe,collection){$(id).replaceChildren();if(!list.length){$(id).textContent='Aucune saisie.';return}
  for(const item of list){const row=document.createElement('div'),label=document.createElement('span'),button=document.createElement('button');row.className='row';label.textContent=describe(item);button.textContent='Retirer';button.onclick=()=>{state[collection]=state[collection].filter(x=>x.id!==item.id);save('Saisie retirée.')};row.append(label,button);$(id).append(row)}}
 function render(){closePastDays();userList();$('openAdmin').hidden=!admin();searchCard();rows('boards',state.boards.filter(x=>x.sector===state.sector),x=>[dateLabel(x.date),nameOf(x.card)||x.card,'Boîte '+x.box,x.kids+' enf. + '+x.adults+' ad.'].join(' · '),'boards');rows('videos',state.videos,x=>[dateLabel(x.date),x.slot,x.post,nameOf(x.card)||x.card,x.game].filter(Boolean).join(' · '),'videos');calendar()}
@@ -224,7 +270,7 @@ $('addvideo').onclick=()=>{dialog('Inscrire aux jeux vidéo','<form id="vf"><lab
   availability();
  }
  refresh();f.post.onchange=refresh;f.slot.onchange=f.date.onchange=availability;linkName(form);
- form.onsubmit=e=>{
+ form.onsubmit=async e=>{
   e.preventDefault();
   const card=f.card.value.trim(), companions=Number(f.companions.value);
   if(!card || !form.reportValidity())return;
@@ -235,10 +281,12 @@ $('addvideo').onclick=()=>{dialog('Inscrire aux jeux vidéo','<form id="vf"><lab
    $('vfmsg').textContent='Carte déjà inscrite sur cet horaire.';return
   }
   if(1+companions>availability()){$('vfmsg').textContent='Places insuffisantes pour ce groupe.';return}
-  queueIdentity(card);
+  await writeForm(form,'vfmsg',async()=>{
+  await queueIdentity(card);
   last={date:f.date.value,post:f.post.value,slot:f.slot.value,game:f.game.value};
   state.last=last;state.videos.unshift({...last,card,companions,id:crypto.randomUUID()});
-  save('Inscription enregistrée.');f.card.value=f.known.value='';f.companions.value=0;availability();$('vfmsg').textContent='Inscription enregistrée. '+$('vfmsg').textContent;f.card.focus()
+  save('Inscription enregistrée.');f.card.value=f.known.value='';f.companions.value=0;availability();$('vfmsg').textContent='Inscription enregistrée. '+$('vfmsg').textContent;return f.card
+  });
  }};
 function calendar(){$('month').textContent=cursor.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});const grid=$('calendar');grid.innerHTML=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(x=>'<b>'+x+'</b>').join('');for(let i=0;i<(cursor.getDay()+6)%7;i++)grid.append(document.createElement('span'));
  for(let n=1;n<=new Date(cursor.getFullYear(),cursor.getMonth()+1,0).getDate();n++){const d=iso(new Date(cursor.getFullYear(),cursor.getMonth(),n)),events=state.events.filter(x=>x.date===d),b=document.createElement('button');b.className='day'+(d===iso(today)?' today':'')+(events.length?' busy':'');b.textContent=n;for(const ev of events){const s=document.createElement('small');s.textContent=ev.title;b.append(s)}b.onclick=()=>day(d);grid.append(b)}}
@@ -248,6 +296,26 @@ function places(ev,count=ev.count){return ev.guests.reduce((sum,g)=>sum+1+(count
 function edit(d,ev){if(!mayEditEvents()||d<parisDay())return;dialog(ev?'Modifier la séance':'Nouvelle animation','<form id="af"><label>Titre<input name="title" required></label><label>Jour<input type="date" name="date" required></label><label>Heure<input type="time" name="time" required></label><label>Lieu et renseignements<input name="info"></label><label>Accompagnateurs<select name="count"><option value="oui">Inclus dans la jauge</option><option value="non">Hors jauge</option></select></label><label>Plafond strict (facultatif)<input type="number" name="cap" min="1"></label><button class="primary">Enregistrer</button></form>');const f=$('af').elements;f.title.value=ev?.title||'';f.date.min=parisDay();f.date.value=d;f.time.value=ev?.time||'14:00';f.info.value=ev?.info||'';f.cap.value=ev?(ev.cap??''):settings.limit;f.count.value=ev?(ev.count?'oui':'non'):settings.count;function minimum(){f.cap.min=ev?Math.max(1,places(ev,f.count.value==='oui')):1}minimum();f.count.onchange=minimum;$('af').onsubmit=e=>{e.preventDefault();const item=ev||{id:crypto.randomUUID(),guests:[]};Object.assign(item,{date:f.date.value,time:f.time.value,title:f.title.value,info:f.info.value,cap:f.cap.value?+f.cap.value:null,count:f.count.value==='oui'});if(!ev)state.events.push(item);cursor=new Date(item.date.slice(0,7)+'-01T12:00:00');save('Séance enregistrée.');detail(item)}}
 function detail(ev){if(ev.date<parisDay()){checkDay();return}dialog(ev.title,'<p>'+escapeHtml(dateLabel(ev.date)+' · '+ev.time+' · '+ev.info)+'</p><p>'+places(ev)+(ev.cap?' / '+ev.cap:'')+' place(s) · accompagnateurs '+(ev.count?'inclus':'hors jauge')+'</p><div id="guests"></div><form id="guest"><label>Carte fictive<input name="card" required></label><output name="known"></output><label>Âge facultatif (années)<input name="age" type="number" min="0"></label><label>Accompagnateurs<input type="number" min="0" value="0" required name="companions"></label><p role="status" id="guestmsg"></p><button class="primary" '+(ev.cap!==null && places(ev)>=ev.cap?'disabled':'')+'>Inscrire une personne</button></form><div class="actions"><button id="change">Modifier</button><button id="remove">Supprimer la séance</button></div>');
  for(const g of ev.guests){const r=document.createElement('div'),b=document.createElement('button');r.className='row';r.textContent=[nameOf(g.card)||g.card,g.age?g.age+' ans':'',g.companions?g.companions+' accompagnateur(s)':''].filter(Boolean).join(' · ');b.textContent='Retirer';b.onclick=()=>{ev.guests=ev.guests.filter(x=>x!==g);save('Inscription retirée.');detail(ev)};r.append(b);$('guests').append(r)}
- linkName($('guest'));$('guest').onsubmit=e=>{e.preventDefault();const f=e.target.elements,c=f.card.value.trim();if(ev.date<parisDay()){checkDay();return}if(!c)return;const companions=Number(f.companions.value);if(ev.cap!==null && places(ev)+1+(ev.count?companions:0)>ev.cap){$('guestmsg').textContent='Plafond dépassé pour ce groupe.';return}queueIdentity(c);ev.guests.push({card:c,age:f.age.value,companions});save('Personne inscrite.');detail(ev)};$('change').hidden=$('remove').hidden=!mayEditEvents();$('change').onclick=()=>edit(ev.date,ev);$('remove').onclick=()=>{if(!mayEditEvents())return;dialog('Supprimer cette séance ?', '<p>Les inscriptions de cette séance seront également supprimées.</p><div class="actions"><button id="cancel">Conserver</button><button id="yes">Supprimer</button></div>');$('cancel').onclick=()=>detail(ev);$('yes').onclick=()=>{state.events=state.events.filter(x=>x!==ev);save('Séance supprimée.');$('modal').close()}}}
+ linkName($('guest'));$('guest').onsubmit=async e=>{e.preventDefault();const f=e.target.elements,c=f.card.value.trim();if(ev.date<parisDay()){checkDay();return}if(!c)return;const companions=Number(f.companions.value);if(ev.cap!==null && places(ev)+1+(ev.count?companions:0)>ev.cap){$('guestmsg').textContent='Plafond dépassé pour ce groupe.';return}await writeForm(e.target,'guestmsg',async()=>{await queueIdentity(c);ev.guests.push({card:c,age:f.age.value,companions});save('Personne inscrite.');detail(ev)})};$('change').hidden=$('remove').hidden=!mayEditEvents();$('change').onclick=()=>edit(ev.date,ev);$('remove').onclick=()=>{if(!mayEditEvents())return;dialog('Supprimer cette séance ?', '<p>Les inscriptions de cette séance seront également supprimées.</p><div class="actions"><button id="cancel">Conserver</button><button id="yes">Supprimer</button></div>');$('cancel').onclick=()=>detail(ev);$('yes').onclick=()=>{state.events=state.events.filter(x=>x!==ev);save('Séance supprimée.');$('modal').close()}}}
+if(directory){
+ const card=$('personForm').elements.card;
+ card.pattern='[0-9]{7}';card.placeholder='0000001';card.title=cardHint();
+ for(const label of document.querySelectorAll('label'))if(label.firstChild?.nodeType===Node.TEXT_NODE&&label.firstChild.textContent==='Carte fictive')label.firstChild.textContent='Carte (7 chiffres)';
+ document.querySelector('header .muted').textContent='Développement · identités fictives uniquement · annuaire partagé, activités en mémoire';
+ $('role').closest('label').hidden=true;
+ let syncing=false,pollTimer;
+ directory.onReady=async()=>{
+  clearInterval(pollTimer);
+  await refreshPeople();
+  pollTimer=setInterval(async()=>{
+   if(syncing)return;syncing=true;
+   try{await refreshPeople();$('syncStatus').textContent='Annuaire synchronisé (toutes les 2 secondes).'}
+   catch{$('syncStatus').textContent='Annuaire non synchronisé. Les saisies restent à l’écran.'}
+   finally{syncing=false}
+  },2000);
+ };
+}
+// Les espaces périphériques de la saisie manuelle et de la douchette sont ignorés.
+document.addEventListener('input',e=>{if(e.target.name==='card')e.target.value=e.target.value.trim()},true);
 render();
 </script></html>

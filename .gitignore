@@ -10,3 +10,6 @@ sauvegardes/
 supabase/.temp/
 supabase/.branches/
 .env.*
+node_modules/
+test-results/
+__pycache__/
