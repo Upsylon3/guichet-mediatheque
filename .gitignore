@@ -7,3 +7,6 @@
 .env
 imports/
 sauvegardes/
+supabase/.temp/
+supabase/.branches/
+.env.*
