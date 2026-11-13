@@ -1,59 +1,83 @@
-# Annuaire partagé en développement
+# Développer et lancer le guichet partagé
 
-Cette entrée emploie exclusivement des données fictives. Elle peut utiliser Supabase distant sans Docker, WSL ou modification de Vanguard. Le projet de développement est distinct d’un futur serveur de service.
+## Deux entrées distinctes
 
-## Lancer l’interface
+`index.html` conserve la démonstration publique autonome : cartes ESSAI, fiches et activités en mémoire, réglages locaux, politique CSP interdisant les connexions applicatives.
 
-Prérequis : Python 3.10 ou ultérieur et un navigateur récent. Aucune dépendance JavaScript n’est nécessaire pour utiliser l’application.
+`dev/index.html` ouvre le guichet partagé avec authentification. Ses scripts et styles sont dans `dev/`. La configuration `dev/config.json` contient seulement l’URL API et une clé **publishable** publique. La clé n’accorde aucun accès aux tables sans authentification et habilitation. Aucun secret service_role ni mot de passe n’est publié.
 
-1. À la racine du dépôt, créer `.env.local.json` avec l’URL API et la clé **publishable** (ou la clé anon locale) du projet :
+Le projet Supabase **guichet-mediatheque-dev**, organisation **PC Value**, région **Paris**, est réservé aux données fictives. L’offre gratuite était annoncée à 0 $/mois lors de la création. Le choix distant évite Docker et toute modification de Vanguard ou de la virtualisation.
 
-   ```json
-   {
-     "SUPABASE_URL": "https://REFERENCE.supabase.co",
-     "ANON_KEY": "sb_publishable_CLE_PUBLIQUE_DU_PROJET"
-   }
-   ```
+## Ouvrir depuis plusieurs postes
 
-2. Lancer `python scripts/serve-dev.py` depuis la racine du dépôt.
-3. Ouvrir `http://127.0.0.1:8000/dev.html` et se connecter avec un compte fictif du service. Le dossier local préparé pour cette recette contient déjà la configuration et `.env.accounts.json`, qui conserve les deux identifiants et mots de passe de test.
+Ouvrir [le guichet de développement](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/dev/index.html) dans deux profils de navigateur distincts ou sur deux ordinateurs. Les comptes fictifs Agent et Administrateur sont fournis dans le document d’accès privé. Aucun formulaire d’inscription n’est proposé ; le serveur confirme `disable_signup: true` et l’authentification anonyme est désactivée.
 
-Le serveur n’écoute que sur `127.0.0.1` et ne sert que les ressources prévues. Les fichiers `.env.*`, dont les mots de passe, ne sont jamais servis ni versionnés. Ne pas placer de clé service_role ou de clé secrète dans la configuration de l’interface. Éviter un serveur statique générique dans un dossier contenant ces fichiers privés.
+Le navigateur conserve les jetons uniquement en mémoire. Un rechargement déconnecte la session. Après expiration, la connexion réapparaît et permet de se reconnecter sans effacer les champs encore affichés. Les données confirmées sont conservées dans la base partagée.
 
-`http://127.0.0.1:8000/` ouvre la démonstration publique autonome. Le fichier `index.html` peut toujours s’ouvrir directement, sans serveur. Les connexions sont bloquées par sa politique CSP ; seul `/dev.html`, généré à la demande depuis cette même interface, reçoit le client de développement et l’autorisation de contacter l’origine Supabase configurée. Le dépôt public ne contient aucune configuration de connexion active.
+## Lancer localement
 
-## Préparer une base d’essai vide
+Prérequis d’utilisation : Python 3.10+ et un navigateur récent. Depuis la racine du dépôt :
 
-1. Créer un projet Supabase de développement. Pour la recette du 13 novembre 2026 : organisation **PC Value**, projet **guichet-mediatheque-dev**, région **Paris**, offre gratuite annoncée à 0 $/mois lors de la création. Le projet n’est destiné qu’aux essais fictifs.
-2. Appliquer, dans cet ordre, les trois fichiers de `supabase/migrations/` avec la CLI ou le connecteur Supabase. Ne jamais rejouer une migration déjà appliquée ni réinitialiser une base existante pour suivre ce guide.
-3. Dans **Authentication → Sign In / Providers**, désactiver **Allow new users to sign up**, puis enregistrer. Vérifier que `GET /auth/v1/settings`, avec la clé publique en en-tête `apikey`, renvoie `disable_signup: true`. Vérifier aussi que l’authentification anonyme est désactivée.
-4. Créer les comptes fictifs via l’administration Auth du service, sans envoyer d’invitation, et attribuer leurs profils via l’éditeur SQL privilégié :
+```text
+python scripts/serve-dev.py --config dev/config.json
+```
 
-   ```sql
-   insert into guichet_prive.habilitations(compte,profil)
-   values ('UUID_DU_COMPTE_AGENT','agent'),
-          ('UUID_DU_COMPTE_ADMINISTRATEUR','administrateur');
-   ```
+Ouvrir `http://127.0.0.1:8000/dev.html`, ou `/` pour la démonstration autonome. Le serveur écoute exclusivement sur `127.0.0.1` et sert une liste précise de ressources ; il ne sert pas les fichiers privés.
 
-Pour une **base de développement neuve uniquement**, `python scripts/prepare-dev-accounts.py` prépare les deux comptes `agent@guichet.example` et `administrateur@guichet.example`, avec des mots de passe aléatoires dans `.env.accounts.json`. Appliquer le fichier privé `.env.provision.sql` depuis l’éditeur SQL privilégié, une seule fois, puis le supprimer. Cette aide insère les comptes fictifs dans le schéma Auth inspecté pour cette recette ; elle n’est ni une migration ni une procédure de provisionnement pour l’exploitation. Pour celle-ci, utiliser l’API d’administration Auth et le circuit validé par la DSI.
+Une configuration locale non versionnée peut remplacer la configuration publique :
 
-Le rôle est lu depuis `guichet_prive.habilitations` côté serveur. Aucun sélecteur client, attribut utilisateur ou formulaire d’inscription ne permet de le modifier. Un compte Auth sans habilitation ne peut ni lire ni écrire les fiches. La fonction `supprimer_usager` refuse explicitement l’agent avec HTTP 403 ; une requête DELETE directe est aussi filtrée par RLS et ne supprime aucune ligne.
+```json
+{
+  "SUPABASE_URL": "https://REFERENCE.supabase.co",
+  "ANON_KEY": "sb_publishable_CLE_PUBLIQUE"
+}
+```
 
-## Essayer depuis deux sessions
+Enregistrer ce contenu dans `.env.local.json`, puis lancer `python scripts/serve-dev.py`. Ne jamais y placer de clé secrète. Pour construire l’entrée statique après modification de son gabarit, exécuter `python scripts/build-dev.py`. Ce script refuse les clés secrètes et service_role. Ne pas utiliser un serveur statique générique sur un dossier contenant des mots de passe.
 
-Ouvrir l’entrée de développement dans deux profils de navigateur séparés, ou une fenêtre normale et une fenêtre privée. Se connecter comme Agent dans la première et Administrateur dans la seconde.
+## Préparer une base neuve
 
-- Depuis **Usagers**, créer une fiche fictive avec une carte telle que `0000123`, après avoir vérifié son absence. La seconde session doit la voir apparaître sans rechargement, à la prochaine synchronisation.
-- Compléter le prénom, le nom et la naissance : chacun reste facultatif. Dans les trois formulaires de passage, le nom connu apparaît en lecture seule. La note reste dans la fiche détaillée.
-- Scanner simultanément une nouvelle carte dans les deux formulaires de jeux de société et confirmer les passages. Une seule fiche doit exister en base. Après confirmation, **Fiches à compléter** apparaît dans la page, sans déplacer le curseur vers l’identité.
-- L’agent ne voit pas la suppression. Un appel manuel à la fonction de suppression avec sa session doit aussi recevoir HTTP 403. L’administrateur peut supprimer une fiche sans activité liée dans sa session ; l’autre session voit sa disparition.
-- Couper l’accès réseau avant une écriture : le formulaire reste rempli et affiche « Écriture non confirmée ». Rétablir la connexion, puis réessayer. Une réponse perdue après création est également rejouable sans doubler la fiche.
+Appliquer tous les fichiers de `supabase/migrations/` dans l’ordre de leur nom, une seule fois. Les migrations du projet de développement ont déjà été appliquées ; ne pas les rejouer sur cette base. Docker/Supabase local reste possible sur une autre machine compatible mais n’est pas nécessaire et n’a pas été utilisé pour cette recette.
 
-L’annuaire est partagé ; les activités sont encore en mémoire. Le blocage de suppression d’une fiche liée ne couvre donc à ce stade que les activités de la session courante. Le contrôle global des liens deviendra possible avec les tables d’activité et leurs contraintes serveur. Les réglages de démonstration restent propres au navigateur. Le rechargement termine la session de connexion ; les jetons ne sont pas stockés. Après expiration d’une session, le formulaire de connexion réapparaît et permet une reconnexion sans effacer la saisie.
+Dans Authentication → Sign In / Providers, désactiver **Allow new users to sign up** et enregistrer. Vérifier par `GET /auth/v1/settings`, avec l’en-tête `apikey`, que `disable_signup` vaut `true` et que `external.anonymous_users` vaut `false`.
 
-## Rejouer les essais automatisés
+Créer les comptes via l’administration Auth du service, sans invitation publique, puis attribuer leur rôle dans `guichet_prive.habilitations` depuis l’administration SQL privilégiée. Pour une base d’essai neuve seulement, `python scripts/prepare-dev-accounts.py` prépare deux comptes inventés, des mots de passe aléatoires dans `.env.accounts.json` et un fichier privé `.env.provision.sql`. Appliquer ce dernier une seule fois, puis le supprimer. Cette aide dépend du schéma Auth inspecté pour le développement ; le provisionnement d’exploitation doit passer par l’API d’administration Auth et le circuit de la DSI.
 
-Avec le serveur de développement lancé et les deux fichiers `.env.local.json` et `.env.accounts.json` présents :
+Les administrateurs peuvent ensuite modifier les habilitations des comptes existants dans l’interface. Aucun agent ne peut s’attribuer un rôle. Le dernier administrateur ne peut pas être retiré. Le rôle est relu dans la base et ne dépend pas des métadonnées modifiables d’un utilisateur ni d’un sélecteur client.
+
+## Modèle et transactions
+
+Les fiches ont un identifiant technique UUID stable et une carte unique de sept chiffres conservée en texte. Les notes ne sont chargées qu’à l’ouverture de la fiche détaillée. Les corrections utilisent une révision attendue ; un conflit garde le brouillon et présente la version du serveur. Une fusion exige un aperçu et une confirmation et reste annulable pendant la journée si les fiches et activités transférées n’ont pas changé. Aucun rapprochement par nom n’est automatique.
+
+Les tables d’activités, paramètres, opérations et totaux sont privées. Leurs politiques RLS sont fermées et aucun droit direct n’est attribué au client. Deux façades publiques appellent un service privé qui vérifie l’identité et les droits à chaque opération. Les fonctions privilégiées ont un `search_path` vide et des droits d’exécution explicites.
+
+Le service sérialise les mutations avec un verrou transactionnel commun, adapté au faible volume du guichet. Cela coordonne réservations, chevauchements de cartes, changements de paramètres, restaurations et clôture. Les places d’un groupe sont attribuées toutes ensemble. Une erreur annule également la création des fiches inconnues dans ce groupe. Un identifiant de tentative permet de rejouer une réponse perdue sans doublon. Réutiliser cet identifiant avec une autre saisie est refusé.
+
+Les erreurs de conflit métier utilisent `PT409`, et non `40001`, afin de répondre immédiatement sans déclencher les nouvelles tentatives automatiques de PostgREST. Les fiches, activités et réglages vérifient leurs versions avant correction.
+
+## Activités et réglages
+
+Les consultations proposent carte, boîte, enfants, adultes, date et secteur. Le dernier secteur est mémorisé sur le poste. Les titres inconnus restent à compléter dans les réglages des boîtes.
+
+Les jeux vidéo acceptent plusieurs cartes et accompagnateurs dans une seule validation. Le premier joueur fixe le jeu ; les places libres rejoignent ce jeu. Après la dernière annulation, le choix redevient libre. Les déplacements et restaurations revérifient places, compatibilité et chevauchements. Le formulaire conserve jour, poste, heure et jeu après inscription et vide les identités.
+
+Chaque poste possède sa capacité de 1 à 4 et ses jeux. Une grille par jour de semaine peut remplacer la grille habituelle ; une exception datée est prioritaire. Une journée ou un poste fermé ne peut pas recevoir de nouvelles réservations. Une modification incompatible avec une réservation existante est refusée.
+
+Les animations proposent les métadonnées du cahier des charges, les conditions d’âge, les dates d’ouverture, un lien facultatif vers un visuel, une jauge et le comptage ou l’inscription. Un groupe peut utiliser plusieurs fois la même carte pour des participants distincts, enfants ou adultes, avec âge en ans ou en mois. Les accompagnateurs comptent selon la règle de jauge choisie. Les séries hebdomadaires et mensuelles traversent l’année ; les exceptions personnalisées sont préservées. Modification et suppression proposent une séance, celle-ci et les suivantes ou toute la série avec aperçu. Les modèles réutilisables ne recopient pas les inscrits.
+
+Les vues tableau permettent filtre, sélection, correction, déplacement, export et import selon les droits. Le collage propose un aperçu puis confirme tout le lot dans une transaction. Les exports n’incluent pas les notes ; importer les cartes comme texte dans un tableur pour conserver leurs zéros initiaux. Les réglages et leurs délégations sont partagés. La suppression d’une fiche reste réservée aux administrateurs, sans délégation possible.
+
+## Clôture et confidentialité
+
+Une tâche PostgreSQL Cron active s’exécute chaque minute et calcule la date selon **Europe/Paris**. Les lectures et écritures du guichet rattrapent aussi la clôture avant de répondre. Les réponses excluent les journées passées. La même transaction agrège les totaux, supprime les anciennes activités et leurs liens, puis purge les anciennes références de reprise et de fusion. Rejouer la clôture ne double pas les totaux. Les fiches et réservations futures survivent.
+
+La corbeille concerne le jour courant et les réservations futures. La restauration revérifie la capacité ; elle ne force pas une place déjà prise. La clôture supprime également les anciennes lignes de corbeille. Une fiche encore liée à une activité ou à la corbeille ne peut pas être supprimée, même par une requête DELETE directe depuis un autre poste.
+
+Les totaux comptent les personnes déclarées, accompagnateurs compris ; la jauge d’une animation peut exclure les accompagnateurs selon son réglage. Les totaux ne mesurent pas une présence effective et ne conservent aucun lien nominatif passé.
+
+## Rejouer la recette
+
+Node.js 22+ est requis seulement pour les tests. Préparer `.env.local.json` et `.env.accounts.json` avec les deux comptes fictifs, puis :
 
 ```text
 npm ci
@@ -61,6 +85,12 @@ npx playwright install chromium
 npm test
 ```
 
-Node.js 22 ou ultérieur est requis uniquement pour ces tests. `GUICHET_ORIGIN` permet de changer l’adresse du serveur de test. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` permet de réutiliser un Chromium de test déjà installé. Les tests utilisent deux contextes de navigateur indépendants et les véritables API Auth/PostgREST du projet configuré. Ils créent des cartes fictives aléatoires, puis suppriment uniquement leurs propres fiches via la session administrateur. À réserver à une base d’essai.
+Les tests démarrent leurs propres serveurs temporaires et utilisent les vraies API Auth et PostgREST. `PLAYWRIGHT_CHROMIUM_EXECUTABLE` permet de réutiliser un Chromium de test existant ; `GUICHET_ORIGIN` permet de choisir un serveur déjà lancé. Résultats et captures fictives sont dans `test-results/`, ignoré par Git.
 
-Le résultat et les captures fictives sont écrits dans `test-results/`, ignoré par Git. Les captures ne contiennent ni mot de passe ni jeton. La suite vérifie aussi les trois activités de la page publique à 360 px. Après modification du script ou du style intégré à `index.html`, recalculer ses empreintes avec `python scripts/check-csp.py --write` avant de lancer la recette.
+Les tests créent des données fictives, annulent leurs activités et consignent leurs identifiants dans `.env.test-cleanup.json` pour un nettoyage privilégié ciblé. Ces fichiers ne sont jamais publiés. Ne lancer cette recette que sur une base de développement réservée aux essais.
+
+Le fichier `supabase/tests/cloture.sql` teste la clôture, les totaux, la purge, le replay et les réservations futures dans une transaction privilégiée **annulée par ROLLBACK**. Il a été exécuté sur le projet distant. Le workflow GitHub lance `npm run test:demo` et les contrôles de source, sans secrets ; il ne remplace pas les tests connectés.
+
+Après édition du script ou du style intégré à la démonstration, recalculer sa CSP avec `python scripts/check-csp.py --write`. Les modifications du client connecté n’exigent pas d’affaiblir la politique de la page publique.
+
+La recette sur deux ordinateurs physiques, la douchette, les mesures de latence représentatives, l’audit complet d’accessibilité et la restauration d’exploitation restent à réaliser sur l’infrastructure autorisée de la collectivité. L’URL publique connectée est une entrée de développement fictive ; elle n’autorise aucun usage de données réelles.

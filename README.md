@@ -1,38 +1,34 @@
 # Guichet médiathèque
 
-Une carte commune pour les consultations de jeux de société, les créneaux de jeux vidéo et les inscriptions aux animations.
+Un annuaire commun et trois activités partagés entre les postes d’accueil.
 
-**[Lire le cahier des charges](CAHIER-DES-CHARGES.md)** · **[Ouvrir la démonstration](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/index.html)**
+**[Ouvrir le guichet partagé de développement](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/dev/index.html)** · **[Démonstration publique autonome](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/index.html)**
 
-**[Dossier de revue pour la collectivité](REVUE-COLLECTIVITE.md)** · **[Droits et composants](DROITS.md)**
+**Données fictives uniquement.** Le guichet connecté utilise un projet Supabase de développement à Paris. Il ne nécessite ni Docker, ni WSL, ni modification de Vanguard. Les comptes sont attribués par le service et l’inscription publique est désactivée.
 
-### Tester seul les trois parcours
+## Ce qui est partagé
 
-1. En **Jeux de société**, enregistrer une consultation en Jeunesse avec la carte fictive `ESSAI-01` sans saisir de nom. Après validation, compléter la carte dans **Fiches à compléter**, ou passer directement à la personne suivante.
-2. En **Jeux vidéo**, cliquer sur **Inscrire**, choisir le jeu et ressaisir cette carte. Si la fiche a été complétée, son nom apparaît. Enchaîner avec une deuxième carte sur le même créneau.
-3. Choisir le profil de démonstration **Administrateur**. En **Animations**, cliquer sur une date, créer une séance et y inscrire la première carte. Rouvrir la fiche pour modifier la séance ou retirer une inscription.
+- Annuaire : cartes de sept chiffres avec zéros initiaux, identité facultative après passage, note dans la fiche détaillée, fusion manuelle réversible. La suppression reste réservée à l’administration et bloquée par les liens actifs ou la corbeille.
+- Jeux de société : boîte, titre connu ou à compléter, secteur, date, enfants/adultes, correction, déplacement, sélection et annulation.
+- Jeux vidéo : plusieurs joueurs confirmés ensemble, accompagnateurs inclus, contrôle serveur des places, jeux et chevauchements, alternatives, déplacement d’une personne ou d’un groupe.
+- Animations : calendrier et tableau, séances, séries hebdomadaires ou mensuelles, exceptions, modèles, enfants/adultes, âge en ans ou mois, inscriptions de groupes et comptage en entrée libre.
+- Administration : postes, jeux, capacités de 1 à 4, grilles par jour de semaine, exceptions datées, fermetures, boîtes, types et modèles d’animation, raccourcis et habilitations.
+- Tables filtrables, imports avec aperçu puis transaction complète, exports des lignes sélectionnées selon les droits, corbeille et annulation.
 
-La démonstration accepte des cartes fictives préfixées par ESSAI-. Les fiches, activités et totaux restent en mémoire et disparaissent au rechargement. Les réglages de démonstration seuls sont enregistrés sur ce navigateur. Les jeux et les horaires proposés servent aux essais. La recherche par carte couvre les trois activités. Le sélecteur de profil sert à comparer les commandes dans une session fictive. Utiliser uniquement des données fictives dans cette page publique.
+Les autres sessions reçoivent les modifications sans rechargement. Les conflits et échecs réseau conservent la saisie. Au changement de date selon Europe/Paris, le serveur garde les totaux par jour et activité et supprime les anciennes participations nominatives, y compris les références de reprise et d’annulation. Les réservations futures et les fiches restent conservées.
 
-### Travailler depuis chez soi
+## Utiliser ou développer
 
-Cloner le dépôt et ouvrir `index.html` dans un navigateur récent. Pour servir la page en local, lancer `python -m http.server 8000` dans ce dossier, puis ouvrir `http://localhost:8000`. Aucun composant à installer pour la page elle-même.
+Le lien du guichet connecté peut s’ouvrir dans deux profils de navigateur ou depuis deux ordinateurs. Utiliser les comptes fictifs fournis séparément. La configuration publiée contient uniquement l’URL Supabase et sa clé publique ; aucun mot de passe ni secret d’administration.
 
-Modifier le cahier des charges en Markdown, puis enregistrer les changements dans Git. Conserver les fichiers métier et les exports nominatifs sur l’infrastructure interne.
+Pour travailler localement, lancer `python scripts/serve-dev.py --config dev/config.json`, puis ouvrir `http://127.0.0.1:8000/dev.html`. Python 3.10 ou ultérieur suffit pour l’interface. La configuration privée `.env.local.json` peut aussi être utilisée, comme décrit dans le guide.
 
-### Base de développement Supabase
+La page `index.html` reste autonome : cartes ESSAI, utilisateurs et activités en mémoire, réglages de démonstration propres au navigateur, aucune connexion applicative. Elle peut toujours s’ouvrir directement depuis le disque.
 
-L’[entrée de développement](DEVELOPPEMENT.md) raccorde l’annuaire à une base Supabase distante, sans Docker ni virtualisation. Elle utilise l’interface existante et deux comptes fictifs attribués par le service. La page publique `index.html` reste autonome, sans connexion applicative, avec ses cartes ESSAI.
+**[Guide de développement et lancement](DEVELOPPEMENT.md)** · **[Recette complète](RECETTE-GUICHET.md)** · **[Cahier des charges](CAHIER-DES-CHARGES.md)** · **[Revue de la collectivité](REVUE-COLLECTIVITE.md)** · **[Droits et composants](DROITS.md)**
 
-Après création du fichier local `.env.local.json` décrit dans le guide, lancer `python scripts/serve-dev.py`, puis ouvrir `http://127.0.0.1:8000/dev.html`. L’annuaire se synchronise automatiquement toutes les deux secondes. Les cartes de développement sont des chaînes de sept chiffres, zéros initiaux compris. Agent et Administrateur peuvent créer et compléter une fiche ; seul l’Administrateur peut la supprimer, avec contrôle côté serveur. Les notes ne sont chargées qu’à l’ouverture d’une fiche détaillée.
+## Vérifications
 
-Les migrations restent compatibles avec Supabase local si Docker est disponible : `supabase start`, puis, uniquement sur une **base locale jetable**, `supabase db reset`. Les activités et les réglages restent propres à la session ou au navigateur ; leur partage, les réservations atomiques et la clôture serveur sont les étapes suivantes. Le serveur interne reste prévu pour l’exploitation. Voir la [recette exécutée](RECETTE-ANNUAIRE.md).
+Avec les deux comptes fictifs configurés localement : `npm ci`, `npx playwright install chromium`, puis `npm test`. Les tests démarrent leurs propres serveurs temporaires. Le workflow GitHub vérifie la démonstration et les sources sans recevoir les mots de passe des comptes. Les essais connectés et la recette SQL de clôture ont aussi été exécutés sur la véritable base distante.
 
-GitHub Pages peut servir les fichiers statiques du dépôt. L’activation se fait dans les paramètres Pages, branche `main`, dossier racine. La prévisualisation en tête de page fonctionne également sans cette activation. [Documentation GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages) · [Documentation Supabase locale](https://supabase.com/docs/guides/local-development/cli/getting-started)
-
-
-### Annuaire et administration
-
-**Usagers** ouvre la recherche par nom ou carte et la création de fiche. Après un passage, **Fiches à compléter** propose le prénom, le nom et la date de naissance. La note se trouve dans la fiche de l’annuaire. Le profil Administrateur dispose également du bouton **Administration** pour configurer les postes, jeux, capacités, horaires, valeurs par défaut des animations et délégation de leur gestion. Les modifications de réglages s’appliquent aux formulaires de ce navigateur. La suppression des usagers est réservée aux administrateurs.
-
-Les totaux du tableau d’administration comptent les personnes déclarées en jeux de société et les places ou personnes inscrites aux autres activités, accompagnateurs compris. Les données de présence effective ne sont pas mesurées. Les réglages partagés entre postes et la clôture serveur des activités seront à raccorder avec les tables métier.
+Le serveur interne, l’usage de données réelles, les sauvegardes d’exploitation et les validations institutionnelles restent à organiser avec la collectivité. Cette version fournit le développement partagé et sa recette fictive.
