@@ -3,7 +3,7 @@
 
 ### Pilotage par une seule personne
 
-Un seul porteur de projet peut développer, documenter, exécuter les essais successivement sur deux postes et consigner les résultats. Les domaines de revue ci-dessous servent de liste de travail. Pour chaque décision institutionnelle, inscrire le contact compétent de la collectivité lorsqu’il est identifié et conserver la décision reçue. Une fonction absente de la médiathèque peut relever d’un service mutualisé. Les agents qui se relaient au guichet disposent des mêmes commandes métier.
+Un seul porteur de projet peut développer, documenter, exécuter les essais successivement sur deux postes et consigner les résultats. Les domaines de revue ci-dessous servent de liste de travail. Pour chaque décision institutionnelle, inscrire le contact compétent de la collectivité lorsqu’il est identifié et conserver la décision reçue. Une fonction absente de la médiathèque peut relever d’un service mutualisé. Les agents qui se relaient disposent des commandes du guichet. Les comptes administrateurs gèrent les réglages et les habilitations.
 
 ### Ce qui circule aujourd’hui
 
@@ -24,11 +24,11 @@ Un seul porteur de projet peut développer, documenter, exécuter les essais suc
 | Fondement | Examiner la mission d’intérêt public pour chaque finalité, avec le texte qui fonde la mission et la nécessité des champs collectés. Documenter la décision au titre des articles 6.1.e et 6.3. |
 | Personnes | Usagers, mineurs et accompagnateurs. Lorsqu’un enfant accompagne un adulte, un décompte suffit si l’organisation de la séance le permet. |
 | Données | Carte et identifiant interne, nom facultatif, séance, secteur, effectifs, âge ponctuel si nécessaire. Préférer la tranche d’âge à la date de naissance. Pour les statistiques, examiner le besoin de garder un lien à la carte après la séance. |
-| Accès et flux | Agents habilités au guichet, mêmes droits métier. DSI selon ses missions de maintenance. Décrire hébergement, sauvegardes, sous-traitants, éventuels transferts et garanties. Instruire l’article 28 si un prestataire traite ces données pour la collectivité. |
+| Accès et flux | Accès selon le profil agent ou administrateur. DSI selon ses missions de maintenance. Décrire hébergement, sauvegardes, sous-traitants, éventuels transferts et garanties. Instruire l’article 28 si un prestataire traite ces données pour la collectivité. |
 | Risques | Rapprochement de trois activités, visibilité des pratiques de mineurs, exports et écran partagé. Consigner avec le DPD l’examen du risque élevé et réaliser une analyse d’impact avant traitement si les critères de l’article 35 sont remplis. |
 | Sort final | Définir séparément les échéances des inscriptions après séance, des consultations nominatives, des fiches inactives, des journaux, fichiers d’import, corbeilles et sauvegardes. Faire valider le tableau de gestion et les modalités d’élimination avec les archives compétentes. |
 
-**Information au guichet.** Avant la première collecte, préparer une notice courte et une version complète accessibles aux familles. Renseigner l’identité et les contacts du responsable et du DPD, les finalités, base légale, destinataires, durées ou critères, champs obligatoires et facultatifs, effets du refus et réclamation auprès de la CNIL. Expliquer simplement les droits applicables et le circuit de demande. Pour les données reprises des anciens fichiers, vérifier l’information déjà donnée, sa compatibilité avec le nouvel usage et l’application de l’article 14 selon l’origine.
+**Information au guichet.** Avant la première collecte, préparer une notice courte et une version complète accessibles aux familles. Renseigner l’identité et les contacts du responsable et du DPD, les finalités, base légale, destinataires, durées ou critères, champs obligatoires et facultatifs, effets du refus et réclamation auprès de la CNIL. Expliquer simplement les droits applicables et le circuit de demande. Le démarrage se fait sans reprise nominative.
 
 **Exercice des droits.** Prévoir une demande au guichet ou via le canal officiel de la collectivité. Vérifier l’identité de façon proportionnée. Rechercher la carte dans les trois activités, distinguer les participants d’une même famille, corriger les données ou en limiter l’usage, instruire opposition ou effacement selon le fondement applicable. Répondre en principe sous un mois et documenter toute prolongation selon l’article 12. Tester le parcours avec deux cartes fictives homonymes.
 
