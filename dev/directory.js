@@ -65,7 +65,11 @@ globalThis.guichetDirectory = (() => {
  directory.accounts=()=>request('/rest/v1/rpc/comptes_guichet',{method:'POST',body:{}});
  directory.setRole=(compte,profil)=>request('/rest/v1/rpc/attribuer_profil',{method:'POST',body:{compte,profil}});
  directory.currentProfile=()=>request('/rest/v1/rpc/mon_profil',{method:'POST',body:{}});
- document.addEventListener('DOMContentLoaded',()=>{
+ directory.enableLogin=()=>{
+  const form=document.getElementById('login');
+  if(form&&typeof form.onsubmit==='function'&&typeof directory.onReady==='function')form.elements.submit.disabled=false;
+ };
+ function initializeLogin(){
   document.getElementById('login').onsubmit=async event=>{
    event.preventDefault();const form=event.target,f=form.elements,msg=document.getElementById('loginMsg');
    f.submit.disabled=true;
@@ -86,6 +90,9 @@ globalThis.guichetDirectory = (() => {
    }catch(error){token='';directory.profile='';msg.textContent='Connexion impossible. '+error.message}
    finally{f.submit.disabled=false}
   };
- });
+  directory.enableLogin();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initializeLogin,{once:true});
+ else initializeLogin();
  return directory;
 })();

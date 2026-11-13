@@ -12,7 +12,7 @@ LOGIN = '''<section><h1>Guichet partagé de développement</h1>
 <form id="login"><div class="fields">
 <label>Adresse du compte<input name="email" type="email" required autocomplete="username"></label>
 <label>Mot de passe<input name="password" type="password" required autocomplete="current-password"></label>
-</div><button name="submit">Se connecter</button><p id="loginMsg" role="status"></p></form>
+</div><button name="submit" disabled>Se connecter</button><p id="loginMsg" role="status"></p></form>
 <p id="sessionProfile" hidden></p><p id="syncStatus" role="status"></p></section>'''
 
 

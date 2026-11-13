@@ -392,7 +392,7 @@ $('undoMerge').onclick=async()=>{
 function selected(kind,list){const ids=[...document.querySelectorAll(`input[data-kind="${kind}"]:checked`)].map(x=>x.value);return list.filter(x=>ids.includes(x.id))}
 async function exportRows(kind,list){
  if(!may('export'))return;const selection=selected(kind,list);if(!selection.length){notice('Sélectionner les lignes à exporter.');return}
- try{await api.command('export',{});const cols=['date','card','name','box','sector','kids','adults','post','slot','end','game','companions','age','category','title','time','info','eventType','referent','mode','cap'];
+ try{await api.command('export',{});const cols=['date','card','name','box','sector','kids','adults','post','slot','end','game','companions','age','ageUnit','category','title','time','info','eventType','referent','mode','cap'];
   const csv=[cols,...selection.map(x=>({...x,name:nameOf(x.card)})).map(x=>cols.map(k=>x[k]??''))].map(row=>row.map(v=>{let cell=String(v);if(/^[=+@-]/.test(cell))cell="'"+cell;return '"'+cell.replace(/"/g,'""')+'"'}).join(';')).join('\r\n');
   const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='guichet-'+kind+'-'+day()+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  }catch(error){notice(error.message)}
@@ -443,3 +443,4 @@ function removeSeries(ev){
  form.elements.scope.onchange=preview;preview();
  form.onsubmit=e=>{e.preventDefault();if(!confirm($('removePreview').textContent+' Continuer ?'))return;submit(form,'removeMsg','event.remove',{rows:rows(affected)},result=>{$('modal').close();notice('Séances placées dans la corbeille.')},result=>({action:'event.restore',data:{rows:rows(result.ids.map(record))}}))};
 }
+api.enableLogin();
