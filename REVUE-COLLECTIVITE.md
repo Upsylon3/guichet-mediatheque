@@ -1,6 +1,10 @@
 # Revue du projet par la collectivité
 **État au 13 novembre 2026 · document préparatoire pour la direction, la DSI, le DPD et les archives.**
 
+### Pilotage par une seule personne
+
+Un seul porteur de projet peut développer, documenter, exécuter les essais successivement sur deux postes et consigner les résultats. Les domaines de revue ci-dessous servent de liste de travail. Pour chaque décision institutionnelle, inscrire le contact compétent de la collectivité lorsqu’il est identifié et conserver la décision reçue. Une fonction absente de la médiathèque peut relever d’un service mutualisé. Les agents qui se relaient au guichet disposent des mêmes commandes métier.
+
 ### Ce qui circule aujourd’hui
 
 | Situation | Données et destination |
@@ -30,15 +34,15 @@
 
 ### Conditions techniques de la version de service
 
-| Responsable proposé | Décision et preuve attendues |
+| Domaine de revue | Décision et preuve attendues |
 |---|---|
-| DSI et responsable de service | Accès réservé aux agents habilités via la session professionnelle ou l’authentification unique existante. Aucun nouveau formulaire d’inscription pour les agents. Tester qu’un poste public ou un agent sorti du service perd l’accès, y compris via l’interface de programmation. |
-| DSI | Hébergement approuvé, chiffrement des échanges, secrets hors du dépôt, validation des entrées côté serveur, contrôle d’accès à chaque opération, protection des sessions, correctifs et suivi des dépendances. Définir les responsabilités d’exploitation. |
-| DSI et DPD | Tracer les opérations nécessaires, en particulier exports, modifications en masse et accès de maintenance. Réserver l’accès aux traces, éviter noms, numéros de carte et contenus de consultation dans les journaux techniques. Prévoir un canal privé de signalement. |
-| DSI et archives | Tester sauvegarde chiffrée, restauration isolée, purge autorisée et réapplication des suppressions après restauration. Conserver le résultat daté de l’exercice. |
-| Responsable et DPD | En cas d’incident, contenir, conserver les éléments nécessaires et consigner la violation. Si elle présente un risque pour les personnes, notifier la CNIL si possible sous 72 h après en avoir pris connaissance. En cas de risque élevé, examiner l’information des personnes dans les conditions de l’article 34. |
-| Référent accessibilité | Déterminer le périmètre RGAA du service interne. Auditer clavier et lecteur d’écran, focus des fenêtres, annonces des erreurs et places, calendrier, contrastes, zoom et petits écrans. Documenter les écarts, le contact accessible, la déclaration applicable et le plan de correction avant diffusion institutionnelle. |
-| Direction et service juridique | Valider le titulaire des droits, le mode de diffusion, les mentions d’éditeur, directeur de publication et hébergeur du futur service selon le support. Vérifier les droits sur les contenus et visuels ajoutés. Voir [Droits et composants](DROITS.md). |
+| Accès au guichet | Accès réservé aux agents habilités via la session professionnelle ou l’authentification unique existante. Aucun nouveau formulaire d’inscription pour les agents. Tester qu’un poste public ou un agent sorti du service perd l’accès, y compris via l’interface de programmation. |
+| Exploitation | Hébergement approuvé, chiffrement des échanges, secrets hors du dépôt, validation des entrées côté serveur, contrôle d’accès à chaque opération, protection des sessions, correctifs et suivi des dépendances. Définir les responsabilités d’exploitation. |
+| Traçabilité | Tracer les opérations nécessaires, en particulier exports, modifications en masse et accès de maintenance. Réserver l’accès aux traces, éviter noms, numéros de carte et contenus de consultation dans les journaux techniques. Prévoir un canal privé de signalement. |
+| Sauvegardes et archives | Tester sauvegarde chiffrée, restauration isolée, purge autorisée et réapplication des suppressions après restauration. Conserver le résultat daté de l’exercice. |
+| Gestion des incidents | En cas d’incident, contenir, conserver les éléments nécessaires et consigner la violation. Si elle présente un risque pour les personnes, notifier la CNIL si possible sous 72 h après en avoir pris connaissance. En cas de risque élevé, examiner l’information des personnes dans les conditions de l’article 34. |
+| Accessibilité | Déterminer le périmètre RGAA du service interne. Auditer clavier et lecteur d’écran, focus des fenêtres, annonces des erreurs et places, calendrier, contrastes, zoom et petits écrans. Documenter les écarts, le contact accessible, la déclaration applicable et le plan de correction avant diffusion institutionnelle. |
+| Droits et publication | Valider le titulaire des droits, le mode de diffusion, les mentions d’éditeur, directeur de publication et hébergeur du futur service selon le support. Vérifier les droits sur les contenus et visuels ajoutés. Voir [Droits et composants](DROITS.md). |
 
 **Décision d’ouverture.** Le responsable de service inscrit la date, le périmètre du pilote, les avis recueillis, les écarts résiduels, leurs responsables et leurs échéances. La recette exige au minimum une vérification des accès sur deux postes, une preuve de restauration, un essai des droits des usagers, une vérification de la purge et une revue d’accessibilité. La démonstration publique peut être présentée dès maintenant avec des cartes et des noms inventés.
 
