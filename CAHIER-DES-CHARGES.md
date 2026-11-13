@@ -89,3 +89,7 @@ Prévoir des modules distincts pour les trois métiers et des services communs p
 - Quels historiques conserver, combien de temps, sur quel serveur interne, et qui effectuera le test de restauration ?
 
 **Ordre de réalisation proposé.** Valider les trois parcours avec des données fictives. Livrer ensuite base commune, consultations et reprise à blanc. Ajouter créneaux et inscriptions de groupe, puis calendrier, récurrences et exceptions. Ouvrir le pilote partagé après les essais de concurrence et de restauration. Les sélections de lecture, listes d’attente et statistiques anonymes par période peuvent suivre selon les priorités du terrain.
+
+### 9. Revue avant le pilote
+
+Le [dossier de revue de la collectivité](REVUE-COLLECTIVITE.md) décrit les preuves à réunir pour un usage réel, les responsabilités, les archives, l’accessibilité et les conditions de diffusion. Le développement à domicile et la recette publique utilisent exclusivement des données fictives.
