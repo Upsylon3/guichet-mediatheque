@@ -36,7 +36,9 @@ Sur inscription, scanner la carte et proposer le nom connu. Permettre plusieurs 
 
 ### 3. Une fiche usager commune
 
-Le numéro de carte est du texte, zéros initiaux compris. Supprimer seulement les espaces périphériques et la fin de lecture de la douchette. Une carte inconnue affiche « Ajouter un nom » dans le formulaire courant. Le nom est facultatif et la fiche se crée avec la première validation. La même carte saisie simultanément à deux postes aboutit à une seule fiche. Une correction du nom est visible dans les trois onglets. Deux personnes homonymes restent distinctes. En cas de remplacement de carte, proposer une fusion manuelle avec aperçu des inscriptions liées, confirmation et possibilité de revenir en arrière. Ne jamais rapprocher automatiquement deux personnes sur leur seul nom.
+La carte porte un code-barres qui encode uniquement le numéro d’usager. Ce même numéro de **sept chiffres** est imprimé sous le code-barres. Le prénom et le nom figurent également sur la carte.
+
+Le scan et la saisie manuelle du numéro imprimé empruntent le même champ dans les trois onglets. Conserver le numéro en texte et valider exactement sept chiffres de 0 à 9, zéros initiaux compris. Supprimer seulement les espaces périphériques et la fin de lecture de la douchette. Une carte inconnue propose deux champs facultatifs, « Prénom » et « Nom », que l’agent peut recopier depuis la carte. Pour une carte connue, les valeurs proposées proviennent de la fiche commune. La saisie du nom reste facultative et la fiche se crée avec la première validation. La même carte saisie simultanément à deux postes aboutit à une seule fiche. Une correction du nom est visible dans les trois onglets. Deux personnes homonymes restent distinctes. En cas de remplacement de carte, proposer une fusion manuelle avec aperçu des inscriptions liées, confirmation et possibilité de revenir en arrière. Ne jamais rapprocher automatiquement deux personnes sur leur seul nom.
 
 ### 4. Liberté de travail et périmètre
 
@@ -72,6 +74,7 @@ Prévoir des modules distincts pour les trois métiers et des services communs p
 
 | Essai au guichet | Résultat attendu |
 |---|---|
+| Scanner un identifiant de sept chiffres commençant par zéro, puis le retaper dans un autre onglet | Même fiche, zéro initial conservé. Une saisie de six ou huit chiffres ou contenant une lettre affiche « Saisir les 7 chiffres imprimés sous le code-barres ». La règle porte sur les cartes usagers, indépendamment des numéros de boîte. |
 | Carte inconnue en Jeunesse, puis même carte en Pop Zone et sur un atelier | Une seule fiche. Le nom peut être ajouté plus tard et se retrouve partout. |
 | Une boîte, deux enfants et un adulte | Une consultation et trois participants. Une correction d’effectif recalcule le total. |
 | Groupe de trois sur MARIO avec une place déjà prise | Trois places attribuées ensemble. Le prochain formulaire conserve le créneau et le jeu, sans reprendre les cartes. |
