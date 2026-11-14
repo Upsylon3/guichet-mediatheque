@@ -218,6 +218,22 @@ globalThis.guichetDirectory = (() => {
         ids.push(x.id);
         return x;
       };
+    if (action === 'trash.empty') {
+      if (api.profile !== 'administrateur') fail('Administration réservée');
+      if (!Array.isArray(d.rows)) fail('Instantané de la corbeille requis');
+      const snapshot = (items) =>
+        JSON.stringify(
+          items
+            .map(({ id, revision }) => ({ id, revision }))
+            .sort((a, b) => a.id.localeCompare(b.id)),
+        );
+      if (snapshot(d.rows) !== snapshot(state.trash))
+        fail('La corbeille a changé. Actualisez-la puis confirmez à nouveau.');
+      // Les participants d’une animation supprimée disparaissent avec leur séance.
+      const deleted = state.trash.length;
+      state.trash = [];
+      return { deleted };
+    }
     if (action === 'template.save' || action === 'template.remove') {
       if (
         api.profile !== 'administrateur' &&

@@ -97,3 +97,9 @@ Les fermetures et changements de capacité des postes contrôlent les réservati
 Les commentaires décrivent les intentions et les contraintes métier. Les fichiers `index.html` et `dev/index.html` sont générés : modifier les sources, puis lancer `npm run build`.
 
 Les habilitations de `guichet_prive.habilitations` suivent l’UUID du compte Auth. Supprimer un compte supprime son habilitation ; recréer son adresse ne restaure pas ses droits. Pour changer un mot de passe, modifier le compte existant. Si tous les administrateurs ont été supprimés, la restauration d’une habilitation exige l’éditeur SQL privilégié du projet (rôle `postgres`), puis les comptes suivants se gèrent depuis Administration → Accès des agents.
+
+## Vider la corbeille
+
+Dans Corbeille, un administrateur peut choisir Vider la corbeille et confirmer le nombre d’éléments. La suppression est définitive, sans Ctrl+Z ; les participants et comptages rattachés aux animations jetées sont également supprimés. Les fiches usagers et les activités actives sont conservées. Si une autre session modifie la corbeille, actualiser puis confirmer à nouveau.
+
+Déploiement : appliquer la migration `20261114105536_vider_corbeille.sql` dans le projet Supabase avant de publier le bouton avec GitHub Pages. La publication des fichiers statiques n’applique pas les migrations SQL.

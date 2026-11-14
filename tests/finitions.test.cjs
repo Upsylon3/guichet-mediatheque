@@ -293,3 +293,71 @@ test(
     }
   },
 );
+
+test('Corbeille : confirmation, accès administrateur et suppression définitive', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(origin + '/');
+    await page.locator('#videoPlanning').waitFor({ state: 'visible' });
+    await page.locator('#openTrash').click();
+    assert.equal(await page.locator('#emptyTrash').isVisible(), false);
+    await page.locator('#role').selectOption({ label: 'Administrateur' });
+    await page.waitForFunction(
+      () => globalThis.guichetDirectory.profile === 'administrateur',
+    );
+    assert.equal(await page.locator('#emptyTrash').isDisabled(), true);
+    const before = await page.evaluate(async () => {
+      const api = globalThis.guichetDirectory,
+        s = await api.state();
+      await api.command('board.remove', {
+        rows: [{ id: s.boards[0].id, revision: s.boards[0].revision }],
+      });
+      await api.command('event.remove', {
+        rows: [{ id: s.events[0].id, revision: s.events[0].revision }],
+      });
+      await api.onReady();
+      return { state: await api.state(), people: await api.list() };
+    });
+    await page.locator('#openTrash').click();
+    page.once('dialog', async (dialog) => {
+      assert.match(dialog.message(), /2 élément\(s\).*irréversible/);
+      await dialog.dismiss();
+    });
+    await page.locator('#emptyTrash').click();
+    assert.equal(
+      await page.evaluate(
+        async () => (await globalThis.guichetDirectory.state()).trash.length,
+      ),
+      2,
+    );
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.locator('#emptyTrash').click();
+    await text(page, '#notice', 'Corbeille vidée définitivement.');
+    assert.equal(await page.locator('#emptyTrash').isDisabled(), true);
+    assert.equal(await page.locator('#undo').isDisabled(), true);
+    const after = await page.evaluate(async () => ({
+      state: await globalThis.guichetDirectory.state(),
+      people: await globalThis.guichetDirectory.list(),
+    }));
+    assert.deepEqual(after.state.trash, []);
+    assert.deepEqual(after.state.boards, before.state.boards);
+    assert.deepEqual(after.state.videos, before.state.videos);
+    assert.deepEqual(after.state.events, before.state.events);
+    assert.deepEqual(after.people, before.people);
+    // Le contrôle serveur simulé refuse aussi un appel direct d’un agent.
+    const denied = await page.evaluate(async () => {
+      const api = globalThis.guichetDirectory;
+      api.profile = 'agent';
+      try {
+        await api.command('trash.empty', { rows: [] });
+        return false;
+      } catch (error) {
+        return error.message.includes('Administration réservée');
+      }
+    });
+    assert.equal(denied, true);
+  } finally {
+    await browser.close();
+  }
+});

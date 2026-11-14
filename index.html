@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-umuTHUvYPvljWA2jVZrGU1pLcmdGdMFRqR09B3mDTwE='; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-JTHl5M6fIWZS+qJuYhQnOlvVUMDdtm3q6qCFYMuXxQ0='; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -1227,6 +1227,22 @@ globalThis.guichetDirectory = (() => {
         ids.push(x.id);
         return x;
       };
+    if (action === 'trash.empty') {
+      if (api.profile !== 'administrateur') fail('Administration réservée');
+      if (!Array.isArray(d.rows)) fail('Instantané de la corbeille requis');
+      const snapshot = (items) =>
+        JSON.stringify(
+          items
+            .map(({ id, revision }) => ({ id, revision }))
+            .sort((a, b) => a.id.localeCompare(b.id)),
+        );
+      if (snapshot(d.rows) !== snapshot(state.trash))
+        fail('La corbeille a changé. Actualisez-la puis confirmez à nouveau.');
+      // Les participants d’une animation supprimée disparaissent avec leur séance.
+      const deleted = state.trash.length;
+      state.trash = [];
+      return { deleted };
+    }
     if (action === 'template.save' || action === 'template.remove') {
       if (
         api.profile !== 'administrateur' &&
@@ -1781,7 +1797,7 @@ $('deleteUser').insertAdjacentHTML(
 );
 $('pending').insertAdjacentHTML(
   'afterend',
-  '<section id="trash" hidden><h2>Corbeille des 30 derniers jours et des réservations futures</h2><div id="trashList"></div></section>',
+  '<section id="trash" hidden><h2>Corbeille des 30 derniers jours et des réservations futures</h2><p>Les administrateurs peuvent supprimer définitivement le contenu de la corbeille.</p><button id="emptyTrash" type="button" hidden>Vider la corbeille</button><div id="trashList"></div></section>',
 );
 $('config').insertAdjacentHTML(
   'beforeend',
@@ -2025,8 +2041,25 @@ $('openTrash').onclick = () => {
   $('trash').hidden = !$('trash').hidden;
   renderTrash();
 };
+// Confirmer un instantané : le serveur refuse de supprimer une corbeille modifiée depuis.
+$('emptyTrash').onclick = async () => {
+  if (!admin() || !state.trash.length) return;
+  const selected = rows(state.trash);
+  if (
+    !confirm(
+      `Vider définitivement la corbeille (${selected.length} élément(s)) ? Les participants et comptages rattachés aux animations supprimées seront également effacés. Cette action est irréversible.`,
+    )
+  )
+    return;
+  await submit($('trash'), 'notice', 'trash.empty', { rows: selected }, () => {
+    notice('Corbeille vidée définitivement.');
+  });
+  renderTrash();
+};
 // Présenter les éléments supprimés dont la restauration reste contrôlée par le service.
 function renderTrash() {
+  $('emptyTrash').hidden = !admin();
+  $('emptyTrash').disabled = !state.trash.length || !!$('trash').dataset.saving;
   $('trashList').replaceChildren();
   for (const item of state.trash) {
     const row = document.createElement('div');
