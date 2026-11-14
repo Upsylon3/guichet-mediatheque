@@ -6,7 +6,7 @@ Version du 14 novembre 2026. Les règles suivantes remplacent les hypothèses de
 
 Un menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Les administrateurs disposent des onglets Statistiques et Administration. Corbeille et annulation sont accessibles selon les droits. Le mode sombre se mémorise par navigateur. Les interfaces restent utilisables à 360 px et au clavier.
 
-Les comptes du personnel sont attribués, sans inscription publique. Les agents peuvent saisir les activités et compléter les identités. L’administration attribue les délégations de correction, d’annulation et de gestion des séances. Les statistiques, imports et exports sont exclusivement administratifs, sans délégation. La suppression et la fusion de fiches restent administratives.
+Les comptes du personnel sont attribués, sans inscription publique. Les agents peuvent saisir les activités et compléter les identités. L’administration attribue les délégations de correction, d’annulation et de gestion des séances. Les statistiques sont exclusivement administratives, sans délégation. Les boutons d’import et d’export sont retirés de l’interface. La suppression et la fusion de fiches restent administratives.
 
 ## Jeux de société
 
@@ -38,7 +38,7 @@ Séries hebdomadaires ou mensuelles, 1 à 52 occurrences et intervalle de 1 à 1
 
 ## Annuaire
 
-Sept chiffres conservés en texte, zéros initiaux compris. Recherche par nom ou numéro. Prénom, nom, naissance et note facultatifs. Notes uniquement dans la fiche détaillée, jamais dans les exports d’activités. Deux homonymes restent distincts.
+Sept chiffres conservés en texte, zéros initiaux compris. Recherche par nom ou numéro. Prénom, nom, naissance et note facultatifs. Notes uniquement dans la fiche détaillée. Deux homonymes restent distincts.
 
 Une activité acceptée crée au besoin la fiche minimale dans la même transaction. Une activité refusée ne crée pas de fiche. Le changement de numéro s’effectue depuis la fiche retrouvée par nom ou carte, avec aperçu d’identité et confirmation. Il conserve UUID, identité, inscriptions et quota. Un numéro déjà attribué est refusé et renvoie vers la fusion administrative. Aucun rapprochement automatique sur le nom.
 
@@ -46,7 +46,7 @@ La suppression administrative est bloquée par les activités et la corbeille li
 
 ## Statistiques et confidentialité
 
-L’onglet Statistiques est réservé aux administrateurs, côté interface et serveur. Période, regroupement jour/semaine/mois, filtres activité, secteur, poste, jeu vidéo, boîte, salle, type d’animation et catégorie. Compter saisies, personnes déclarées, enfants/adultes lorsque connus et accompagnateurs des animations sans jauge. L’export des indicateurs ne contient ni nom ni carte. Ces chiffres ne prouvent pas une présence effective. Les anciens totaux sans détail restent identifiés comme tels.
+L’onglet Statistiques est réservé aux administrateurs, côté interface et serveur. Période, regroupement jour/semaine/mois, filtres activité, secteur, poste, jeu vidéo, boîte, salle, type d’animation et catégorie. Compter saisies, personnes déclarées, enfants/adultes lorsque connus et accompagnateurs des animations sans jauge. Les indicateurs ne contiennent ni nom ni carte. Ces chiffres ne prouvent pas une présence effective. Les anciens totaux sans détail restent identifiés comme tels.
 
 À la clôture Europe/Paris, agréger les activités par dimensions non nominatives, puis purger les anciennes activités, corbeilles et références de reprise/fusion. Une trace privée minimale associant identifiant stable de fiche et semaine reste uniquement jusqu’à la fin de la semaine pour faire respecter le quota JV. Elle ne conserve ni jeu ni horaire et n’est exposée à aucun profil. Les fiches et réservations futures persistent. La clôture reste transactionnelle et rejouable sans doubler les totaux.
 
@@ -62,3 +62,12 @@ La démonstration publique reste autonome et fonctionnelle avec des données fic
 Les réglages se répartissent en cinq rubriques : Postes JV, Animations, Jeux de société, Accès des agents et Liens du service. Une seule rubrique apparaît à la fois et son bouton enregistre uniquement ses paramètres. Les exceptions datées et les fermetures restent repliées par défaut. Les brouillons non enregistrés déclenchent un avertissement avant un changement de rubrique ou de poste. Le catalogue de boîtes permet de choisir une boîte existante ou d’en ajouter une.
 
 Pour renommer un poste : Administration / Postes JV, sélectionner le poste, modifier Nom du poste puis enregistrer. Les réglages habituels, variantes hebdomadaires, exceptions et réservations actives ou en corbeille suivent le nouveau nom dans une transaction unique. Un nom déjà utilisé, une révision obsolète ou une modification incompatible est refusé sans renommage partiel. Les statistiques historiques conservent le libellé de leur date.
+
+
+## Essais et modèles
+
+L’interface ne propose plus les boutons Exporter ou Coller, ni le raccourci Sélections du réseau. En JV, le filtre et le déplacement de sélection apparaissent uniquement dans Toutes les réservations. Le planning Aujourd’hui permet de retirer directement une réservation, après confirmation et selon les droits.
+
+Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. Un administrateur peut remplir le formulaire puis choisir Enregistrer comme modèle, donner un nom et réutiliser ces paramètres sans créer de séance. Date, récurrence et inscrits ne sont pas copiés dans le modèle. Le type est un classement facultatif pour les listes et statistiques.
+
+La démonstration autonome se recharge avec une journée fictive déjà remplie. Ses modifications de passage restent en mémoire. Pour préparer aussi la base partagée, lancer `npm run seed:demo` avec le compte administrateur fictif local configuré. Ce script est limité au projet de développement connu et conserve les données existantes. Il fournit 120 fiches fictives, des consultations, des réservations JV, des animations du jour et à J+7/J+16 ainsi que trois modèles. Une seconde exécution le même jour évite les doublons. En cas de conflit de salle, la séance fictive concernée est ignorée. Les données fictives sont repérables par Démo ou DÉMO.

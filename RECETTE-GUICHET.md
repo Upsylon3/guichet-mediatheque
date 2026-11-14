@@ -26,3 +26,8 @@ Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du
 ## Administration organisée et renommage
 
 `tests/administration.test.cjs` vérifie les cinq rubriques, les sauvegardes indépendantes, les champs cachés non bloquants, la sélection et l’ajout de boîtes, l’avertissement de brouillon, l’écran 360 px en mode sombre et le renommage depuis le champ Nom du poste. Une seconde session reçoit le nouveau nom. La réservation, sa corbeille, les grilles et exceptions ainsi que le quota sont préservés. Doublon de nom, agent, révision obsolète et réglage incompatible sont refusés ; ce dernier cas prouve le retour arrière complet du renommage.
+
+
+## Dernières finitions
+
+`tests/finitions.test.cjs` vérifie la cohérence des cartes et salles du jeu fictif, le retrait direct d’une réservation depuis Aujourd’hui avec refus puis accord, le masquage des outils de sélection dans ce planning et leur activation dans la liste, l’absence de boutons Exporter/Coller et du lien Sélections, et l’enregistrement d’un modèle depuis un brouillon sans créer une séance. Le modèle est aussi testé dans l’application partagée depuis une autre session.

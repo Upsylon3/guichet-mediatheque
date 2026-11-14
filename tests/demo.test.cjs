@@ -18,18 +18,18 @@ test('Démonstration publique autonome et entrée connectée séparée',async()=
   await board(demo,'ESSAI-01');await waitText(demo,'#notice','Consultation enregistrée.');
   await demo.locator('#identity [name=first]').fill('Démo');await demo.locator('#identity button').click();
   await demo.locator('[data-tab=vid]').click();await demo.locator('#addvideo').click();
-  await demo.locator('#vf [name=game]').selectOption({index:1});await demo.locator('#vf [name=card]').fill('ESSAI-01');
+  await demo.locator('#vf [name=slot]').selectOption({index:4});await demo.locator('#vf [name=game]').selectOption({index:1});await demo.locator('#vf [name=card]').fill('ESSAI-01');
   const bookedPost=await demo.locator('#vf [name=post]').inputValue();
   await demo.locator('#vf button.primary').click();await waitText(demo,'#vfmsg','Inscription enregistrée.');await demo.locator('#close').click();
   await demo.locator('#role').selectOption('Administrateur');await demo.locator('[data-tab=ani]').click();
   await demo.locator('#calendar button.today').click();await demo.locator('#new').click();
-  await demo.locator('#af [name=title]').fill('Atelier fictif');await demo.locator('#af [name=room]').selectOption('Créazone');await demo.locator('#af button').click();
+  await demo.locator('#af [name=title]').fill('Atelier fictif');await demo.locator('#af [name=room]').selectOption('Créazone');await demo.locator('#af [name=time]').fill('18:00');await demo.locator('#af [name=endTime]').fill('19:00');await demo.locator('#af button.primary').click();
   await demo.locator('#guest [name=card]').fill('ESSAI-01');await demo.locator('#guest button.primary').click();await waitText(demo,'#guests','Démo');
   await demo.locator('#close').click();
   await demo.locator('#openAdmin').click();await demo.locator('#editPost').selectOption(bookedPost);await demo.locator('#config [name=postName]').fill(bookedPost+'-Démo');await demo.locator('#adminSave').click();await waitText(demo,'#configMsg','Poste renommé');
   await demo.locator('[data-tab=vid]').click();await waitText(demo,'#videoPlanning',bookedPost+'-Démo');
   assert.deepEqual(connections,[]);assert.equal(await demo.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-  await demo.reload();await demo.locator('[data-tab=soc]').click();assert.equal(await demo.locator('#boards').innerText(),'Aucune saisie.');
+  await demo.reload();await demo.locator('[data-tab=soc]').click();assert.doesNotMatch(await demo.locator('#boards').innerText(),/BOITE-FICTIVE/);assert.match(await demo.locator('#boards').innerText(),/DÉMO/);
   assert.deepEqual(errors,[]);
 
 

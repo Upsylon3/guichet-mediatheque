@@ -14,7 +14,7 @@ Le menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Le
 - Jeux de société : une carte pour la consultation, avec les effectifs des enfants et des adultes qui partagent la boîte.
 - Animations : une carte par participant. Créazone ou Salle JV et deux horaires obligatoires, sans chevauchement dans une même salle. Accompagnateurs nommés sans carte uniquement pour les animations sans jauge. Au-delà de J+15, les agents confirment un avertissement avant inscription.
 - Usagers : recherche par nom ou carte, identité facultative, note détaillée, changement de carte conservant fiche et inscriptions. Suppression et fusion réservées à l’administration.
-- Statistiques : filtres de période et de dimensions, regroupement jour/semaine/mois et export CSV anonyme. Imports et exports de listes réservés à l’administration.
+- Statistiques : filtres de période et de dimensions, regroupement jour/semaine/mois et consultation des indicateurs dans l’application.
 
 Les données confirmées se synchronisent entre les sessions sans rechargement. Ctrl+Z annule la dernière opération prise en charge, sauf pendant la modification d’un champ où l’annulation de texte reste prioritaire.
 
@@ -33,3 +33,12 @@ La démonstration `index.html` s’ouvre aussi directement depuis le disque. Ell
 `npm ci`, `npx playwright install chromium`, `npm run build`, puis `npm test`. Les essais connectés utilisent une configuration et deux comptes fictifs dans des fichiers ignorés par Git. Le workflow public vérifie la démonstration sans secrets. `supabase/tests/cloture.sql` vérifie clôture, statistiques et quota dans une transaction annulée.
 
 Les usages réels, les sauvegardes d’exploitation et la recette sur le matériel de la collectivité restent à valider avant mise en service.
+
+
+## Essais et modèles
+
+L’interface ne propose plus les boutons Exporter ou Coller, ni le raccourci Sélections du réseau. En JV, le filtre et le déplacement de sélection apparaissent uniquement dans Toutes les réservations. Le planning Aujourd’hui permet de retirer directement une réservation, après confirmation et selon les droits.
+
+Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. Un administrateur peut remplir le formulaire puis choisir Enregistrer comme modèle, donner un nom et réutiliser ces paramètres sans créer de séance. Date, récurrence et inscrits ne sont pas copiés dans le modèle. Le type est un classement facultatif pour les listes et statistiques.
+
+La démonstration autonome se recharge avec une journée fictive déjà remplie. Ses modifications de passage restent en mémoire. Pour préparer aussi la base partagée, lancer `npm run seed:demo` avec le compte administrateur fictif local configuré. Ce script est limité au projet de développement connu et conserve les données existantes. Il fournit 120 fiches fictives, des consultations, des réservations JV, des animations du jour et à J+7/J+16 ainsi que trois modèles. Une seconde exécution le même jour évite les doublons. En cas de conflit de salle, la séance fictive concernée est ignorée. Les données fictives sont repérables par Démo ou DÉMO.

@@ -26,9 +26,8 @@ Ctrl+Z annule la dernière opération prise en charge hors des champs de saisie.
 
 Les grilles suivent la priorité habituelle, jour de semaine, exception datée. Fermer un poste déjà réservé exige une confirmation avec le nombre de réservations à retirer. L’opération les place dans la corbeille et ferme le poste ensemble. Une restauration attend sa réouverture. Les incompatibilités de capacité ou d’horaires restent bloquantes.
 
-Statistiques : période, regroupement par jour/semaine/mois et filtres d’activité, secteur, poste, jeu, boîte, salle, type et catégorie. L’export des indicateurs est anonyme. Les anciens totaux ont moins de détail. Les effectifs représentent des déclarations ou inscriptions, pas une présence contrôlée.
+Statistiques : période, regroupement par jour/semaine/mois et filtres d’activité, secteur, poste, jeu, boîte, salle, type et catégorie. Les indicateurs sont anonymes. Les anciens totaux ont moins de détail. Les effectifs représentent des déclarations ou inscriptions, pas une présence contrôlée.
 
-Imports, exports nominatifs et corrections en lot sont administratifs. Collage tabulé, sans en-tête : société = carte, boîte, enfants, adultes, date, secteur ; JV = carte, date, poste, heure de début, jeu ; participant = carte, âge facultatif, unité ans/mois, catégorie Enfant/Adulte. Vérifier l’aperçu avant la transaction complète. Dans un tableur, importer les cartes comme texte.
 
 Pour créer un compte du personnel, créer d’abord le compte dans Authentication du projet, puis utiliser Administration / Gérer les habilitations. Un compte Auth sans habilitation ne donne aucun accès. Le dernier administrateur est protégé. Les droits ne proviennent jamais d’un sélecteur client ou de métadonnées modifiables par le titulaire.
 
@@ -50,3 +49,12 @@ La démonstration autonome ne contacte aucun service et ses données de passage 
 Les réglages se répartissent en cinq rubriques : Postes JV, Animations, Jeux de société, Accès des agents et Liens du service. Une seule rubrique apparaît à la fois et son bouton enregistre uniquement ses paramètres. Les exceptions datées et les fermetures restent repliées par défaut. Les brouillons non enregistrés déclenchent un avertissement avant un changement de rubrique ou de poste. Le catalogue de boîtes permet de choisir une boîte existante ou d’en ajouter une.
 
 Pour renommer un poste : Administration / Postes JV, sélectionner le poste, modifier Nom du poste puis enregistrer. Les réglages habituels, variantes hebdomadaires, exceptions et réservations actives ou en corbeille suivent le nouveau nom dans une transaction unique. Un nom déjà utilisé, une révision obsolète ou une modification incompatible est refusé sans renommage partiel. Les statistiques historiques conservent le libellé de leur date.
+
+
+## Essais et modèles
+
+L’interface ne propose plus les boutons Exporter ou Coller, ni le raccourci Sélections du réseau. En JV, le filtre et le déplacement de sélection apparaissent uniquement dans Toutes les réservations. Le planning Aujourd’hui permet de retirer directement une réservation, après confirmation et selon les droits.
+
+Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. Un administrateur peut remplir le formulaire puis choisir Enregistrer comme modèle, donner un nom et réutiliser ces paramètres sans créer de séance. Date, récurrence et inscrits ne sont pas copiés dans le modèle. Le type est un classement facultatif pour les listes et statistiques.
+
+La démonstration autonome se recharge avec une journée fictive déjà remplie. Ses modifications de passage restent en mémoire. Pour préparer aussi la base partagée, lancer `npm run seed:demo` avec le compte administrateur fictif local configuré. Ce script est limité au projet de développement connu et conserve les données existantes. Il fournit 120 fiches fictives, des consultations, des réservations JV, des animations du jour et à J+7/J+16 ainsi que trois modèles. Une seconde exécution le même jour évite les doublons. En cas de conflit de salle, la séance fictive concernée est ignorée. Les données fictives sont repérables par Démo ou DÉMO.

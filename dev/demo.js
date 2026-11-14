@@ -62,6 +62,13 @@ globalThis.guichetDirectory=(()=>{
  api.command=async(action,d,operation=crypto.randomUUID())=>{if(operations.has(operation))return copy(operations.get(operation));const before=copy(state),beforePeople=copy(people);try{const result=execute(action,d,operation);operations.set(operation,result);return copy(result)}catch(e){state=before;people=beforePeople;throw e}};
  api.stats=async(debut,fin)=>{if(api.profile!=='administrateur')fail('Administration réservée');return [...state.boards.map(x=>({jour:x.date,dimensions:{activite:'Jeux de société',secteur:x.sector,boite:x.box},passages:1,personnes:x.kids+x.adults,enfants:x.kids,adultes:x.adults,accompagnateurs:0})),...state.videos.map(x=>({jour:x.date,dimensions:{activite:'Jeux vidéo',poste:x.post,jeu:x.game,heure:x.slot},passages:1,personnes:1,enfants:0,adultes:0,accompagnateurs:0})),...state.events.flatMap(e=>[...e.guests.map(g=>({jour:e.date,dimensions:{activite:'Animations',salle:e.room,type:e.eventType||'',heure:e.time,categorie:g.category||''},passages:1,personnes:1+g.companions,enfants:g.category==='Enfant'?1:0,adultes:g.category==='Adulte'?1:0,accompagnateurs:g.companions})),...e.counts.map(c=>({jour:e.date,dimensions:{activite:'Animations',salle:e.room,type:e.eventType||'',heure:e.time},passages:1,personnes:c.kids+c.adults,enfants:c.kids,adultes:c.adults,accompagnateurs:0}))])].filter(x=>x.jour>=debut&&x.jour<=fin)};
  api.accounts=async()=>[];api.setRole=async()=>fail('Les comptes de la démonstration sont simulés');api.merge=async()=>fail('Fusion disponible dans le guichet partagé');
+ const baseline=sampleDayPlan(today(),state.settings,[],true);
+ state.settings.boxes=baseline.boxes;state.settings.eventTemplates=baseline.templates;state.settings.eventTypes=baseline.types;
+ people=baseline.people.map(p=>({...p,id:crypto.randomUUID(),revision:1}));
+ const identified=x=>({...x,id:crypto.randomUUID(),revision:1});
+ state.boards=baseline.boards.map(identified);
+ state.videos=baseline.videos.map(x=>identified({...x,...x.players[0],end:state.settings.stations[x.post].slots.find(s=>s.startsWith(x.slot)).slice(-5),group:crypto.randomUUID()}));
+ state.events=baseline.events.map(x=>{const {players,counts,...metadata}=x,ev=identified(metadata);ev.guests=players.map(p=>identified({...p,eventId:ev.id,date:ev.date,group:crypto.randomUUID()}));ev.counts=(counts||[]).map(c=>identified({...c,eventId:ev.id,date:ev.date}));return ev});
  queueMicrotask(async()=>{document.getElementById('role').onchange=async e=>{api.profile=e.target.value==='Administrateur'?'administrateur':'agent';await api.onReady()};await api.onReady()});return api;
 })();
 
