@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-AC7p6O6jXvWT/jNb59vyl9+B4M7M/Rks8ATOhFYJ0j8='; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-cQ6du0Ai3odU5gLoi1J1MIFiGgXaR2Zs3+rXDlH93kA='; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -1079,11 +1079,6 @@ globalThis.guichetDirectory = (() => {
     ...state.events.flatMap((e) => [...e.guests, ...e.counts]),
     ...state.trash,
   ];
-  const week = (date) => {
-    const d = new Date(date + 'T12:00:00');
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-    return d.toISOString().slice(0, 10);
-  };
   function ensure(card) {
     if (!/^ESSAI-[0-9]{1,4}$/.test(card))
       fail('Carte fictive de la forme ESSAI-01');
@@ -1142,7 +1137,7 @@ globalThis.guichetDirectory = (() => {
     )
       fail('La salle accueille déjà une animation sur cet horaire');
   }
-  // Vérifier capacité, jeu commun et quota hebdomadaire avant toute mutation.
+  // Vérifier capacité, jeu commun et quota quotidien avant toute mutation.
   function booking(d, old = []) {
     dateCheck(d.date);
     const base = state.settings.stations[d.post],
@@ -1173,7 +1168,7 @@ globalThis.guichetDirectory = (() => {
     for (const p of d.players) {
       if (p.companions) fail('Une carte par joueur, aucun accompagnateur');
       const existing = other.find(
-        (x) => x.card === p.card && week(x.date) === week(d.date),
+        (x) => x.card === p.card && x.date === d.date,
       );
       if (existing) {
         const date = new Date(existing.date + 'T12:00:00').toLocaleDateString(
@@ -1196,7 +1191,7 @@ globalThis.guichetDirectory = (() => {
             existing.end +
             ' sur le poste ' +
             existing.post +
-            '. Une seule inscription JV par semaine, du lundi au dimanche.',
+            '. Une seule inscription JV par jour.',
         );
       }
       ensure(p.card);
@@ -3894,7 +3889,7 @@ function setupWorkspace() {
       revision = +$('personForm').dataset.revision;
     modal(
       'Remplacement d’une carte perdue',
-      `<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite hebdomadaire suivent la même fiche.</p>${field('Nouveau numéro de carte', 'target', '', 'text', cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`,
+      `<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite quotidienne suivent la même fiche.</p>${field('Nouveau numéro de carte', 'target', '', 'text', cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`,
     );
     $('replacement').onsubmit = (e) => {
       e.preventDefault();

@@ -72,7 +72,7 @@ test('Journée fictive cohérente avec cartes individuelles et salles sans cheva
 });
 
 test(
-  'Refus JV : rappel du jour, de l’horaire et du poste existant',
+  'Refus JV quotidien : rappel du jour, de l’horaire et du poste existant',
   { timeout: 60000 },
   async () => {
     const browser = await chromium.launch({
@@ -109,6 +109,30 @@ test(
         await p.locator('#vf [name=card]').inputValue(),
         existing.card,
       );
+      // La même fiche peut réserver une autre date, même sans attendre une semaine.
+      const anotherDay = await p.evaluate(async (booking) => {
+        const api = globalThis.guichetDirectory;
+        const date = new Date(booking.date + 'T12:00:00');
+        date.setDate(date.getDate() + 1);
+        const next =
+          date.getFullYear() +
+          '-' +
+          String(date.getMonth() + 1).padStart(2, '0') +
+          '-' +
+          String(date.getDate()).padStart(2, '0');
+        await api.command('video.book', {
+          date: next,
+          post: booking.post,
+          slot: booking.slot,
+          game: booking.game,
+          players: [{ card: booking.card, companions: 0 }],
+        });
+        return (await api.state()).videos
+          .filter((entry) => entry.card === booking.card)
+          .map((entry) => entry.date);
+      }, existing);
+      assert.equal(anotherDay.length, 2);
+      assert.equal(new Set(anotherDay).size, 2);
     } finally {
       await browser.close();
     }

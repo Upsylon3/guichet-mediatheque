@@ -2245,7 +2245,7 @@ function setupWorkspace() {
       revision = +$('personForm').dataset.revision;
     modal(
       'Remplacement d’une carte perdue',
-      `<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite hebdomadaire suivent la même fiche.</p>${field('Nouveau numéro de carte', 'target', '', 'text', cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`,
+      `<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite quotidienne suivent la même fiche.</p>${field('Nouveau numéro de carte', 'target', '', 'text', cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`,
     );
     $('replacement').onsubmit = (e) => {
       e.preventDefault();

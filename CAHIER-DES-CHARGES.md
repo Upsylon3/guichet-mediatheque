@@ -9,7 +9,7 @@ Un menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Le
 Les comptes du personnel sont attribués, sans inscription publique. Les agents peuvent saisir les activités et compléter les identités. L’administration attribue les délégations de correction, d’annulation et de gestion des séances. Les statistiques sont exclusivement administratives, sans délégation. Les boutons d’import et d’export nominatif sont retirés de l’interface. Seul Statistiques propose une extraction CSV des agrégats affichés, réservée aux administrateurs. La suppression et la fusion de fiches restent administratives.
 
 
-Lorsqu’une inscription JV est refusée à cause de la limite hebdomadaire, le message identifie la carte concernée et rappelle le jour de la semaine, la date, les heures de début et de fin et le poste de sa réservation existante. Il utilise les informations actuelles après un déplacement ou un changement de carte. Les inscriptions passées restent consultables pendant 30 jours, ce qui permet de rappeler aussi les réservations déjà passées dans la semaine. Les données effacées avant l’activation de cette conservation ne sont pas récupérables.
+Lorsqu’une inscription JV est refusée à cause de la limite quotidienne, le message identifie la carte concernée et rappelle le jour de la semaine, la date, les heures de début et de fin et le poste de sa réservation existante. Il utilise les informations actuelles après un déplacement ou un changement de carte. Les inscriptions passées restent consultables pendant 30 jours, ce qui permet de rappeler aussi les réservations déjà passées dans la journée. Les données effacées avant l’activation de cette conservation ne sont pas récupérables.
 
 ## Jeux de société
 
@@ -19,7 +19,7 @@ Le secteur reste mémorisé sur le navigateur. Après validation, les champs du 
 
 ## Jeux vidéo
 
-Une carte correspond à un joueur et une place. Le formulaire accepte plusieurs joueurs, chacun avec une carte distincte. Il ne propose aucun accompagnateur. Une même fiche ne peut bénéficier que d’une inscription active par semaine civile, du lundi au dimanche, quel que soit le poste. Une annulation libère cette inscription. Un déplacement de sa réservation reste possible. Changer de carte conserve la limite grâce à l’identifiant stable de la fiche.
+Une carte correspond à un joueur et une place. Le formulaire accepte plusieurs joueurs, chacun avec une carte distincte. Il ne propose aucun accompagnateur. Une même fiche ne peut bénéficier que d’une inscription active par jour, quel que soit le poste. Une annulation libère cette inscription. Un déplacement de sa réservation reste possible. Changer de carte conserve la limite grâce à l’identifiant stable de la fiche.
 
 Le planning Aujourd’hui affiche les postes en colonnes et les créneaux en lignes. Chaque case affiche le jeu, les personnes attendues et les places libres ou la fermeture. La vue Toutes les réservations complète ce planning. Le formulaire propose la date actuelle et le créneau contenant l’heure actuelle, à défaut le prochain créneau ou le dernier de la journée.
 
@@ -51,7 +51,7 @@ La suppression administrative est bloquée par les activités et la corbeille li
 
 L’onglet Statistiques est réservé aux administrateurs, côté interface et serveur. Période, regroupement jour/semaine/mois, filtres activité, secteur, poste, jeu vidéo, boîte, salle, type d’animation et catégorie. Compter saisies, personnes déclarées, enfants/adultes lorsque connus et accompagnateurs des animations sans jauge. Les indicateurs ne contiennent ni nom ni carte. Ces chiffres ne prouvent pas une présence effective. Les anciens totaux sans détail restent identifiés comme tels.
 
-Chaque jour en Europe/Paris, agréger les activités par dimensions non nominatives sans effacer les participations récentes. Conserver les activités, corbeilles et références de reprise/fusion pendant 30 jours glissants : à J, conserver J−30 et supprimer seulement les dates antérieures. Les journées modifiées sont recalculées par remplacement, y compris après annulation ou déplacement ; les archives déjà purgées sont conservées sans recalcul. Une trace privée minimale associant identifiant stable de fiche et semaine reste uniquement jusqu’à la fin de la semaine pour faire respecter le quota JV. Elle ne conserve ni jeu ni horaire et n’est exposée à aucun profil. Les fiches et réservations futures persistent. La clôture reste transactionnelle et rejouable sans doubler les totaux.
+Chaque jour en Europe/Paris, agréger les activités par dimensions non nominatives sans effacer les participations récentes. Conserver les activités, corbeilles et références de reprise/fusion pendant 30 jours glissants : à J, conserver J−30 et supprimer seulement les dates antérieures. Les journées modifiées sont recalculées par remplacement, y compris après annulation ou déplacement ; les archives déjà purgées sont conservées sans recalcul. Une trace privée minimale associant identifiant stable de fiche et date reste uniquement jusqu’à la fin de la journée pour faire respecter le quota JV. Elle ne conserve ni jeu ni horaire et n’est exposée à aucun profil. Les fiches et réservations futures persistent. La clôture reste transactionnelle et rejouable sans doubler les totaux.
 
 ## Fiabilité et exploitation
 
