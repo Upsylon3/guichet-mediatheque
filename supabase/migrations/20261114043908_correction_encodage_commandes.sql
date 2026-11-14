@@ -1,3 +1,6 @@
+-- Migration : correction encodage commandes.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Corrige les caractères de la définition précédente sans modifier les données.
 do $$
 declare f text; signature text;

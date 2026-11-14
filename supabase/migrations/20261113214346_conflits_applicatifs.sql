@@ -1,3 +1,6 @@
+-- Migration : conflits applicatifs.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- 40001 est réservé aux véritables erreurs de sérialisation, automatiquement
 -- rejouées par PostgREST. Les conflits métier doivent répondre immédiatement.
 do $migration$

@@ -1,3 +1,6 @@
+-- Migration : quotas historique.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Un changement de carte historique ne recrée pas les quotas des semaines échues.
 do $migration$
 declare definition text;

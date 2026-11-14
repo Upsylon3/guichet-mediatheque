@@ -1,3 +1,6 @@
+-- Migration : controles et fiches.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Défense en profondeur sur les paramètres et les données transactionnelles.
 alter table public.usagers add column revision integer not null default 1;
 alter table public.usagers add column fusion_cible text references public.usagers(carte) on delete restrict;

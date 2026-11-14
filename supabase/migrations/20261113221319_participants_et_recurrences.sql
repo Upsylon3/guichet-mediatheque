@@ -1,3 +1,6 @@
+-- Migration : participants et recurrences.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 do $migration$
 declare definition text;
 begin

@@ -1,3 +1,6 @@
+-- Migration : corrections transactions.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Compatible avec l'extension safeupdate activée sur l'API Supabase.
 -- La définition provient exclusivement des migrations versionnées précédentes.
 do $migration$

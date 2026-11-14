@@ -1,3 +1,6 @@
+-- Migration : annuaire.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Profil de la session : aucune habilitation modifiable depuis l'API.
 create function public.mon_profil() returns text
 language sql stable security invoker set search_path = ''

@@ -1,3 +1,6 @@
+-- Migration : gestion modeles et delegation.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Gestion des modèles sans déléguer la modification des autres réglages.
 CREATE OR REPLACE FUNCTION guichet_prive.autoriser(action text)
  RETURNS void

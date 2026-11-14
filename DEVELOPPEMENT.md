@@ -82,3 +82,18 @@ Après modification des sources, lancer `npm run build`, vérifier le changement
 `scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.
 
 Les fermetures et changements de capacité des postes contrôlent les réservations du jour et futures, sans annuler les participations déjà passées. La modification des séances à venir d’une série préserve ses anciennes séances conservées dans l’historique.
+
+## Repères pour lire le code
+
+- `templates/guichet.html` : structure HTML et styles de base communs.
+- `dev/app.js` : interface, formulaires, synchronisation et vues métier. Les contrôles d’affichage ne remplacent pas les habilitations du serveur.
+- `dev/directory.js` : connexion Auth et appels HTTP au service partagé.
+- `dev/demo.js` : adaptation en mémoire pour la démonstration autonome.
+- `dev/sample-data.js` : préparation des données fictives communes à la démonstration et au script de peuplement.
+- `scripts/` : construction, vérification CSP, serveur local et publication.
+- `tests/` : recettes autonomes ou connectées, précisées en tête de fichier.
+- `supabase/migrations/` : historique SQL ordonné ; les fonctions les plus récentes peuvent remplacer celles des migrations précédentes.
+
+Les commentaires décrivent les intentions et les contraintes métier. Les fichiers `index.html` et `dev/index.html` sont générés : modifier les sources, puis lancer `npm run build`.
+
+Les habilitations de `guichet_prive.habilitations` suivent l’UUID du compte Auth. Supprimer un compte supprime son habilitation ; recréer son adresse ne restaure pas ses droits. Pour changer un mot de passe, modifier le compte existant. Si tous les administrateurs ont été supprimés, la restauration d’une habilitation exige l’éditeur SQL privilégié du projet (rôle `postgres`), puis les comptes suivants se gèrent depuis Administration → Accès des agents.

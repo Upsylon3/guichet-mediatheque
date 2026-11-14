@@ -1,3 +1,6 @@
+-- Migration : conservation trente jours.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Conserver les activités 30 jours ; calculer les agrégats sans consommer les lignes.
 create table guichet_prive.jours_a_recalculer (jour date primary key);
 alter table guichet_prive.jours_a_recalculer enable row level security;

@@ -1,3 +1,6 @@
+-- Migration : reglages et series avec historique.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Les réglages futurs ne doivent ni annuler ni bloquer les activités déjà passées.
 do $migration$
 declare definition text; avant text;

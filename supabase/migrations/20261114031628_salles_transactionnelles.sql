@@ -1,3 +1,6 @@
+-- Migration : salles transactionnelles.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Vérifier le planning final, y compris les déplacements de séries complètes.
 do $migration$
 declare definition text; controle text:=' if exists(select 1 from guichet_prive.activites a where a.type=''ani'' and not a.supprime and a.id<>new.id and a.jour=new.jour and a.donnees->>''room''=d->>''room'' and (a.donnees->>''time'')::time<(d->>''endTime'')::time and (d->>''time'')::time<(a.donnees->>''endTime'')::time) then raise exception ''La salle accueille déjà une animation sur cet horaire'' using errcode=''PT409'';end if;';

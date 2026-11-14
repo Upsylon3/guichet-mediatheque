@@ -1,3 +1,6 @@
+-- Migration : confidentialite cloture.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- La clôture purge également les références d'annulation des anciennes fusions.
 -- Le planning Cron reste une reprise complémentaire, pas une condition de purge.
 do $migration$

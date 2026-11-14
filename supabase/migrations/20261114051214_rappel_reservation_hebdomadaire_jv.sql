@@ -1,3 +1,6 @@
+-- Migration : rappel reservation hebdomadaire jv.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Le refus du quota rappelle la réservation encore disponible, sans prolonger sa conservation.
 do $migration$
 declare definition text; precedent text; remplacement text;
