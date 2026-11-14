@@ -16,7 +16,7 @@ Recette du 14 novembre 2026, données fictives et projet distant de développeme
 
 ## Clôture et quota
 
-`supabase/tests/cloture.sql`, exécuté dans une transaction annulée, vérifie la purge des anciens liens et journaux, la conservation des fiches et réservations futures, les totaux exacts, le rejeu sans doublon, l’absence d’identité dans les statistiques, le maintien du quota après purge et sa suppression à la fin de la semaine.
+`supabase/tests/cloture.sql`, exécuté dans une transaction annulée, vérifie la purge des anciens liens et journaux, la conservation des fiches et réservations futures, les totaux exacts, le rejeu sans doublon, l’absence d’identité dans les statistiques, le maintien des détails JV après minuit, les limites J−30/J−31 et l’expiration des anciens quotas hebdomadaires.
 
 ## Limites de la recette
 
@@ -36,4 +36,6 @@ Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du
 
 `tests/finitions.test.cjs` vérifie aussi l’inscription rapide chronologique, les séances complètes grisées, les accompagnateurs nommés seulement sans jauge et le refus puis l’accord explicite après J+15.
 
-Le refus du quota hebdomadaire JV est vérifié dans `tests/metiers.test.cjs` (carte, date, horaire, poste et mise à jour après déplacement et remplacement de carte) et `tests/finitions.test.cjs` (message affiché, brouillon préservé et absence de nouvelle réservation). `supabase/tests/cloture.sql` vérifie le message de remplacement quand la participation passée est déjà purgée.
+Le refus du quota hebdomadaire JV est vérifié dans `tests/metiers.test.cjs` (carte, date, horaire, poste et mise à jour après déplacement et remplacement de carte) et `tests/finitions.test.cjs` (message affiché, brouillon préservé et absence de nouvelle réservation). `supabase/tests/cloture.sql` vérifie que le détail de la réservation reste disponible après minuit pendant sa période de conservation.
+
+La recette SQL contrôle aussi les corrections de dimensions et d’effectifs, l’annulation et la restauration après agrégation, le départ de la dernière ligne d’une journée, les archives antérieures à la migration et le rejeu après suppression physique. Les tests sont entièrement annulés avec ROLLBACK.

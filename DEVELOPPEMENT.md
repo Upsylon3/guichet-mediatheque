@@ -23,7 +23,7 @@ Usagers : rechercher par carte ou nom. Ouvrir la bonne fiche, vérifier l’iden
 Ctrl+Z annule la dernière opération prise en charge hors des champs de saisie. Dans un champ, l’annulation de texte du navigateur reste disponible. La corbeille est partagée et ses restaurations revérifient toutes les règles.
 
 
-Lorsqu’une inscription JV est refusée à cause de la limite hebdomadaire, le message identifie la carte concernée et rappelle le jour de la semaine, la date, les heures de début et de fin et le poste de sa réservation existante. Il utilise les informations actuelles après un déplacement ou un changement de carte. Pour une inscription passée dont le détail a déjà été purgé à la clôture quotidienne, le refus précise que ce détail n’est plus disponible ; le quota reste appliqué sans conserver davantage d’historique.
+Lorsqu’une inscription JV est refusée à cause de la limite hebdomadaire, le message identifie la carte concernée et rappelle le jour de la semaine, la date, les heures de début et de fin et le poste de sa réservation existante. Il utilise les informations actuelles après un déplacement ou un changement de carte. Les inscriptions passées restent consultables pendant 30 jours, ce qui permet de rappeler aussi les réservations déjà passées dans la semaine. Les données effacées avant l’activation de cette conservation ne sont pas récupérables.
 
 ## Administration
 
@@ -42,7 +42,7 @@ Pour créer un compte du personnel, créer d’abord le compte dans Authenticati
 
 Les migrations sont appliquées dans l’ordre de leurs noms et ne doivent pas être rejouées sur la base déjà configurée. Les tables privées n’ont aucun accès direct côté navigateur. Les façades publiques contrôlent l’identité et les habilitations et appellent les fonctions privées. Les mutations partagent un verrou transactionnel, leurs révisions et des identifiants de tentative contre les doublons.
 
-La clôture Europe/Paris conserve les agrégats anonymes puis purge les anciennes participations. Seul le quota minimal de la semaine JV demeure jusqu’au lundi suivant pour préserver la règle sans garder le jeu ni l’horaire. Il suit l’UUID de fiche, y compris lors d’un changement de carte. `supabase/tests/cloture.sql` vérifie les totaux, la purge, le quota et sa disparition, dans une transaction annulée.
+La clôture Europe/Paris calcule les agrégats anonymes des journées terminées et conserve les participations nominatives pendant 30 jours glissants. À la date J, J−30 reste consultable ; seules les dates antérieures sont purgées, avec leurs corbeilles et références de reprise/fusion. Les fiches usagers et les réservations futures sont conservées. Les statistiques des journées modifiées sont remplacées, sans addition répétée, et restent disponibles après la purge. Le quota JV reste hebdomadaire et son index minimal expire au changement de semaine. Il suit l’UUID de fiche, y compris lors d’un changement de carte. `supabase/tests/cloture.sql` vérifie les totaux, la purge, le quota et sa disparition, dans une transaction annulée.
 
 La démonstration autonome ne contacte aucun service et ses données de passage disparaissent au rechargement. Elle ne remplace pas une validation des protections du serveur partagé. Avant exploitation réelle : validation institutionnelle, matériel, douchette, accessibilité complète, sauvegarde et restauration sur l’infrastructure autorisée.
 
@@ -51,7 +51,7 @@ La démonstration autonome ne contacte aucun service et ses données de passage 
 
 Les réglages se répartissent en cinq rubriques : Postes JV, Animations, Jeux de société, Accès des agents et Liens du service. Une seule rubrique apparaît à la fois et son bouton enregistre uniquement ses paramètres. Les exceptions datées et les fermetures restent repliées par défaut. Les brouillons non enregistrés déclenchent un avertissement avant un changement de rubrique ou de poste. Le catalogue de boîtes permet de choisir une boîte existante ou d’en ajouter une.
 
-Pour renommer un poste : Administration / Postes JV, sélectionner le poste, modifier Nom du poste puis enregistrer. Les réglages habituels, variantes hebdomadaires, exceptions et réservations actives ou en corbeille suivent le nouveau nom dans une transaction unique. Un nom déjà utilisé, une révision obsolète ou une modification incompatible est refusé sans renommage partiel. Les statistiques historiques conservent le libellé de leur date.
+Pour renommer un poste : Administration / Postes JV, sélectionner le poste, modifier Nom du poste puis enregistrer. Les réglages habituels, variantes hebdomadaires, exceptions et réservations actives ou en corbeille suivent le nouveau nom dans une transaction unique. Un nom déjà utilisé, une révision obsolète ou une modification incompatible est refusé sans renommage partiel. Les statistiques des journées encore conservées suivent les corrections des lignes ; les archives au-delà de 30 jours restent figées.
 
 
 ## Essais et modèles
@@ -80,3 +80,5 @@ Le guichet ne comporte aucun lien vers le dépôt GitHub ou la documentation du 
 Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement des deux versions ensemble. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
 
 `scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.
+
+Les fermetures et changements de capacité des postes contrôlent les réservations du jour et futures, sans annuler les participations déjà passées. La modification des séances à venir d’une série préserve ses anciennes séances conservées dans l’historique.
