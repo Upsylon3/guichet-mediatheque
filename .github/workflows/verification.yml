@@ -20,4 +20,6 @@ jobs:
           python-version: '3.12'
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: git diff --exit-code -- index.html dev/index.html dev/config.json
       - run: npm run test:demo

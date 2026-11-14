@@ -60,6 +60,7 @@ globalThis.guichetDirectory = (() => {
  };
  directory.remove=numero=>request('/rest/v1/rpc/supprimer_usager',{method:'POST',body:{numero}});
  directory.state=()=>request('/rest/v1/rpc/etat_guichet',{method:'POST',body:{}});
+ directory.stats=(debut,fin)=>request('/rest/v1/rpc/statistiques_guichet',{method:'POST',body:{debut,fin}});
  directory.command=(action,donnees,operation=crypto.randomUUID())=>request('/rest/v1/rpc/commande_guichet',{method:'POST',body:{action,donnees,operation}});
  directory.merge=(source,cible,operation,annuler=false)=>request('/rest/v1/rpc/fusionner_fiches',{method:'POST',body:{source,cible,operation,annuler}});
  directory.accounts=()=>request('/rest/v1/rpc/comptes_guichet',{method:'POST',body:{}});
