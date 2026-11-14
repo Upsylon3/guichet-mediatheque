@@ -35,3 +35,5 @@ Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du
 `tests/modeles.test.cjs` vérifie le refus serveur par défaut, la délégation et sa révocation depuis Accès des agents, la visibilité limitée à la gestion des modèles dans une seconde session à 360 px, la création, la modification et la suppression propagées, les conflits de révision et les paramètres invalides. Les autres réglages, les séances existantes et le refus de statistiques aux agents sont vérifiés.
 
 `tests/finitions.test.cjs` vérifie aussi l’inscription rapide chronologique, les séances complètes grisées, les accompagnateurs nommés seulement sans jauge et le refus puis l’accord explicite après J+15.
+
+Le refus du quota hebdomadaire JV est vérifié dans `tests/metiers.test.cjs` (carte, date, horaire, poste et mise à jour après déplacement et remplacement de carte) et `tests/finitions.test.cjs` (message affiché, brouillon préservé et absence de nouvelle réservation). `supabase/tests/cloture.sql` vérifie le message de remplacement quand la participation passée est déjà purgée.
