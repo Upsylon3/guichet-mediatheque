@@ -10,7 +10,7 @@ Application d’accueil pour les jeux de société, les jeux vidéo, les animati
 
 Le menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Les administrateurs disposent aussi de Statistiques et Administration. Un agent autorisé à gérer les modèles accède uniquement à cette partie de l’administration. Corbeille et annulation sont communes. Le mode clair ou sombre suit le choix de chaque navigateur.
 
-- Jeux vidéo : planning d’aujourd’hui par poste et par horaire, une carte par joueur, une inscription par semaine civile du lundi au dimanche. Aucun accompagnateur sans carte.
+- Jeux vidéo : planning d’aujourd’hui par poste et par horaire, une carte par joueur, une inscription par jour. Aucun accompagnateur sans carte.
 - Jeux de société : une carte pour la consultation, avec les effectifs des enfants et des adultes qui partagent la boîte.
 - Animations : bouton Inscrire pour choisir rapidement une séance dans une liste chronologique avec salle et places disponibles, ou accès par le calendrier. Une carte par participant. Créazone ou Salle JV et deux horaires obligatoires, sans chevauchement dans une même salle. Accompagnateurs nommés sans carte uniquement pour les animations sans jauge. Au-delà de J+15, les agents confirment un avertissement avant inscription.
 - Usagers : recherche par nom ou carte, identité facultative, note détaillée, changement de carte conservant fiche et inscriptions. Suppression et fusion réservées à l’administration.
@@ -55,3 +55,5 @@ Après modification des sources, lancer `npm run build`, vérifier le changement
 `scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.
 
 Les participations sont conservées pendant 30 jours glissants, avec leurs corbeilles et références de reprise. La recherche par carte et les listes permettent de consulter les activités récentes ; le planning JV Aujourd’hui reste limité au jour actuel. Les statistiques anonymes sont actualisées quotidiennement sans doublons et conservées au-delà. Les fiches usagers et réservations futures ne sont pas effacées par cette purge. Les détails déjà supprimés avant ce changement ne peuvent pas être reconstitués.
+
+La grille JV suit les mercredis et samedis, avec des ouvertures supplémentaires calculées pendant les vacances scolaires de la Zone C. Les [horaires et leur source officielle](HORAIRES-JV.md) précisent les durées, jours fériés et exceptions administratives.

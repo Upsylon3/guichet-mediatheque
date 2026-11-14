@@ -5,14 +5,6 @@ globalThis.guichetDirectory = (() => {
     new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Paris' }).format(
       new Date(),
     );
-  const ranges = [
-    '10:15–11:15',
-    '11:15–12:15',
-    '13:45–14:45',
-    '14:45–15:45',
-    '15:45–16:45',
-    '16:45–17:45',
-  ];
   const posts = {
     ZELDA: [1, 'Exploration'],
     PEACH: [2, 'Course'],
@@ -25,7 +17,37 @@ globalThis.guichetDirectory = (() => {
     stations: Object.fromEntries(
       Object.entries(posts).map(([k, [capacity, ...games]]) => [
         k,
-        { capacity, games, slots: [...ranges], enabled: true },
+        {
+          capacity,
+          games,
+          slots: [
+            ...(k === 'SPYRO'
+              ? videoSchedule.saturdaySpyro
+              : videoSchedule.saturday),
+          ],
+          enabled: true,
+          weekdays: {
+            0: { enabled: false },
+            1: { enabled: false },
+            2: { enabled: false },
+            3: { slots: [...videoSchedule.wednesday] },
+            4: { enabled: false },
+            5: { enabled: false },
+          },
+          exceptions: {
+            ...Object.fromEntries(
+              Object.entries(videoSchedule.additionalDates).map(
+                ([date, slots]) => [date, { enabled: true, slots: [...slots] }],
+              ),
+            ),
+            ...Object.fromEntries(
+              Object.keys(videoSchedule.publicHolidays).map((date) => [
+                date,
+                { enabled: false },
+              ]),
+            ),
+          },
+        },
       ]),
     ),
     limit: null,
@@ -62,11 +84,6 @@ globalThis.guichetDirectory = (() => {
     ...state.events.flatMap((e) => [...e.guests, ...e.counts]),
     ...state.trash,
   ];
-  const week = (date) => {
-    const d = new Date(date + 'T12:00:00');
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-    return d.toISOString().slice(0, 10);
-  };
   function ensure(card) {
     if (!/^ESSAI-[0-9]{1,4}$/.test(card))
       fail('Carte fictive de la forme ESSAI-01');
@@ -125,7 +142,7 @@ globalThis.guichetDirectory = (() => {
     )
       fail('La salle accueille déjà une animation sur cet horaire');
   }
-  // Vérifier capacité, jeu commun et quota hebdomadaire avant toute mutation.
+  // Vérifier capacité, jeu commun et quota quotidien avant toute mutation.
   function booking(d, old = []) {
     dateCheck(d.date);
     const base = state.settings.stations[d.post],
@@ -156,7 +173,7 @@ globalThis.guichetDirectory = (() => {
     for (const p of d.players) {
       if (p.companions) fail('Une carte par joueur, aucun accompagnateur');
       const existing = other.find(
-        (x) => x.card === p.card && week(x.date) === week(d.date),
+        (x) => x.card === p.card && x.date === d.date,
       );
       if (existing) {
         const date = new Date(existing.date + 'T12:00:00').toLocaleDateString(
@@ -179,7 +196,7 @@ globalThis.guichetDirectory = (() => {
             existing.end +
             ' sur le poste ' +
             existing.post +
-            '. Une seule inscription JV par semaine, du lundi au dimanche.',
+            '. Une seule inscription JV par jour.',
         );
       }
       ensure(p.card);
@@ -597,7 +614,13 @@ globalThis.guichetDirectory = (() => {
     identified({
       ...x,
       ...x.players[0],
-      end: state.settings.stations[x.post].slots
+      end: {
+        ...state.settings.stations[x.post],
+        ...state.settings.stations[x.post].weekdays?.[
+          new Date(x.date + 'T12:00:00').getDay()
+        ],
+        ...state.settings.stations[x.post].exceptions?.[x.date],
+      }.slots
         .find((s) => s.startsWith(x.slot))
         .slice(-5),
       group: crypto.randomUUID(),

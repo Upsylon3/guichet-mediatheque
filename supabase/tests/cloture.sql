@@ -76,12 +76,12 @@ begin
  perform guichet_prive.commande('event.save',jsonb_build_object('id',prochaine,'revision',1,'date',d+7,'title','Futur corrigé','time','23:40','endTime','23:55','room','Créazone','mode','inscription','count',true,'scope','all'),gen_random_uuid());
  if (select donnees->>'title' from guichet_prive.activites where id=passee)<>'Titre passé' or (select donnees->>'title' from guichet_prive.activites where id=prochaine)<>'Futur corrigé' then raise exception 'Modification de série incompatible avec historique';end if;
  perform guichet_prive.cloturer(d+1);
- begin
-  perform guichet_prive.video(gen_random_uuid(),jsonb_build_object('date',d,'post','MARIO','slot','11:15','game','Circuit','players',jsonb_build_array(jsonb_build_object('card',numero,'companions',0))));
-  raise exception 'Seconde inscription JV acceptée';
- exception when sqlstate 'PT409' then
-  if position('de 16:45 à 17:45 sur le poste MARIO' in sqlerrm)=0 then raise exception 'Détail JV perdu après minuit';end if;
- end;
+ if exists(select 1 from guichet_prive.quotas_jv where reservation=video) then
+  raise exception 'Quota quotidien conservé après le changement de jour';
+ end if;
+ if not exists(select 1 from guichet_prive.activites where id=video) then
+  raise exception 'Historique JV effacé lors de l’expiration du quota';
+ end if;
  perform guichet_prive.cloturer(d+31);
  if exists(select 1 from guichet_prive.activites where id in (recent,video,ev,guest,libre,compteur)) then raise exception 'Activités expirées présentes';end if;
  if not exists(select 1 from guichet_prive.activites where id=futur) or not exists(select 1 from public.usagers where carte=numero) then raise exception 'Futur ou fiche effacé';end if;

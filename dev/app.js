@@ -952,7 +952,7 @@ function videoForm(moving = []) {
     post = initial.post || Object.keys(state.settings.stations)[0];
   modal(
     moving.length ? 'Déplacer les joueurs' : 'Inscrire aux jeux vidéo',
-    `<form id="vf"><div class="fields">${field('Jour', 'date', date, 'date', `required min="${day()}"`)}${select('Poste', 'post', Object.keys(state.settings.stations), post)}<label>Créneau<select name="slot"></select></label><label>Jeu<select name="game" required></select></label></div><p id="videoInstruction"></p><div class="players">${(moving.length ? moving : [{}]).map((p) => playerRow(p)).join('')}</div><button type="button" class="addPlayer">Ajouter un joueur</button><p id="vfmsg" role="status"></p><div id="alternatives"></div><button class="primary">${moving.length ? 'Déplacer' : 'Inscrire'}</button></form>`,
+    `<form id="vf"><div class="fields">${field('Jour', 'date', date, 'date', `required min="${day()}"`)}${select('Poste', 'post', Object.keys(state.settings.stations), post)}<label>Créneau<select name="slot" required></select></label><label>Jeu<select name="game" required></select></label></div><p id="videoInstruction"></p><div class="players">${(moving.length ? moving : [{}]).map((p) => playerRow(p)).join('')}</div><button type="button" class="addPlayer">Ajouter un joueur</button><p id="vfmsg" role="status"></p><div id="alternatives"></div><button class="primary">${moving.length ? 'Déplacer' : 'Inscrire'}</button></form>`,
   );
   const form = $('vf'),
     f = form.elements;
@@ -966,9 +966,14 @@ function videoForm(moving = []) {
   function availability(reset = false) {
     const cfg = station(f.post.value, f.date.value);
     const current = f.slot.value;
+    const closed =
+      !cfg ||
+      cfg.enabled === false ||
+      state.settings.closedDates?.includes(f.date.value);
+    form.querySelector('button.primary').disabled = closed;
     if (reset) {
       f.slot.innerHTML = opts(
-        (cfg?.slots || []).map((s) => s.slice(0, 5)),
+        (closed ? [] : cfg.slots || []).map((s) => s.slice(0, 5)),
         initial.slot || defaultSlot(cfg?.slots || [], f.date.value) || current,
       );
     }
@@ -989,10 +994,11 @@ function videoForm(moving = []) {
     f.game.innerHTML =
       '<option value="">Choisir un jeu</option>' +
       opts(shared ? [shared] : cfg?.games || [], shared || game);
-    $('vfmsg').textContent =
-      remaining +
-      ' place(s) disponible(s). ' +
-      (shared ? 'Jeu en cours : ' + shared : '');
+    $('vfmsg').textContent = closed
+      ? 'Jeux vidéo fermés pour ce poste à cette date. Choisir une date d’ouverture : mercredi, samedi, vacances scolaires Zone C ou exception administrative.'
+      : remaining +
+        ' place(s) disponible(s). ' +
+        (shared ? 'Jeu en cours : ' + shared : '');
     $('videoInstruction').textContent = [
       (cfg?.slots || []).find((x) => x.startsWith(f.slot.value)) ||
         'Aucun créneau',
@@ -2245,7 +2251,7 @@ function setupWorkspace() {
       revision = +$('personForm').dataset.revision;
     modal(
       'Remplacement d’une carte perdue',
-      `<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite hebdomadaire suivent la même fiche.</p>${field('Nouveau numéro de carte', 'target', '', 'text', cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`,
+      `<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite quotidienne suivent la même fiche.</p>${field('Nouveau numéro de carte', 'target', '', 'text', cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`,
     );
     $('replacement').onsubmit = (e) => {
       e.preventDefault();

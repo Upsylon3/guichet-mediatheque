@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-AC7p6O6jXvWT/jNb59vyl9+B4M7M/Rks8ATOhFYJ0j8='; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-6Dkfk0zUpfpoyUF0hosM5xCVJPug5iC8hgBj5/7XVvQ='; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -769,6 +769,7 @@ dialog {
               type="date" /></label></div><div class="actions"><button>Enregistrer la fiche</button></div></form></section></main>
   <dialog id="modal" aria-labelledby="heading"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>
   <script>
+const videoSchedule = {"wednesday": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "saturday": ["10:15–11:15", "11:15–12:15", "13:45–14:45", "14:45–15:45", "15:45–16:45", "16:45–17:45"], "saturdaySpyro": ["10:15–11:45", "13:45–15:15", "15:15–16:45", "16:45–17:45"], "additionalDates": {"2025-10-21": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2025-10-23": ["15:15–16:45", "16:45–18:15"], "2025-10-24": ["15:15–16:45", "16:45–18:15"], "2025-10-28": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2025-10-30": ["15:15–16:45", "16:45–18:15"], "2025-10-31": ["15:15–16:45", "16:45–18:15"], "2025-12-23": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2025-12-26": ["15:15–16:45", "16:45–18:15"], "2025-12-30": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-01-02": ["15:15–16:45", "16:45–18:15"], "2026-02-24": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-02-26": ["15:15–16:45", "16:45–18:15"], "2026-02-27": ["15:15–16:45", "16:45–18:15"], "2026-03-03": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-03-05": ["15:15–16:45", "16:45–18:15"], "2026-03-06": ["15:15–16:45", "16:45–18:15"], "2026-04-21": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-04-23": ["15:15–16:45", "16:45–18:15"], "2026-04-24": ["15:15–16:45", "16:45–18:15"], "2026-04-28": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-04-30": ["15:15–16:45", "16:45–18:15"], "2026-05-15": ["15:15–16:45", "16:45–18:15"], "2026-07-07": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-07-09": ["15:15–16:45", "16:45–18:15"], "2026-07-10": ["15:15–16:45", "16:45–18:15"], "2026-07-16": ["15:15–16:45", "16:45–18:15"], "2026-07-17": ["15:15–16:45", "16:45–18:15"], "2026-07-21": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-07-23": ["15:15–16:45", "16:45–18:15"], "2026-07-24": ["15:15–16:45", "16:45–18:15"], "2026-07-28": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-07-30": ["15:15–16:45", "16:45–18:15"], "2026-07-31": ["15:15–16:45", "16:45–18:15"], "2026-08-04": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-08-06": ["15:15–16:45", "16:45–18:15"], "2026-08-07": ["15:15–16:45", "16:45–18:15"], "2026-08-11": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-08-13": ["15:15–16:45", "16:45–18:15"], "2026-08-14": ["15:15–16:45", "16:45–18:15"], "2026-08-18": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-08-20": ["15:15–16:45", "16:45–18:15"], "2026-08-21": ["15:15–16:45", "16:45–18:15"], "2026-08-25": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-08-27": ["15:15–16:45", "16:45–18:15"], "2026-08-28": ["15:15–16:45", "16:45–18:15"], "2026-10-20": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-10-22": ["15:15–16:45", "16:45–18:15"], "2026-10-23": ["15:15–16:45", "16:45–18:15"], "2026-10-27": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-10-29": ["15:15–16:45", "16:45–18:15"], "2026-10-30": ["15:15–16:45", "16:45–18:15"], "2026-12-22": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-12-24": ["15:15–16:45", "16:45–18:15"], "2026-12-29": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2026-12-31": ["15:15–16:45", "16:45–18:15"], "2027-02-09": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-02-11": ["15:15–16:45", "16:45–18:15"], "2027-02-12": ["15:15–16:45", "16:45–18:15"], "2027-02-16": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-02-18": ["15:15–16:45", "16:45–18:15"], "2027-02-19": ["15:15–16:45", "16:45–18:15"], "2027-04-06": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-04-08": ["15:15–16:45", "16:45–18:15"], "2027-04-09": ["15:15–16:45", "16:45–18:15"], "2027-04-13": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-04-15": ["15:15–16:45", "16:45–18:15"], "2027-04-16": ["15:15–16:45", "16:45–18:15"], "2027-07-06": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-07-08": ["15:15–16:45", "16:45–18:15"], "2027-07-09": ["15:15–16:45", "16:45–18:15"], "2027-07-13": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-07-15": ["15:15–16:45", "16:45–18:15"], "2027-07-16": ["15:15–16:45", "16:45–18:15"], "2027-07-20": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-07-22": ["15:15–16:45", "16:45–18:15"], "2027-07-23": ["15:15–16:45", "16:45–18:15"], "2027-07-27": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-07-29": ["15:15–16:45", "16:45–18:15"], "2027-07-30": ["15:15–16:45", "16:45–18:15"], "2027-08-03": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-08-05": ["15:15–16:45", "16:45–18:15"], "2027-08-06": ["15:15–16:45", "16:45–18:15"], "2027-08-10": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-08-12": ["15:15–16:45", "16:45–18:15"], "2027-08-13": ["15:15–16:45", "16:45–18:15"], "2027-08-17": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-08-19": ["15:15–16:45", "16:45–18:15"], "2027-08-20": ["15:15–16:45", "16:45–18:15"], "2027-08-24": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-08-26": ["15:15–16:45", "16:45–18:15"], "2027-08-27": ["15:15–16:45", "16:45–18:15"], "2027-08-31": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-10-26": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-10-28": ["15:15–16:45", "16:45–18:15"], "2027-10-29": ["15:15–16:45", "16:45–18:15"], "2027-11-02": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-11-04": ["15:15–16:45", "16:45–18:15"], "2027-11-05": ["15:15–16:45", "16:45–18:15"], "2027-12-21": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-12-23": ["15:15–16:45", "16:45–18:15"], "2027-12-24": ["15:15–16:45", "16:45–18:15"], "2027-12-28": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2027-12-30": ["15:15–16:45", "16:45–18:15"], "2027-12-31": ["15:15–16:45", "16:45–18:15"], "2028-02-15": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2028-02-17": ["15:15–16:45", "16:45–18:15"], "2028-02-18": ["15:15–16:45", "16:45–18:15"], "2028-02-22": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2028-02-24": ["15:15–16:45", "16:45–18:15"], "2028-02-25": ["15:15–16:45", "16:45–18:15"], "2028-04-18": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2028-04-20": ["15:15–16:45", "16:45–18:15"], "2028-04-21": ["15:15–16:45", "16:45–18:15"], "2028-04-25": ["13:45–15:15", "15:15–16:45", "16:45–17:45"], "2028-04-27": ["15:15–16:45", "16:45–18:15"], "2028-04-28": ["15:15–16:45", "16:45–18:15"], "2028-05-26": ["15:15–16:45", "16:45–18:15"]}, "workbookExtraDates": ["2026-01-02", "2026-02-24", "2026-02-26", "2026-02-27", "2026-03-03", "2026-03-05", "2026-03-06", "2026-04-21", "2026-04-23", "2026-04-24", "2026-04-28", "2026-04-30", "2026-07-07", "2026-07-10", "2026-07-17", "2026-07-24", "2026-07-28", "2026-07-31", "2026-08-27", "2026-10-20", "2026-10-22", "2026-10-23", "2026-10-27", "2026-10-29", "2026-10-30", "2026-12-22", "2026-12-24", "2026-12-29", "2026-12-31"], "schoolHolidays": [{"name": "Vacances de la Toussaint", "schoolYear": "2025-2026", "start": "2025-10-18", "end": "2025-11-03"}, {"name": "Vacances de Noël", "schoolYear": "2025-2026", "start": "2025-12-20", "end": "2026-01-05"}, {"name": "Vacances d'Hiver", "schoolYear": "2025-2026", "start": "2026-02-21", "end": "2026-03-09"}, {"name": "Vacances de Printemps", "schoolYear": "2025-2026", "start": "2026-04-18", "end": "2026-05-04"}, {"name": "Pont de l'Ascension", "schoolYear": "2025-2026", "start": "2026-05-14", "end": "2026-05-18"}, {"name": "Vacances d'Été", "schoolYear": "2025-2026", "start": "2026-07-04", "end": "2026-09-01"}, {"name": "Vacances de la Toussaint", "schoolYear": "2026-2027", "start": "2026-10-17", "end": "2026-11-02"}, {"name": "Vacances de Noël", "schoolYear": "2026-2027", "start": "2026-12-19", "end": "2027-01-04"}, {"name": "Vacances d'Hiver", "schoolYear": "2026-2027", "start": "2027-02-06", "end": "2027-02-22"}, {"name": "Vacances de Printemps", "schoolYear": "2026-2027", "start": "2027-04-03", "end": "2027-04-19"}, {"name": "Vacances d'Été", "schoolYear": "2026-2027", "start": "2027-07-03", "end": "2027-09-02"}, {"name": "Vacances de la Toussaint", "schoolYear": "2027-2028", "start": "2027-10-23", "end": "2027-11-08"}, {"name": "Vacances de Noël", "schoolYear": "2027-2028", "start": "2027-12-18", "end": "2028-01-03"}, {"name": "Vacances d'Hiver", "schoolYear": "2027-2028", "start": "2028-02-12", "end": "2028-02-28"}, {"name": "Vacances de Printemps", "schoolYear": "2027-2028", "start": "2028-04-15", "end": "2028-05-02"}, {"name": "Pont de l'Ascension", "schoolYear": "2027-2028", "start": "2028-05-25", "end": "2028-05-29"}], "publicHolidays": {"2025-01-01": "1er janvier", "2025-04-21": "Lundi de Pâques", "2025-05-01": "1er mai", "2025-05-08": "8 mai", "2025-05-29": "Ascension", "2025-06-09": "Lundi de Pentecôte", "2025-07-14": "14 juillet", "2025-08-15": "Assomption", "2025-11-01": "Toussaint", "2025-11-11": "11 novembre", "2025-12-25": "Jour de Noël", "2026-01-01": "1er janvier", "2026-04-06": "Lundi de Pâques", "2026-05-01": "1er mai", "2026-05-08": "8 mai", "2026-05-14": "Ascension", "2026-05-25": "Lundi de Pentecôte", "2026-07-14": "14 juillet", "2026-08-15": "Assomption", "2026-11-01": "Toussaint", "2026-11-11": "11 novembre", "2026-12-25": "Jour de Noël", "2027-01-01": "1er janvier", "2027-03-29": "Lundi de Pâques", "2027-05-01": "1er mai", "2027-05-06": "Ascension", "2027-05-08": "8 mai", "2027-05-17": "Lundi de Pentecôte", "2027-07-14": "14 juillet", "2027-08-15": "Assomption", "2027-11-01": "Toussaint", "2027-11-11": "11 novembre", "2027-12-25": "Jour de Noël", "2028-01-01": "1er janvier", "2028-04-17": "Lundi de Pâques", "2028-05-01": "1er mai", "2028-05-08": "8 mai", "2028-05-25": "Ascension", "2028-06-05": "Lundi de Pentecôte", "2028-07-14": "14 juillet", "2028-08-15": "Assomption", "2028-11-01": "Toussaint", "2028-11-11": "11 novembre", "2028-12-25": "Jour de Noël"}, "calendarSources": {"school": "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-calendrier-scolaire/records", "publicHolidays": "https://calendrier.api.gouv.fr/jours-feries/metropole.json", "checkedOn": "2026-11-14", "incompletePeriods": [{"name": "Pont de l'Ascension", "schoolYear": "2026-2027"}, {"name": "Début des Vacances d'Été", "schoolYear": "2027-2028"}]}};
 'use strict';
 // Jeu fictif commun aux essais connectés et à la démonstration autonome.
 function sampleDayPlan(day, settings, existingVideos = [], demo = false) {
@@ -1022,14 +1023,6 @@ globalThis.guichetDirectory = (() => {
     new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Paris' }).format(
       new Date(),
     );
-  const ranges = [
-    '10:15–11:15',
-    '11:15–12:15',
-    '13:45–14:45',
-    '14:45–15:45',
-    '15:45–16:45',
-    '16:45–17:45',
-  ];
   const posts = {
     ZELDA: [1, 'Exploration'],
     PEACH: [2, 'Course'],
@@ -1042,7 +1035,37 @@ globalThis.guichetDirectory = (() => {
     stations: Object.fromEntries(
       Object.entries(posts).map(([k, [capacity, ...games]]) => [
         k,
-        { capacity, games, slots: [...ranges], enabled: true },
+        {
+          capacity,
+          games,
+          slots: [
+            ...(k === 'SPYRO'
+              ? videoSchedule.saturdaySpyro
+              : videoSchedule.saturday),
+          ],
+          enabled: true,
+          weekdays: {
+            0: { enabled: false },
+            1: { enabled: false },
+            2: { enabled: false },
+            3: { slots: [...videoSchedule.wednesday] },
+            4: { enabled: false },
+            5: { enabled: false },
+          },
+          exceptions: {
+            ...Object.fromEntries(
+              Object.entries(videoSchedule.additionalDates).map(
+                ([date, slots]) => [date, { enabled: true, slots: [...slots] }],
+              ),
+            ),
+            ...Object.fromEntries(
+              Object.keys(videoSchedule.publicHolidays).map((date) => [
+                date,
+                { enabled: false },
+              ]),
+            ),
+          },
+        },
       ]),
     ),
     limit: null,
@@ -1079,11 +1102,6 @@ globalThis.guichetDirectory = (() => {
     ...state.events.flatMap((e) => [...e.guests, ...e.counts]),
     ...state.trash,
   ];
-  const week = (date) => {
-    const d = new Date(date + 'T12:00:00');
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-    return d.toISOString().slice(0, 10);
-  };
   function ensure(card) {
     if (!/^ESSAI-[0-9]{1,4}$/.test(card))
       fail('Carte fictive de la forme ESSAI-01');
@@ -1142,7 +1160,7 @@ globalThis.guichetDirectory = (() => {
     )
       fail('La salle accueille déjà une animation sur cet horaire');
   }
-  // Vérifier capacité, jeu commun et quota hebdomadaire avant toute mutation.
+  // Vérifier capacité, jeu commun et quota quotidien avant toute mutation.
   function booking(d, old = []) {
     dateCheck(d.date);
     const base = state.settings.stations[d.post],
@@ -1173,7 +1191,7 @@ globalThis.guichetDirectory = (() => {
     for (const p of d.players) {
       if (p.companions) fail('Une carte par joueur, aucun accompagnateur');
       const existing = other.find(
-        (x) => x.card === p.card && week(x.date) === week(d.date),
+        (x) => x.card === p.card && x.date === d.date,
       );
       if (existing) {
         const date = new Date(existing.date + 'T12:00:00').toLocaleDateString(
@@ -1196,7 +1214,7 @@ globalThis.guichetDirectory = (() => {
             existing.end +
             ' sur le poste ' +
             existing.post +
-            '. Une seule inscription JV par semaine, du lundi au dimanche.',
+            '. Une seule inscription JV par jour.',
         );
       }
       ensure(p.card);
@@ -1614,7 +1632,13 @@ globalThis.guichetDirectory = (() => {
     identified({
       ...x,
       ...x.players[0],
-      end: state.settings.stations[x.post].slots
+      end: {
+        ...state.settings.stations[x.post],
+        ...state.settings.stations[x.post].weekdays?.[
+          new Date(x.date + 'T12:00:00').getDay()
+        ],
+        ...state.settings.stations[x.post].exceptions?.[x.date],
+      }.slots
         .find((s) => s.startsWith(x.slot))
         .slice(-5),
       group: crypto.randomUUID(),
@@ -2601,7 +2625,7 @@ function videoForm(moving = []) {
     post = initial.post || Object.keys(state.settings.stations)[0];
   modal(
     moving.length ? 'Déplacer les joueurs' : 'Inscrire aux jeux vidéo',
-    `<form id="vf"><div class="fields">${field('Jour', 'date', date, 'date', `required min="${day()}"`)}${select('Poste', 'post', Object.keys(state.settings.stations), post)}<label>Créneau<select name="slot"></select></label><label>Jeu<select name="game" required></select></label></div><p id="videoInstruction"></p><div class="players">${(moving.length ? moving : [{}]).map((p) => playerRow(p)).join('')}</div><button type="button" class="addPlayer">Ajouter un joueur</button><p id="vfmsg" role="status"></p><div id="alternatives"></div><button class="primary">${moving.length ? 'Déplacer' : 'Inscrire'}</button></form>`,
+    `<form id="vf"><div class="fields">${field('Jour', 'date', date, 'date', `required min="${day()}"`)}${select('Poste', 'post', Object.keys(state.settings.stations), post)}<label>Créneau<select name="slot" required></select></label><label>Jeu<select name="game" required></select></label></div><p id="videoInstruction"></p><div class="players">${(moving.length ? moving : [{}]).map((p) => playerRow(p)).join('')}</div><button type="button" class="addPlayer">Ajouter un joueur</button><p id="vfmsg" role="status"></p><div id="alternatives"></div><button class="primary">${moving.length ? 'Déplacer' : 'Inscrire'}</button></form>`,
   );
   const form = $('vf'),
     f = form.elements;
@@ -2615,9 +2639,14 @@ function videoForm(moving = []) {
   function availability(reset = false) {
     const cfg = station(f.post.value, f.date.value);
     const current = f.slot.value;
+    const closed =
+      !cfg ||
+      cfg.enabled === false ||
+      state.settings.closedDates?.includes(f.date.value);
+    form.querySelector('button.primary').disabled = closed;
     if (reset) {
       f.slot.innerHTML = opts(
-        (cfg?.slots || []).map((s) => s.slice(0, 5)),
+        (closed ? [] : cfg.slots || []).map((s) => s.slice(0, 5)),
         initial.slot || defaultSlot(cfg?.slots || [], f.date.value) || current,
       );
     }
@@ -2638,10 +2667,11 @@ function videoForm(moving = []) {
     f.game.innerHTML =
       '<option value="">Choisir un jeu</option>' +
       opts(shared ? [shared] : cfg?.games || [], shared || game);
-    $('vfmsg').textContent =
-      remaining +
-      ' place(s) disponible(s). ' +
-      (shared ? 'Jeu en cours : ' + shared : '');
+    $('vfmsg').textContent = closed
+      ? 'Jeux vidéo fermés pour ce poste à cette date. Choisir une date d’ouverture : mercredi, samedi, vacances scolaires Zone C ou exception administrative.'
+      : remaining +
+        ' place(s) disponible(s). ' +
+        (shared ? 'Jeu en cours : ' + shared : '');
     $('videoInstruction').textContent = [
       (cfg?.slots || []).find((x) => x.startsWith(f.slot.value)) ||
         'Aucun créneau',
@@ -3894,7 +3924,7 @@ function setupWorkspace() {
       revision = +$('personForm').dataset.revision;
     modal(
       'Remplacement d’une carte perdue',
-      `<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite hebdomadaire suivent la même fiche.</p>${field('Nouveau numéro de carte', 'target', '', 'text', cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`,
+      `<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite quotidienne suivent la même fiche.</p>${field('Nouveau numéro de carte', 'target', '', 'text', cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`,
     );
     $('replacement').onsubmit = (e) => {
       e.preventDefault();

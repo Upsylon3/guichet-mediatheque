@@ -72,7 +72,7 @@ test('Journée fictive cohérente avec cartes individuelles et salles sans cheva
 });
 
 test(
-  'Refus JV : rappel du jour, de l’horaire et du poste existant',
+  'Refus JV quotidien : rappel du jour, de l’horaire et du poste existant',
   { timeout: 60000 },
   async () => {
     const browser = await chromium.launch({
@@ -83,6 +83,7 @@ test(
     });
     try {
       const p = await browser.newPage();
+      await p.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
       await p.goto(origin + '/');
       await p.locator('#videoPlanning').waitFor({ state: 'visible' });
       const before = await p.evaluate(() =>
@@ -109,6 +110,43 @@ test(
         await p.locator('#vf [name=card]').inputValue(),
         existing.card,
       );
+      // La même fiche peut réserver une autre date, même sans attendre une semaine.
+      const anotherDay = await p.evaluate(async (booking) => {
+        const api = globalThis.guichetDirectory;
+        const date = new Date(booking.date + 'T12:00:00');
+        const settings = (await api.state()).settings;
+        let next, station;
+        do {
+          date.setDate(date.getDate() + 1);
+          next =
+            date.getFullYear() +
+            '-' +
+            String(date.getMonth() + 1).padStart(2, '0') +
+            '-' +
+            String(date.getDate()).padStart(2, '0');
+          const base = settings.stations[booking.post];
+          station = {
+            ...base,
+            ...base.weekdays?.[date.getDay()],
+            ...base.exceptions?.[next],
+          };
+        } while (
+          station.enabled === false ||
+          settings.closedDates?.includes(next)
+        );
+        await api.command('video.book', {
+          date: next,
+          post: booking.post,
+          slot: station.slots[0].slice(0, 5),
+          game: booking.game,
+          players: [{ card: booking.card, companions: 0 }],
+        });
+        return (await api.state()).videos
+          .filter((entry) => entry.card === booking.card)
+          .map((entry) => entry.date);
+      }, existing);
+      assert.equal(anotherDay.length, 2);
+      assert.equal(new Set(anotherDay).size, 2);
     } finally {
       await browser.close();
     }
@@ -129,6 +167,7 @@ test(
       const p = await browser.newPage({
         viewport: { width: 360, height: 900 },
       });
+      await p.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
       await p.goto(origin + '/');
       await p.locator('[data-tab=ani]').click();
       await p.locator('#quickRegister').click();
@@ -204,6 +243,7 @@ test(
         }),
         errors = [];
       p.on('pageerror', (e) => errors.push(e.message));
+      await p.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
       await p.goto(origin + '/');
       await p.locator('#videoPlanning').waitFor({ state: 'visible' });
       assert.equal(
@@ -298,6 +338,7 @@ test('Corbeille : confirmation, accès administrateur et suppression définitive
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage();
+    await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await page.goto(origin + '/');
     await page.locator('#videoPlanning').waitFor({ state: 'visible' });
     await page.locator('#openTrash').click();
@@ -372,6 +413,7 @@ test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () 
       const page = await browser.newPage({ viewport });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
+      await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
       await page.goto(origin + '/');
       await page.locator('#videoPlanning').waitFor({ state: 'visible' });
       await page.locator('#role').selectOption({ label: 'Administrateur' });
@@ -476,6 +518,93 @@ test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () 
       assert.deepEqual(errors, []);
       await page.close();
     }
+  } finally {
+    await browser.close();
+  }
+});
+
+test('Horaires JV du classeur : mercredi, samedi, dates supplémentaires et exceptions', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
+    await page.goto(origin + '/');
+    await page.locator('#addvideo').click();
+    const chooseDate = async (date) => {
+      await page.locator('#vf [name=date]').fill(date);
+      await page.locator('#vf [name=date]').dispatchEvent('change');
+    };
+    await page.locator('#vf [name=post]').selectOption('MARIO');
+    await chooseDate('2026-11-16');
+    assert.equal(await page.locator('#vf [name=slot] option').count(), 0);
+    assert.equal(await page.locator('#vf button.primary').isDisabled(), true);
+    await chooseDate('2026-11-18');
+    assert.deepEqual(
+      await page.locator('#vf [name=slot] option').allTextContents(),
+      ['13:45', '15:15', '16:45'],
+    );
+    await chooseDate('2026-11-21');
+    assert.deepEqual(
+      await page.locator('#vf [name=slot] option').allTextContents(),
+      ['10:15', '11:15', '13:45', '14:45', '15:45', '16:45'],
+    );
+    await page.locator('#vf [name=post]').selectOption('SPYRO');
+    assert.deepEqual(
+      await page.locator('#vf [name=slot] option').allTextContents(),
+      ['10:15', '13:45', '15:15', '16:45'],
+    );
+    await chooseDate('2026-12-22');
+    assert.deepEqual(
+      await page.locator('#vf [name=slot] option').allTextContents(),
+      ['13:45', '15:15', '16:45'],
+    );
+    await chooseDate('2026-12-24');
+    assert.deepEqual(
+      await page.locator('#vf [name=slot] option').allTextContents(),
+      ['15:15', '16:45'],
+    );
+    // Une exception datée peut rouvrir un lundi et imposer ses propres horaires.
+    await page.evaluate(async () => {
+      const api = globalThis.guichetDirectory,
+        state = await api.state();
+      api.profile = 'administrateur';
+      state.settings.stations.MARIO.exceptions['2026-11-16'] = {
+        enabled: true,
+        slots: ['09:00–10:00'],
+      };
+      await api.command('config.save', {
+        settings: state.settings,
+        revision: state.settingsRevision,
+      });
+      api.profile = 'agent';
+      await api.onReady();
+    });
+    await page.locator('#vf [name=post]').selectOption('MARIO');
+    await chooseDate('2026-11-16');
+    assert.deepEqual(
+      await page.locator('#vf [name=slot] option').allTextContents(),
+      ['09:00'],
+    );
+    assert.equal(await page.locator('#vf button.primary').isDisabled(), false);
+    await page.close();
+    const wednesday = await browser.newPage();
+    await wednesday.clock.setFixedTime(new Date('2026-11-18T12:00:00+01:00'));
+    const errors = [];
+    wednesday.on('pageerror', (e) => errors.push(e.message));
+    await wednesday.goto(origin + '/');
+    const videos = await wednesday.evaluate(
+      async () => (await globalThis.guichetDirectory.state()).videos,
+    );
+    assert.ok(videos.length > 0);
+    assert.ok(
+      videos.every(
+        (v) =>
+          (v.slot === '13:45' && v.end === '15:15') ||
+          (v.slot === '15:15' && v.end === '16:45') ||
+          (v.slot === '16:45' && v.end === '17:45'),
+      ),
+    );
+    assert.deepEqual(errors, []);
   } finally {
     await browser.close();
   }

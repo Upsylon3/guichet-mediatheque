@@ -2,7 +2,7 @@
 
 Lire [le cahier des charges](CAHIER-DES-CHARGES.md), [le guide](DEVELOPPEMENT.md) et [la recette](RECETTE-GUICHET.md).
 
-Les règles en vigueur sont celles du 14 novembre 2026 : navigation latérale, une carte par joueur JV ou participant d’animation, quota hebdomadaire JV, salles exclusives, confirmation agent après J+15 et statistiques administratives avec extraction CSV filtrée. Animations propose une inscription rapide chronologique. Les modèles se gèrent dans Administration → Animations, avec un droit distinct délégable depuis Accès des agents ; les séances existantes ne changent pas avec leur modèle.
+Les règles en vigueur sont celles du 14 novembre 2026 : navigation latérale, une carte par joueur JV ou participant d’animation, quota quotidien JV, salles exclusives, confirmation agent après J+15 et statistiques administratives avec extraction CSV filtrée. Animations propose une inscription rapide chronologique. Les modèles se gèrent dans Administration → Animations, avec un droit distinct délégable depuis Accès des agents ; les séances existantes ne changent pas avec leur modèle.
 
 La version partagée utilise la base distante de développement à Paris. La démonstration autonome compile les mêmes parcours avec un service en mémoire, sans réseau. Les secrets et comptes restent hors Git.
 

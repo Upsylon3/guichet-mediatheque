@@ -15,7 +15,7 @@ const {
   fixture,
 } = require('./helpers.cjs');
 test(
-  'Règles du guichet : individus, quota hebdomadaire, salles, horizon, droits et transactions',
+  'Règles du guichet : individus, quota quotidien, salles, horizon, droits et transactions',
   { timeout: 180000 },
   async () => {
     const admin = await login('administrateur'),
@@ -100,9 +100,8 @@ test(
         duplicate.message,
         /dimanche|lundi|mardi|mercredi|jeudi|vendredi|samedi/,
       );
-      const weekday = new Date(date + 'T12:00:00Z').getUTCDay();
-      const sameWeek = weekday === 0 ? plus(date, 0) : next;
-      await cmd(agent, 'video.book', book(c1, sameWeek, '10:00'), 409);
+      // Une autre journée est autorisée, même dans la même semaine.
+      await cmd(agent, 'video.book', book(c1, next, '10:00'));
       const r2 = await cmd(agent, 'video.book', book(c2));
       s = await state(admin);
       await cmd(agent, 'video.book', book(c3), 400);
@@ -119,7 +118,7 @@ test(
       });
       await cmd(agent, 'video.book', book(c2, date, '10:00'));
       console.log(
-        'OK : aucun accompagnateur JV, une carte par place, une fois par semaine, replay, déplacement et annulation',
+        'OK : aucun accompagnateur JV, une carte par place, une fois par jour, replay, déplacement et annulation',
       );
       const racing = await card(admin),
         later = plus(date, 8);
@@ -169,7 +168,7 @@ test(
         409,
       );
       console.log(
-        'OK : remplacement de carte conserve UUID, inscriptions et quota hebdomadaire',
+        'OK : remplacement de carte conserve UUID, inscriptions et quota quotidien',
       );
       const ev = (
         day,
