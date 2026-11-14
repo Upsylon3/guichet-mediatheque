@@ -156,7 +156,7 @@ $('deleteUser').insertAdjacentHTML(
 );
 $('pending').insertAdjacentHTML(
   'afterend',
-  '<section id="trash" hidden><h2>Corbeille des 30 derniers jours et des réservations futures</h2><div id="trashList"></div></section>',
+  '<section id="trash" hidden><h2>Corbeille des 30 derniers jours et des réservations futures</h2><p>Les administrateurs peuvent supprimer définitivement le contenu de la corbeille.</p><button id="emptyTrash" type="button" hidden>Vider la corbeille</button><div id="trashList"></div></section>',
 );
 $('config').insertAdjacentHTML(
   'beforeend',
@@ -400,8 +400,25 @@ $('openTrash').onclick = () => {
   $('trash').hidden = !$('trash').hidden;
   renderTrash();
 };
+// Confirmer un instantané : le serveur refuse de supprimer une corbeille modifiée depuis.
+$('emptyTrash').onclick = async () => {
+  if (!admin() || !state.trash.length) return;
+  const selected = rows(state.trash);
+  if (
+    !confirm(
+      `Vider définitivement la corbeille (${selected.length} élément(s)) ? Les participants et comptages rattachés aux animations supprimées seront également effacés. Cette action est irréversible.`,
+    )
+  )
+    return;
+  await submit($('trash'), 'notice', 'trash.empty', { rows: selected }, () => {
+    notice('Corbeille vidée définitivement.');
+  });
+  renderTrash();
+};
 // Présenter les éléments supprimés dont la restauration reste contrôlée par le service.
 function renderTrash() {
+  $('emptyTrash').hidden = !admin();
+  $('emptyTrash').disabled = !state.trash.length || !!$('trash').dataset.saving;
   $('trashList').replaceChildren();
   for (const item of state.trash) {
     const row = document.createElement('div');
