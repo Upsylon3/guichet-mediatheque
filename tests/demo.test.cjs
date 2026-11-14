@@ -58,6 +58,7 @@ test('Démonstration publique autonome et entrée connectée séparée', async (
       if (r.url().startsWith('https://')) connections.push(r.url());
     });
     demo.on('pageerror', (e) => errors.push(e.message));
+    await demo.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await demo.goto(origin + '/');
     await board(demo, 'ESSAI-01');
     await waitText(demo, '#notice', 'Consultation enregistrée.');
@@ -110,12 +111,14 @@ test('Démonstration publique autonome et entrée connectée séparée', async (
 
     const connected = await browser.newPage();
     connected.on('pageerror', (e) => errors.push(e.message));
+    await connected.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await connected.goto(origin + '/dev/index.html');
     assert.equal(await connected.locator('#login').isVisible(), true);
     assert.equal(await connected.locator('main').isVisible(), false);
     assert.equal(await connected.locator('#login button').isEnabled(), true);
     assert.deepEqual(errors, []);
     const noScript = await browser.newPage({ javaScriptEnabled: false });
+    await noScript.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await noScript.goto(origin + '/dev/index.html');
     assert.equal(await noScript.locator('#login button').isDisabled(), true);
   } finally {
@@ -169,6 +172,7 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
             : [person];
       return route.fulfill({ json: data });
     });
+    await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await page.goto(origin + '/dev/index.html');
     assert.equal(staleScriptRequested, false);
     await page

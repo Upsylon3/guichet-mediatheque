@@ -111,3 +111,7 @@ Appliquer `20261114162554_quota_jv_quotidien.sql` avant de publier les sources c
 Le bloc SQL est atomique et peut être rejoué : une installation complète est reconnue sans nouvelle modification. Une erreur avant validation annule toutes ses modifications. Revenir ensuite à une limite hebdomadaire exige de vérifier les réservations de plusieurs dates dans une même semaine : ne pas supprimer ces réservations pour forcer un retour arrière.
 
 Vérification : `supabase/tests/quota_jv_quotidien.sql` contrôle les refus du même jour, l’autorisation de deux dates dans une même semaine, les déplacements, annulations/restaurations, changements de carte, fusions et expiration.
+
+## Horaires JV du classeur et vacances scolaires
+
+Voir [HORAIRES-JV.md](HORAIRES-JV.md) pour les horaires exacts, la corrélation avec la Zone C et la procédure d’actualisation. `dev/video-schedule.json` est la source de construction de la démonstration ; la migration des horaires reporte une copie figée dans les réglages partagés. Les refus restent imposés côté serveur, même par appel direct hors interface.

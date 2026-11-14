@@ -5,14 +5,6 @@ globalThis.guichetDirectory = (() => {
     new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Paris' }).format(
       new Date(),
     );
-  const ranges = [
-    '10:15–11:15',
-    '11:15–12:15',
-    '13:45–14:45',
-    '14:45–15:45',
-    '15:45–16:45',
-    '16:45–17:45',
-  ];
   const posts = {
     ZELDA: [1, 'Exploration'],
     PEACH: [2, 'Course'],
@@ -25,7 +17,37 @@ globalThis.guichetDirectory = (() => {
     stations: Object.fromEntries(
       Object.entries(posts).map(([k, [capacity, ...games]]) => [
         k,
-        { capacity, games, slots: [...ranges], enabled: true },
+        {
+          capacity,
+          games,
+          slots: [
+            ...(k === 'SPYRO'
+              ? videoSchedule.saturdaySpyro
+              : videoSchedule.saturday),
+          ],
+          enabled: true,
+          weekdays: {
+            0: { enabled: false },
+            1: { enabled: false },
+            2: { enabled: false },
+            3: { slots: [...videoSchedule.wednesday] },
+            4: { enabled: false },
+            5: { enabled: false },
+          },
+          exceptions: {
+            ...Object.fromEntries(
+              Object.entries(videoSchedule.additionalDates).map(
+                ([date, slots]) => [date, { enabled: true, slots: [...slots] }],
+              ),
+            ),
+            ...Object.fromEntries(
+              Object.keys(videoSchedule.publicHolidays).map((date) => [
+                date,
+                { enabled: false },
+              ]),
+            ),
+          },
+        },
       ]),
     ),
     limit: null,
@@ -592,7 +614,13 @@ globalThis.guichetDirectory = (() => {
     identified({
       ...x,
       ...x.players[0],
-      end: state.settings.stations[x.post].slots
+      end: {
+        ...state.settings.stations[x.post],
+        ...state.settings.stations[x.post].weekdays?.[
+          new Date(x.date + 'T12:00:00').getDay()
+        ],
+        ...state.settings.stations[x.post].exceptions?.[x.date],
+      }.slots
         .find((s) => s.startsWith(x.slot))
         .slice(-5),
       group: crypto.randomUUID(),
