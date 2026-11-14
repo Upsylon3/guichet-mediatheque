@@ -122,3 +122,77 @@ test('Démonstration publique autonome et entrée connectée séparée', async (
     await browser.close();
   }
 });
+
+test('Page connectée : contourner les anciens scripts en cache pour ouvrir les fiches', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    // Simuler une ancienne réponse encore en cache à l’URL historique.
+    let staleScriptRequested = false;
+    await page.route(
+      (url) => url.pathname === '/dev/app.js' && !url.search,
+      (route) => {
+        staleScriptRequested = true;
+        return route.fulfill({
+          contentType: 'text/javascript',
+          body: '// Ancienne application en cache.',
+        });
+      },
+    );
+    // Le test exerce la vraie entrée connectée, avec seulement le service distant simulé.
+    await page.route('https://*.supabase.co/**', (route) => {
+      const url = route.request().url();
+      const person = {
+        id: '00000000-0000-0000-0000-000000000001',
+        carte: '0000001',
+        prenom: 'Camille',
+        nom: 'Fictif',
+        revision: 1,
+      };
+      const data = url.includes('/auth/v1/token')
+        ? { access_token: 'session-fictive' }
+        : url.includes('/mon_profil')
+          ? 'administrateur'
+          : url.includes('/etat_guichet')
+            ? {
+                day: '2026-11-14',
+                settings: { stations: {}, permissions: {}, boxes: {} },
+                settingsRevision: 1,
+                boards: [],
+                videos: [],
+                events: [],
+                trash: [],
+                totals: [],
+              }
+            : [person];
+      return route.fulfill({ json: data });
+    });
+    await page.goto(origin + '/dev/index.html');
+    assert.equal(staleScriptRequested, false);
+    await page
+      .locator('#login [name=email]')
+      .fill('administrateur@guichet.example');
+    await page.locator('#login [name=password]').fill('mot-de-passe-fictif');
+    await page.locator('#login button').click();
+    await page.locator('main').waitFor({ state: 'visible' });
+    await page.locator('#openUsers').click();
+    await page.locator('#createUser').click();
+    await page.locator('#personDialog').waitFor({ state: 'visible' });
+    assert.equal(
+      await page.locator('#personTitle').textContent(),
+      'Nouvel usager',
+    );
+    await page.locator('#closePerson').click();
+    await page.locator('#userList button').click();
+    await page.locator('#personDialog').waitFor({ state: 'visible' });
+    assert.equal(
+      await page.locator('#personForm [name=first]').inputValue(),
+      'Camille',
+    );
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+  }
+});
