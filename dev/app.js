@@ -348,29 +348,46 @@ $('openAdmin').onclick=()=>{if(!admin())return;$('settings').hidden=!$('settings
 $('editPost').onchange=readConfig;
 function readConfig(){
  const form=$('config'),f=form.elements,key=$('editPost').value,p=state.settings.stations[key],cfg=state.settings;
- form.dataset.revision=state.settingsRevision;delete form.dataset.operation;f.postName.value=key;f.postName.readOnly=!!p;f.capacity.value=p?.capacity||1;
+ form.dataset.revision=state.settingsRevision;form.dataset.postKey=key;delete form.dataset.operation;delete form.dataset.dirty;f.postName.value=key;f.postName.readOnly=false;f.postName.maxLength=50;f.capacity.value=p?.capacity||1;
  f.weekday.value='default';f.weekday.disabled=!p;
  f.games.value=p?.games.join('\n')||'';f.slots.value=p?.slots.join('\n')||'';f.limit.value=cfg.limit??'';f.count.value=cfg.count||'oui';f.manageEvents.checked=!!cfg.manageEvents;f.enabled.checked=p?.enabled!==false;f.instruction.value=p?.instruction||'';
  f.exceptionDate.value='';f.exceptionClosed.checked=false;f.exceptionSlots.value='';f.exceptionGames.value='';f.closedDates.value=(cfg.closedDates||[]).join('\n');
  for(const k of ['edit','cancel','bulk','export'])f['permission-'+k].checked=cfg.permissions?.[k]??['edit','cancel'].includes(k);
  for(const k of ['catalogue','vsmart','selections'])f[k].value=cfg.links?.[k]||'';$('configMsg').textContent='';
- f.eventTypes.value=(cfg.eventTypes||[]).join('\n');f.askAge.checked=cfg.askAge!==false;
+ f.eventTypes.value=(cfg.eventTypes||[]).join('\n');f.askAge.checked=cfg.askAge!==false;f.boxCode.value='';f.boxTitle.value='';f.boxSector.value='Jeunesse';
  f.weekday.onchange=()=>{const grid={...p,...p?.weekdays?.[f.weekday.value]};f.capacity.value=grid.capacity;f.games.value=grid.games.join('\n');f.slots.value=grid.slots.join('\n');f.enabled.checked=grid.enabled!==false;f.instruction.value=grid.instruction||''};
  f.exceptionDate.onchange=()=>{const ex=p?.exceptions?.[f.exceptionDate.value]||{};f.exceptionClosed.checked=ex.enabled===false;f.exceptionSlots.value=ex.slots?.join('\n')||'';f.exceptionGames.value=ex.games?.join('\n')||''};
+ if($('adminTabs')){readBoxList();applyAdminPanel();}
 }
 const lines=text=>[...new Set(text.split('\n').map(x=>x.trim()).filter(Boolean))];
 $('config').onsubmit=e=>{
- e.preventDefault();if(!admin())return;const f=e.target.elements,cfg=structuredClone(state.settings),key=f.postName.value.trim();
- if(['__proto__','constructor','prototype'].includes(key)){$('configMsg').textContent='Choisir un autre nom de poste.';return}
- let p={...cfg.stations[key],capacity:+f.capacity.value,games:lines(f.games.value),slots:lines(f.slots.value).map(s=>s.replace(/\s*[-–]\s*/g,'–')).sort(),enabled:f.enabled.checked,instruction:f.instruction.value.trim()};
- if(f.weekday.value!=='default'){const base=cfg.stations[key];p={...base,weekdays:{...base.weekdays,[f.weekday.value]:{capacity:p.capacity,games:p.games,slots:p.slots,enabled:p.enabled,instruction:p.instruction}}}}
- if(f.exceptionDate.value){p.exceptions={...p.exceptions};p.exceptions[f.exceptionDate.value]={enabled:!f.exceptionClosed.checked,...(f.exceptionSlots.value.trim()?{slots:lines(f.exceptionSlots.value).map(s=>s.replace(/\s*[-–]\s*/g,'–')).sort()}:{}),...(f.exceptionGames.value.trim()?{games:lines(f.exceptionGames.value)}:{})}}
- cfg.stations[key]=p;cfg.limit=f.limit.value===''?null:+f.limit.value;cfg.count=f.count.value;cfg.manageEvents=f.manageEvents.checked;cfg.closedDates=lines(f.closedDates.value);
- cfg.permissions=Object.fromEntries(['edit','cancel','bulk','export'].map(k=>[k,['bulk','export'].includes(k)?false:f['permission-'+k].checked]));cfg.links=Object.fromEntries(['catalogue','vsmart','selections'].map(k=>[k,f[k].value.trim()]));
- cfg.eventTypes=lines(f.eventTypes.value);cfg.askAge=f.askAge.checked;
- if(f.boxCode.value.trim())cfg.boxes={...cfg.boxes,[f.boxCode.value.trim()]:{title:f.boxTitle.value.trim(),sector:f.boxSector.value}};
- const closing=state.videos.filter(a=>{const base=cfg.stations[a.post],next={...base,...base?.weekdays?.[new Date(a.date+'T12:00:00').getDay()],...base?.exceptions?.[a.date]};return next.enabled===false||cfg.closedDates.includes(a.date)});if(closing.length&&!confirm('Êtes-vous sûr de fermer ? '+closing.length+' réservation(s) seront retirées et placées dans la corbeille.'))return;
- submit(e.target,'configMsg','config.save',{settings:cfg,revision:+e.target.dataset.revision,forceClose:closing.length>0},()=>{configList(key);notice('Réglages partagés enregistrés.');$('configMsg').textContent='Réglages appliqués à tous les postes.'});
+ e.preventDefault();if(!admin())return;const form=e.target,f=form.elements,cfg=structuredClone(state.settings),source=form.dataset.postKey||'',key=f.postName.value.trim();let renamePost;
+ if(adminSection==='postes'){
+  if(!key||key.length>50||['__proto__','constructor','prototype'].includes(key)){$('configMsg').textContent='Choisir un nom de poste de 1 à 50 caractères.';return}
+  if(Object.keys(cfg.stations).some(k=>k!==source&&k.toLocaleLowerCase('fr')===key.toLocaleLowerCase('fr'))){$('configMsg').textContent='Ce nom est déjà utilisé par un autre poste.';return}
+  let p={...cfg.stations[source],capacity:+f.capacity.value,games:lines(f.games.value),slots:lines(f.slots.value).map(s=>s.replace(/\s*[-–]\s*/g,'–')).sort(),enabled:f.enabled.checked,instruction:f.instruction.value.trim()};
+  if(f.weekday.value!=='default'){const base=cfg.stations[source];p={...base,weekdays:{...base.weekdays,[f.weekday.value]:{capacity:p.capacity,games:p.games,slots:p.slots,enabled:p.enabled,instruction:p.instruction}}}}
+  if(f.exceptionDate.value){p.exceptions={...p.exceptions};p.exceptions[f.exceptionDate.value]={enabled:!f.exceptionClosed.checked,...(f.exceptionSlots.value.trim()?{slots:lines(f.exceptionSlots.value).map(s=>s.replace(/\s*[-–]\s*/g,'–')).sort()}:{}),...(f.exceptionGames.value.trim()?{games:lines(f.exceptionGames.value)}:{})}}
+  if(source&&source!==key){renamePost={source,target:key};delete cfg.stations[source]}
+  cfg.stations[key]=p;cfg.closedDates=lines(f.closedDates.value);
+ }else if(adminSection==='animations'){
+  cfg.limit=f.limit.value===''?null:+f.limit.value;cfg.eventTypes=lines(f.eventTypes.value);cfg.askAge=f.askAge.checked;
+ }else if(adminSection==='acces'){
+  cfg.manageEvents=f.manageEvents.checked;cfg.permissions={...cfg.permissions,edit:f['permission-edit'].checked,cancel:f['permission-cancel'].checked,bulk:false,export:false};
+ }else if(adminSection==='liens'){
+  cfg.links=Object.fromEntries(['catalogue','vsmart','selections'].map(k=>[k,f[k].value.trim()]));
+ }else if(adminSection==='societe'){
+  const code=f.boxCode.value.trim();if(!code||!f.boxTitle.value.trim()){$('configMsg').textContent='Renseigner le numéro et le titre de la boîte.';return}
+  if(['__proto__','constructor','prototype'].includes(code)){$('configMsg').textContent='Choisir un autre numéro de boîte.';return}
+  cfg.boxes={...cfg.boxes,[code]:{title:f.boxTitle.value.trim(),sector:f.boxSector.value}};
+ }
+ const closing=adminSection==='postes'?state.videos.filter(a=>{const post=renamePost&&a.post===source?key:a.post,base=cfg.stations[post],next={...base,...base?.weekdays?.[new Date(a.date+'T12:00:00').getDay()],...base?.exceptions?.[a.date]};return next.enabled===false||cfg.closedDates.includes(a.date)}):[];
+ if(closing.length&&!confirm('Êtes-vous sûr de fermer ? '+closing.length+' réservation(s) seront retirées et placées dans la corbeille.'))return;
+ const section=adminSection,box=f.boxCode.value.trim();
+ submit(form,'configMsg','config.save',{settings:cfg,revision:+form.dataset.revision,forceClose:closing.length>0,...(renamePost?{renamePost}:{})},()=>{
+  configList(adminSection==='postes'?key:source);if(section==='societe'){readBoxList(box);loadBox(box)}
+  notice('Réglages partagés enregistrés.');$('configMsg').textContent=renamePost?'Poste renommé. Ses réservations actives et en corbeille suivent le nouveau nom.':'Réglages « '+adminLabels[section]+' » enregistrés pour tous les postes.';
+ });
 };
 
 $('manageRoles').onclick=async()=>{
@@ -452,11 +469,11 @@ function removeSeries(ev){
 function addHour(time){const n=Math.min(1439,+time.slice(0,2)*60 + +time.slice(3)+60);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
 let activeTab='vid',statsRows=[];
 function activateTab(tab){
- if(['settings','stats'].includes(tab)&&!admin())tab='vid';activeTab=tab;
+ if(['settings','stats'].includes(tab)&&!admin())tab='vid';if(activeTab==='settings'&&tab!=='settings'&&!discardAdminDraft())return;activeTab=tab;
  for(const id of ['soc','vid','ani','users','settings','stats','trash'])$(id).hidden=id!==tab;
  for(const b of document.querySelectorAll('[data-tab]'))b.setAttribute('aria-current',String(b.dataset.tab===tab));
  $('pending').hidden=pending.size===0||!['soc','vid','ani','users'].includes(tab);
- if(tab==='users')userList();if(tab==='settings')configList(Object.keys(state.settings.stations)[0]);
+ if(tab==='users')userList();if(tab==='settings')configList($('editPost').value||Object.keys(state.settings.stations)[0]);
  if(tab==='trash')renderTrash();if(tab==='stats')loadStats();notice('');
 }
 function setupWorkspace(){
@@ -482,6 +499,7 @@ function setupWorkspace(){
  const total=$('totals');total.previousElementSibling.remove();total.hidden=true;
  for(const k of ['bulk','export'])$('config').elements['permission-'+k].closest('label').hidden=true;
  $('config').elements.count.closest('label').hidden=true;
+ setupAdministration();
  $('statsFilter').onsubmit=e=>{e.preventDefault();loadStats()};
  for(const select of $('statsFilter').querySelectorAll('select'))select.onchange=renderStats;
  $('exportStats').onclick=()=>downloadCsv('statistiques',statsDisplay());
@@ -526,6 +544,66 @@ function renderStats(){
  const body=document.createElement('tbody');for(const x of list){const tr=document.createElement('tr');for(const c of cols){const td=document.createElement('td');td.textContent=x[c]??'';tr.append(td)}body.append(tr)}t.append(body);$('statsTable').replaceChildren(t);
 }
 function downloadCsv(name,list){const cols=[...new Set(list.flatMap(Object.keys))],quote=x=>'"'+String(x??'').replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"';const csv=[cols,...list.map(x=>cols.map(c=>x[c]))].map(r=>r.map(quote).join(';')).join('\r\n'),url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name+'-'+day()+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+
+let adminSection='postes';
+const adminLabels={postes:'Postes JV',animations:'Animations',societe:'Jeux de société',acces:'Accès des agents',liens:'Liens du service'};
+function discardAdminDraft(){
+ const form=$('config');if(form.dataset.saving)return false;
+ if(form.dataset.dirty&&!confirm('Des modifications ne sont pas enregistrées dans cette rubrique. Les abandonner ?'))return false;
+ delete form.dataset.dirty;return true;
+}
+function applyAdminPanel(){
+ for(const panel of document.querySelectorAll('[data-admin-panel]')){
+  const active=panel.dataset.adminPanel===adminSection;panel.hidden=!active;
+  for(const input of panel.querySelectorAll('input,select,textarea,button'))input.disabled=!active||input.closest('label')?.hidden||input.name==='weekday'&&!$('config').dataset.postKey;
+ }
+ for(const button of document.querySelectorAll('[data-admin-tab]')){const active=button.dataset.adminTab===adminSection;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1}
+ $('adminSave').textContent='Enregistrer : '+adminLabels[adminSection];
+}
+function readBoxList(selected=''){
+ $('editBox').innerHTML='<option value="">Nouvelle boîte</option>'+Object.entries(state.settings.boxes||{}).sort(([a],[b])=>a.localeCompare(b,'fr',{numeric:true})).map(([code,box])=>`<option value="${esc(code)}" ${selected===code?'selected':''}>${esc(code+' · '+box.title)}</option>`).join('');
+}
+function loadBox(code){const f=$('config').elements,box=state.settings.boxes?.[code];f.boxCode.value=code;f.boxTitle.value=box?.title||'';f.boxSector.value=box?.sector||'Jeunesse';delete $('config').dataset.dirty}
+function setupAdministration(){
+ const form=$('config'),f=form.elements,settings=$('settings'),actions=form.querySelector('.actions'),msg=$('configMsg'),roles=$('manageRoles');
+ const tabs=document.createElement('div');tabs.id='adminTabs';tabs.className='adminTabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Rubriques d’administration');
+ const intro=document.createElement('p');intro.className='muted';intro.textContent='Choisir une rubrique. Le bouton d’enregistrement applique uniquement ses réglages.';settings.querySelector('h2').after(intro,tabs);
+ const panels={};for(const[key,label]of Object.entries(adminLabels)){
+  const panel=document.createElement('div');panel.dataset.adminPanel=key;panel.id='admin-'+key;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','admin-tab-'+key);panels[key]=panel;
+  const button=document.createElement('button');button.type='button';button.id='admin-tab-'+key;button.dataset.adminTab=key;button.textContent=label;button.setAttribute('role','tab');button.setAttribute('aria-controls',panel.id);tabs.append(button);
+  button.onclick=()=>{if(key===adminSection)return;if(!discardAdminDraft())return;readConfig();adminSection=key;applyAdminPanel()};
+  button.onkeydown=e=>{const list=[...tabs.children],index=list.indexOf(button);let target;if(e.key==='ArrowRight')target=list[(index+1)%list.length];if(e.key==='ArrowLeft')target=list[(index+list.length-1)%list.length];if(e.key==='Home')target=list[0];if(e.key==='End')target=list[list.length-1];if(target){e.preventDefault();target.click();if(target.getAttribute('aria-selected')==='true')target.focus()}};
+ }
+ const group=(panel,title,names,help)=>{const fieldset=document.createElement('fieldset');fieldset.className='adminGroup';const legend=document.createElement('legend');legend.textContent=title;fieldset.append(legend);if(help){const p=document.createElement('p');p.className='muted';p.textContent=help;fieldset.append(p)}const fields=document.createElement('div');fields.className='adminFields';for(const name of names)fields.append((name==='editPost'?$('editPost'):f[name]).closest('label'));fieldset.append(fields);panel.append(fieldset);return fieldset};
+ group(panels.postes,'Poste à gérer',['editPost'],'Sélectionner un poste existant pour le modifier ou créer un nouveau poste.');
+ const newPost=document.createElement('button');newPost.type='button';newPost.id='newPost';newPost.textContent='Ajouter un poste';panels.postes.firstElementChild.append(newPost);
+ group(panels.postes,'Identité et disponibilité',['postName','capacity','enabled','instruction'],'Le nom peut être modifié. Les réservations et les réglages propres au poste suivent son nouveau nom.');
+ group(panels.postes,'Jeux et horaires',['weekday','games','slots'],'La grille du jour de semaine remplace la grille habituelle. Un jeu ou un créneau par ligne.');
+ const exceptions=group(panels.postes,'Exception à une date',['exceptionDate','exceptionClosed','exceptionSlots','exceptionGames'],'Une exception datée prime sur la grille. Sans jeu ou créneau exceptionnel, la grille du jour reste utilisée.');
+ const details=document.createElement('details');details.id='adminExceptions';const summary=document.createElement('summary');summary.textContent='Exceptions par date et fermetures';details.append(summary,exceptions);panels.postes.append(details);
+ group(details,'Journées fermées',['closedDates'],'Dates au format AAAA-MM-JJ, une par ligne. Fermer un poste réservé nécessite une confirmation.');
+ group(panels.animations,'Valeurs proposées à la création',['limit','askAge','eventTypes'],'Ces valeurs concernent les nouvelles séances. Modifier une séance existante depuis l’onglet Animations.');
+ group(panels.animations,'Réglage conservé',['count']);
+ const rules=document.createElement('p');rules.className='adminHelp';rules.textContent='Les salles Créazone et Salle JV, les cartes individuelles et la confirmation au-delà de J+15 suivent les règles communes du service.';panels.animations.append(rules);
+ const boxSelect=document.createElement('label');boxSelect.textContent='Boîte à gérer';const boxChoice=document.createElement('select');boxChoice.id='editBox';boxSelect.append(boxChoice);panels.societe.append(boxSelect);
+ group(panels.societe,'Catalogue des boîtes',['boxCode','boxTitle','boxSector'],'Choisir une boîte pour la corriger. Pour en ajouter une, choisir Nouvelle boîte et renseigner son numéro, son titre et son secteur.');
+ group(panels.acces,'Actions autorisées aux agents',['manageEvents','permission-edit','permission-cancel','permission-bulk','permission-export'],'Les imports, exports, statistiques, paramètres et suppressions de fiches restent réservés à l’administration.');
+ const accountGroup=document.createElement('fieldset');accountGroup.className='adminGroup';accountGroup.innerHTML='<legend>Comptes du personnel</legend><p class="muted">Créer les comptes dans l’administration Auth du service, puis leur attribuer une habilitation. L’inscription publique est désactivée.</p>';roles.type='button';accountGroup.append(roles);panels.acces.append(accountGroup);
+ group(panels.liens,'Raccourcis du service',['catalogue','vsmart','selections'],'Adresses complètes commençant par https:// ou http://. V-smart et Sélections sont facultatifs.');
+ actions.classList.add('adminActions');actions.querySelector('button').id='adminSave';msg.className='adminFeedback';actions.append(msg);
+ form.replaceChildren(...Object.values(panels),actions);
+ // Les éléments ont été déplacés : retirer les anciens textes d’introduction.
+ for(const child of [...settings.children])if(![settings.querySelector('h2'),intro,tabs,form,$('totals')].includes(child))child.remove();
+ for(const name of ['count','permission-bulk','permission-export'])f[name].closest('label').hidden=true;
+ f.count.closest('fieldset').hidden=true;
+ form.addEventListener('input',e=>{if(['editPost','editBox'].includes(e.target.id))return;form.dataset.dirty='1';$('configMsg').textContent='Modifications non enregistrées.'});
+ form.addEventListener('change',e=>{if(e.target.id!=='editPost'&&e.target.id!=='editBox')form.dataset.dirty='1'});
+ $('editPost').onchange=()=>{const selected=$('editPost').value;if(!discardAdminDraft()){$('editPost').value=form.dataset.postKey||'';return}readConfig()};
+ newPost.onclick=()=>{if(!discardAdminDraft())return;$('editPost').value='';readConfig();f.postName.focus()};
+ boxChoice.onchange=()=>{const code=boxChoice.value;if(!discardAdminDraft()){boxChoice.value=f.boxCode.value;return}loadBox(code)};
+ f.boxCode.onchange=()=>{const box=state.settings.boxes?.[f.boxCode.value.trim()];if(box){f.boxTitle.value=box.title;f.boxSector.value=box.sector}};
+ applyAdminPanel();
+}
 
 setupWorkspace();
 api.enableLogin();

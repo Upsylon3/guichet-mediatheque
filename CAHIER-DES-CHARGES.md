@@ -55,3 +55,10 @@ L’onglet Statistiques est réservé aux administrateurs, côté interface et s
 Toutes les règles métier se revérifient dans les transactions du serveur. Une tentative rejouée après perte de réponse ne double pas une saisie. Les conflits conservent le brouillon. Les sessions se synchronisent environ toutes les deux secondes. Ctrl+Z annule une opération prise en charge lorsque le focus ne se trouve pas dans un champ de saisie. Le rechargement déconnecte et peut perdre les brouillons.
 
 La démonstration publique reste autonome et fonctionnelle avec des données fictives. Aucune donnée de service réelle ne doit entrer dans la base de développement. Recette sur deux postes physiques, douchette, accessibilité complète, sauvegarde/restauration et autorisation institutionnelle restent à organiser avant exploitation.
+
+
+## Administration organisée
+
+Les réglages se répartissent en cinq rubriques : Postes JV, Animations, Jeux de société, Accès des agents et Liens du service. Une seule rubrique apparaît à la fois et son bouton enregistre uniquement ses paramètres. Les exceptions datées et les fermetures restent repliées par défaut. Les brouillons non enregistrés déclenchent un avertissement avant un changement de rubrique ou de poste. Le catalogue de boîtes permet de choisir une boîte existante ou d’en ajouter une.
+
+Pour renommer un poste : Administration / Postes JV, sélectionner le poste, modifier Nom du poste puis enregistrer. Les réglages habituels, variantes hebdomadaires, exceptions et réservations actives ou en corbeille suivent le nouveau nom dans une transaction unique. Un nom déjà utilisé, une révision obsolète ou une modification incompatible est refusé sans renommage partiel. Les statistiques historiques conservent le libellé de leur date.

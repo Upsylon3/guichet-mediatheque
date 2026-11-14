@@ -43,3 +43,10 @@ Les migrations sont appliquées dans l’ordre de leurs noms et ne doivent pas �
 La clôture Europe/Paris conserve les agrégats anonymes puis purge les anciennes participations. Seul le quota minimal de la semaine JV demeure jusqu’au lundi suivant pour préserver la règle sans garder le jeu ni l’horaire. Il suit l’UUID de fiche, y compris lors d’un changement de carte. `supabase/tests/cloture.sql` vérifie les totaux, la purge, le quota et sa disparition, dans une transaction annulée.
 
 La démonstration autonome ne contacte aucun service et ses données de passage disparaissent au rechargement. Elle ne remplace pas une validation des protections du serveur partagé. Avant exploitation réelle : validation institutionnelle, matériel, douchette, accessibilité complète, sauvegarde et restauration sur l’infrastructure autorisée.
+
+
+## Administration organisée
+
+Les réglages se répartissent en cinq rubriques : Postes JV, Animations, Jeux de société, Accès des agents et Liens du service. Une seule rubrique apparaît à la fois et son bouton enregistre uniquement ses paramètres. Les exceptions datées et les fermetures restent repliées par défaut. Les brouillons non enregistrés déclenchent un avertissement avant un changement de rubrique ou de poste. Le catalogue de boîtes permet de choisir une boîte existante ou d’en ajouter une.
+
+Pour renommer un poste : Administration / Postes JV, sélectionner le poste, modifier Nom du poste puis enregistrer. Les réglages habituels, variantes hebdomadaires, exceptions et réservations actives ou en corbeille suivent le nouveau nom dans une transaction unique. Un nom déjà utilisé, une révision obsolète ou une modification incompatible est refusé sans renommage partiel. Les statistiques historiques conservent le libellé de leur date.

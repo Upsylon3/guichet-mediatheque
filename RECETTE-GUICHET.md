@@ -21,3 +21,8 @@ Recette du 14 novembre 2026, données fictives et projet distant de développeme
 ## Limites de la recette
 
 Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du guichet. Douchette réelle, audit complet d’accessibilité, latence représentative, sauvegarde et restauration d’exploitation, et validation institutionnelle restent à réaliser sur place. La base de développement n’accueille aucune donnée réelle.
+
+
+## Administration organisée et renommage
+
+`tests/administration.test.cjs` vérifie les cinq rubriques, les sauvegardes indépendantes, les champs cachés non bloquants, la sélection et l’ajout de boîtes, l’avertissement de brouillon, l’écran 360 px en mode sombre et le renommage depuis le champ Nom du poste. Une seconde session reçoit le nouveau nom. La réservation, sa corbeille, les grilles et exceptions ainsi que le quota sont préservés. Doublon de nom, agent, révision obsolète et réglage incompatible sont refusés ; ce dernier cas prouve le retour arrière complet du renommage.
