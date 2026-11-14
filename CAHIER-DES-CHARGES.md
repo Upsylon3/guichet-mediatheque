@@ -4,7 +4,7 @@ Version du 14 novembre 2026. Les règles suivantes remplacent les hypothèses de
 
 ## Navigation et profils
 
-Un menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Les administrateurs disposent des onglets Statistiques et Administration. Corbeille et annulation sont accessibles selon les droits. Le mode sombre se mémorise par navigateur. Les interfaces restent utilisables à 360 px et au clavier.
+Un menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Les administrateurs disposent des onglets Statistiques et Administration. Corbeille et annulation sont accessibles selon les droits. Le mode sombre se mémorise par navigateur. Les interfaces restent utilisables à 360 px et au clavier. La gestion des modèles peut être déléguée aux agents et leur ouvre uniquement cette partie de l’administration. Aucun lien vers le dépôt GitHub ou les documents du projet n’apparaît dans le guichet ; les raccourcis métier restent disponibles.
 
 Les comptes du personnel sont attribués, sans inscription publique. Les agents peuvent saisir les activités et compléter les identités. L’administration attribue les délégations de correction, d’annulation et de gestion des séances. Les statistiques sont exclusivement administratives, sans délégation. Les boutons d’import et d’export nominatif sont retirés de l’interface. Seul Statistiques propose une extraction CSV des agrégats affichés, réservée aux administrateurs. La suppression et la fusion de fiches restent administratives.
 
@@ -66,7 +66,7 @@ Pour renommer un poste : Administration / Postes JV, sélectionner le poste, mod
 
 ## Essais et modèles
 
-L’interface ne propose plus les boutons Exporter ou Coller, ni le raccourci Sélections du réseau. En JV, le filtre et le déplacement de sélection apparaissent uniquement dans Toutes les réservations. Le planning Aujourd’hui permet de retirer directement une réservation, après confirmation et selon les droits.
+L’interface ne propose ni import par collage ni export nominatif, ni raccourci Sélections du réseau. L’extraction CSV se trouve uniquement dans Statistiques. En JV, le filtre et le déplacement de sélection apparaissent uniquement dans Toutes les réservations. Le planning Aujourd’hui permet de retirer directement une réservation, après confirmation et selon les droits.
 
 Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. La création, la modification, le renommage et la suppression des modèles se trouvent dans Administration → Animations. Ces actions sont administratives par défaut. Dans Accès des agents, le droit Gérer les modèles d’animations peut être délégué aux agents réguliers, indépendamment de la gestion des séances. Cette délégation ouvre uniquement la gestion des modèles, sans les autres paramètres ni les statistiques. Comme les autres délégations actuelles, elle s’applique au groupe des agents. Modifier ou supprimer un modèle ne modifie pas les séances existantes. Date, récurrence et inscrits ne sont pas copiés dans le modèle. Le type est un classement facultatif pour les listes et statistiques.
 

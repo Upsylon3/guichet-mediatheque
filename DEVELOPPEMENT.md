@@ -8,7 +8,7 @@ Lancement local : `python scripts/serve-dev.py --config dev/config.json`, puis `
 
 ## Prise de poste
 
-Vérifier le profil et le message de synchronisation. Le menu latéral ouvre les activités et Usagers. Administration et Statistiques apparaissent uniquement pour les administrateurs. Le bouton Mode sombre mémorise le choix de ce navigateur. Les données confirmées restent dans la base commune, les brouillons restent dans la page. Recharger déconnecte et peut perdre un brouillon.
+Vérifier le profil et le message de synchronisation. Le menu latéral ouvre les activités et Usagers. Statistiques reste réservée aux administrateurs. Administration présente tous les réglages aux administrateurs ; un agent disposant du droit Gérer les modèles d’animations y accède uniquement à la gestion des modèles. Le bouton Mode sombre mémorise le choix de ce navigateur. Les données confirmées restent dans la base commune, les brouillons restent dans la page. Recharger déconnecte et peut perdre un brouillon.
 
 ## Parcours de service
 
@@ -16,7 +16,7 @@ Jeux de société : choisir le secteur, scanner carte et boîte, saisir enfants/
 
 Jeux vidéo : consulter le planning Aujourd’hui, puis Inscrire. Choisir poste, date, créneau et jeu. Chaque personne dispose de sa carte, sans accompagnateur. Ajouter un joueur pour une autre carte. Une même fiche ne réserve qu’une fois par semaine du lundi au dimanche. Une annulation libère son quota. Un déplacement conserve sa réservation. Le premier inscrit choisit le jeu, les suivants le rejoignent. Le formulaire propose le créneau actuel ou le prochain. Le planning expose jeu, noms/cartes et places par poste et horaire.
 
-Animations : ouvrir une date puis une séance. Pour créer une séance, renseigner titre, salle Créazone ou Salle JV, date et deux horaires. Une salle ne reçoit jamais deux séances simultanées. Chaque participant a sa carte. Pour une séance sans jauge uniquement, renseigner les noms des accompagnateurs sans carte, un par ligne. Les jauges imposent une carte à chaque personne. Au-delà de J+15 inclus, les agents doivent confirmer l’avertissement avant une inscription anticipée. Les jours concernés sont grisés et portent J+15. Aucun champ séparé d’ouverture des inscriptions.
+Animations : cliquer sur Inscrire pour choisir une séance dans la liste chronologique (date, heure, salle et places disponibles), puis saisir les cartes et informations des participants. Les séances complètes sont grisées. Le calendrier permet aussi d’ouvrir une date puis une séance ; les séances en entrée libre s’y gèrent par comptage. Pour créer une séance, renseigner titre, salle Créazone ou Salle JV, date et deux horaires. Une salle ne reçoit jamais deux séances simultanées. Chaque participant a sa carte. Pour une séance sans jauge uniquement, renseigner les noms des accompagnateurs sans carte, un par ligne. Les jauges imposent une carte à chaque personne. Au-delà des quinze prochains jours (J+15 reste inclus dans le délai normal), les agents doivent confirmer l’avertissement avant une inscription anticipée. Les jours après J+15 sont grisés et annoncent la confirmation nécessaire. Aucun champ séparé d’ouverture des inscriptions.
 
 Usagers : rechercher par carte ou nom. Ouvrir la bonne fiche, vérifier l’identité et choisir Changer le numéro de carte en cas de perte. La nouvelle carte conserve la même fiche et toutes ses inscriptions. Un numéro déjà utilisé demande une fusion administrative. Les agents ne suppriment jamais une fiche. Les administrateurs ne peuvent pas supprimer une fiche encore liée aux activités ou à la corbeille.
 
@@ -29,7 +29,7 @@ Les grilles suivent la priorité habituelle, jour de semaine, exception datée. 
 Statistiques : période, regroupement par jour/semaine/mois et filtres d’activité, secteur, poste, jeu, boîte, salle, type et catégorie. Les indicateurs sont anonymes. Les anciens totaux ont moins de détail. Les effectifs représentent des déclarations ou inscriptions, pas une présence contrôlée.
 
 
-Pour créer un compte du personnel, créer d’abord le compte dans Authentication du projet, puis utiliser Administration / Gérer les habilitations. Un compte Auth sans habilitation ne donne aucun accès. Le dernier administrateur est protégé. Les droits ne proviennent jamais d’un sélecteur client ou de métadonnées modifiables par le titulaire.
+Pour créer un compte du personnel, créer d’abord le compte dans Authentication du projet, puis utiliser Administration → Accès des agents → Gérer les habilitations. Un compte Auth sans habilitation ne donne aucun accès. Le dernier administrateur est protégé. Les droits ne proviennent jamais d’un sélecteur client ou de métadonnées modifiables par le titulaire.
 
 ## Construction et tests
 
@@ -53,7 +53,7 @@ Pour renommer un poste : Administration / Postes JV, sélectionner le poste, mod
 
 ## Essais et modèles
 
-L’interface ne propose plus les boutons Exporter ou Coller, ni le raccourci Sélections du réseau. En JV, le filtre et le déplacement de sélection apparaissent uniquement dans Toutes les réservations. Le planning Aujourd’hui permet de retirer directement une réservation, après confirmation et selon les droits.
+L’interface ne propose ni import par collage ni export nominatif, ni raccourci Sélections du réseau. L’extraction CSV se trouve uniquement dans Statistiques. En JV, le filtre et le déplacement de sélection apparaissent uniquement dans Toutes les réservations. Le planning Aujourd’hui permet de retirer directement une réservation, après confirmation et selon les droits.
 
 Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. La création, la modification, le renommage et la suppression des modèles se trouvent dans Administration → Animations. Ces actions sont administratives par défaut. Dans Accès des agents, le droit Gérer les modèles d’animations peut être délégué aux agents réguliers, indépendamment de la gestion des séances. Cette délégation ouvre uniquement la gestion des modèles, sans les autres paramètres ni les statistiques. Comme les autres délégations actuelles, elle s’applique au groupe des agents. Modifier ou supprimer un modèle ne modifie pas les séances existantes. Date, récurrence et inscrits ne sont pas copiés dans le modèle. Le type est un classement facultatif pour les listes et statistiques.
 
@@ -64,3 +64,7 @@ La démonstration autonome se recharge avec une journée fictive déjà remplie.
 Dans Animations, le bouton Inscrire ouvre un formulaire avec une liste de séances sur inscription classées par date et heure. La liste indique titre, salle et places restantes ; les séances complètes sont grisées. Les séances en entrée libre restent accessibles par le calendrier pour leur comptage. La saisie des cartes, catégories et âges, les accompagnateurs nommés sans jauge, la confirmation après J+15, la validation transactionnelle et Ctrl+Z suivent les mêmes règles que l’inscription depuis une séance. Les cartes saisies sont conservées lors d’un changement de séance. Une identité nouvelle se complète après l’inscription.
 
 Dans Statistiques, Extraire les statistiques (CSV) télécharge les agrégats de la période, des filtres et du regroupement choisis. Le fichier est séparé par des points-virgules, encodé en UTF-8 pour les tableurs et ne contient ni carte ni identité. Les agents, même autorisés à gérer les modèles, ne peuvent pas accéder aux statistiques.
+
+## Documentation et liens de l’interface
+
+Le guichet ne comporte aucun lien vers le dépôt GitHub ou la documentation du projet. Consulter les documents depuis le dépôt ou les fichiers remis au service. Les raccourcis métier Catalogue et V-smart se règlent dans Administration → Liens du service.

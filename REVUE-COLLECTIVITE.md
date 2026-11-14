@@ -1,5 +1,5 @@
 # Revue du projet par la collectivité
-**État au 13 novembre 2026 · document préparatoire pour la direction, la DSI, le DPD et les archives.**
+**État au 14 novembre 2026 · document préparatoire pour la direction, la DSI, le DPD et les archives.**
 
 ### Pilotage par une seule personne
 
@@ -12,7 +12,7 @@ Un seul porteur de projet peut développer, documenter, exécuter les essais suc
 | Ouverture de la démonstration publique | L’hébergeur de la page reçoit la requête web et ses métadonnées techniques. Le lien de prévisualisation du dépôt passe par un hébergeur tiers. L’ouverture du fichier téléchargé permet un essai local. |
 | Saisie fictive | La page accepte les cartes au format ESSAI- suivi de 1 à 4 chiffres. Les formulaires travaillent en mémoire. Le rechargement efface les données de session. Les paramètres de démonstration seuls sont conservés sur ce navigateur (libellés fictifs uniquement). Les noms et les champs libres restent des zones de saisie manuelle réservées aux exemples inventés. |
 | Ressources | Une page HTML autonome, polices système, aucun script distant, aucune mesure d’audience intégrée. Une politique de sécurité restreint scripts et styles à leurs empreintes et bloque les connexions applicatives et les envois de formulaires. |
-| Catalogue et documentation | Un clic explicite ouvre le site choisi. Les données du formulaire restent dans la page. La politique de référent masque l’adresse d’origine. |
+| Raccourcis métier | Catalogue et V-smart ouvrent le site choisi par un clic explicite. Aucun lien vers GitHub ou les documents du projet n’est affiché dans le guichet. Les données du formulaire restent dans la page. La politique de référent masque l’adresse d’origine. |
 | Dépôt public | Les sources et les documents de conception contiennent les structures utiles à la recette. Les classeurs sources, exports, cartes et coordonnées réels sont exclus de la publication. Les tickets, captures d’écran et journaux de diagnostic doivent suivre la même règle. |
 
 ### Fiche de traitement proposée pour le pilote interne
