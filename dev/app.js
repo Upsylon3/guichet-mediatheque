@@ -311,7 +311,7 @@ function editEvent(ev={},duplicate=false){
  }
  if(!ev.id||duplicate){
   form.insertAdjacentHTML('afterbegin','<div class="templatePicker">'+select('Partir d’un modèle','template',[''],'')+'<small>'+ (admin()?'Choisir un modèle existant, ou remplir les paramètres puis cliquer sur « Enregistrer comme modèle ».':'Le modèle remplit les paramètres de la séance.')+'</small></div>');
-  updateTemplateChoices(form);
+  updateTemplateChoices(form);if($('saveDraftTemplate'))form.querySelector('.templatePicker').append($('saveDraftTemplate'));
   f.template.onchange=()=>{const model=state.settings.eventTemplates?.[f.template.value];if(model){for(const [k,v] of Object.entries(model))if(f[k])f[k].value=k==='count'?(v?'oui':'non'):(v??'')}};
  }
  function preview(){const scope=f.scope?.value||'one',affected=state.events.filter(x=>x.id===ev.id||(ev.group&&x.group===ev.group&&!x.exception&&(scope==='all'||scope==='following'&&x.date>=ev.date)));$('seriesPreview').textContent=ev.id&&!duplicate?`${affected.length} séance(s) et ${affected.reduce((n,e)=>n+e.guests.length,0)} inscription(s) concernées. Les exceptions sont préservées.`:''}
