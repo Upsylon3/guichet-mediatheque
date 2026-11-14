@@ -4,21 +4,26 @@ Le SQL généré est réservé à l'éditeur SQL privilégié du projet d'essai.
 Il ne doit jamais être exécuté depuis le navigateur ou une base de service.
 Pour l'exploitation, utiliser le provisionnement Auth approuvé par la DSI.
 """
+
 import json
 import secrets
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-accounts = root / '.env.accounts.json'
-sql_file = root / '.env.provision.sql'
+accounts = root / ".env.accounts.json"
+sql_file = root / ".env.provision.sql"
 if accounts.exists() or sql_file.exists():
-    raise SystemExit('Les comptes sont déjà préparés. Réutiliser les fichiers locaux existants.')
-data = {role: {'email': role + '@guichet.example', 'password': secrets.token_urlsafe(24)}
-        for role in ('agent', 'administrateur')}
-accounts.write_text(json.dumps(data, indent=2), encoding='utf-8')
-sql = ['begin;']
+    raise SystemExit(
+        "Les comptes sont déjà préparés. Réutiliser les fichiers locaux existants."
+    )
+data = {
+    role: {"email": role + "@guichet.example", "password": secrets.token_urlsafe(24)}
+    for role in ("agent", "administrateur")
+}
+accounts.write_text(json.dumps(data, indent=2), encoding="utf-8")
+sql = ["begin;"]
 for role, account in data.items():
-    email, password = account['email'], account['password']
+    email, password = account["email"], account["password"]
     sql.append(f"""
 with nouveau as (
  insert into auth.users (
@@ -37,6 +42,6 @@ with nouveau as (
 )
 insert into guichet_prive.habilitations(compte,profil) select id,'{role}' from nouveau;
 """)
-sql.append('commit;')
-sql_file.write_text('\n'.join(sql), encoding='utf-8')
-print('Comptes préparés dans .env.accounts.json ; SQL privé dans .env.provision.sql.')
+sql.append("commit;")
+sql_file.write_text("\n".join(sql), encoding="utf-8")
+print("Comptes préparés dans .env.accounts.json ; SQL privé dans .env.provision.sql.")

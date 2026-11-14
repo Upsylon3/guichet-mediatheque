@@ -1,3 +1,6 @@
+-- Migration : finitions guichet.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Politiques fermées explicites : les accès passent par les façades contrôlées.
 do $migration$
 declare nom text;

@@ -1,3 +1,6 @@
+-- Migration : renommer postes jv.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Le nom d'un poste est aussi sa référence dans les inscriptions.
 -- Le changement de réglages et de réservations reste une seule transaction.
 do $migration$

@@ -1,3 +1,6 @@
+-- Migration : correction controles inscription.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 CREATE OR REPLACE FUNCTION guichet_prive.inscrire(op uuid, d jsonb, anciens uuid[] DEFAULT '{}'::uuid[])
  RETURNS jsonb
  LANGUAGE plpgsql

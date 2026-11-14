@@ -1,3 +1,6 @@
+-- Migration : activites partagees.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Tables privées : seul le service transactionnel ci-dessous peut les modifier.
 alter table public.usagers add column id uuid not null default gen_random_uuid() unique;
 create table guichet_prive.reglages (

@@ -1,3 +1,6 @@
+-- Migration : navigation regles guichet.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Navigation métier, inscriptions individuelles et indicateurs anonymes.
 create table guichet_prive.quotas_jv (
  reservation uuid primary key, usager uuid not null references public.usagers(id) on delete cascade,

@@ -1,7 +1,12 @@
+-- Migration : guichet.
+-- Historique appliqué dans l’ordre des fichiers ; ne pas rejouer sur une base déjà migrée.
+
 -- Socle de développement. Les habilitations sont attribuées côté serveur.
 create schema if not exists guichet_prive;
 revoke all on schema guichet_prive from public;
 grant usage on schema guichet_prive to authenticated;
+-- Les droits suivent l’UUID Auth. Supprimer le compte supprime aussi son habilitation.
+-- Recréer la même adresse impose donc d’attribuer à nouveau le profil.
 create table guichet_prive.habilitations (
   compte uuid primary key references auth.users(id) on delete cascade,
   profil text not null check (profil in ('agent','administrateur'))
