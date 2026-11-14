@@ -35,7 +35,7 @@ $('openAdmin').insertAdjacentHTML('afterend','<button id="openTrash">Corbeille</
 $('settings').insertAdjacentHTML('beforeend','<h3>Comptes attribués par le service</h3><button id="manageRoles">Gérer les habilitations</button><p>Les comptes sont créés par l’administration Auth du service, sans inscription publique.</p>');
 $('deleteUser').insertAdjacentHTML('beforebegin','<button type="button" id="replaceCard" hidden>Changer le numéro de carte</button>');
 $('deleteUser').insertAdjacentHTML('afterend','<button type="button" id="mergeUser" hidden>Remplacer / fusionner la carte</button><button type="button" id="undoMerge" hidden>Annuler la fusion du jour</button>');
-$('pending').insertAdjacentHTML('afterend','<section id="trash" hidden><h2>Corbeille du jour et des réservations futures</h2><div id="trashList"></div></section>');
+$('pending').insertAdjacentHTML('afterend','<section id="trash" hidden><h2>Corbeille des 30 derniers jours et des réservations futures</h2><div id="trashList"></div></section>');
 $('config').insertAdjacentHTML('beforeend',`<h3>Disponibilité du poste</h3><label><span><input name="enabled" type="checkbox" checked> Poste ouvert</span></label>${field('Consigne affichée','instruction')}
 <h3>Exception pour une date</h3><div class="fields">${field('Date de l’exception','exceptionDate','','date')}<label><span><input type="checkbox" name="exceptionClosed"> Fermer le poste ce jour</span></label></div>
 <label>Créneaux exceptionnels (un par ligne)<textarea name="exceptionSlots" rows="3"></textarea></label><label>Jeux exceptionnels (un par ligne)<textarea name="exceptionGames" rows="3"></textarea></label><p>Une date et des horaires vides conservent la grille habituelle. Les réservations incompatibles bloquent l’enregistrement.</p>
@@ -108,7 +108,7 @@ async function command(action,data,message='Modification enregistrée.',undo){
 }
 const inverseAdd=(kind,result)=>({action:kind+'.remove',data:{rows:rows(result.ids.map(record).filter(Boolean))}});
 async function remove(kind,items){
- if(!confirm(`Retirer ${items.length} saisie(s) ? Elles resteront dans la corbeille jusqu’à la clôture.`))return;
+ if(!confirm(`Retirer ${items.length} saisie(s) ? Elles resteront dans la corbeille jusqu’à l’expiration des 30 jours suivant leur date d’activité.`))return;
  await command(kind+'.remove',{rows:rows(items)},'Saisie retirée.',result=>({action:kind+'.restore',data:{rows:rows(result.ids.map(record).filter(Boolean))}}));
 }
 $('undo').onclick=async()=>{
@@ -181,9 +181,9 @@ $('identity').onsubmit=e=>{
 
 function search(){
  const card=$('lookup').value.trim(),list=$('results');list.replaceChildren();if(!card)return;
- const lines=[cardLabel(card),...state.boards.filter(x=>x.card===card&&x.date===day()).map(x=>`${x.sector} · boîte ${x.box} · ${x.kids+x.adults} personnes`),...state.videos.filter(x=>x.card===card).map(x=>`${labelDate(x.date)} · ${x.slot}–${x.end} · ${x.post} · ${x.game}`),...state.events.filter(x=>x.guests.some(g=>g.card===card)).map(x=>`${labelDate(x.date)} · ${x.time} · ${x.title} · ${x.info||''}`)];
+ const lines=[cardLabel(card),...state.boards.filter(x=>x.card===card).map(x=>`${labelDate(x.date)} · ${x.sector} · boîte ${x.box} · ${x.kids+x.adults} personnes`),...state.videos.filter(x=>x.card===card).map(x=>`${labelDate(x.date)} · ${x.slot}–${x.end} · ${x.post} · ${x.game}`),...state.events.filter(x=>x.guests.some(g=>g.card===card)).map(x=>`${labelDate(x.date)} · ${x.time} · ${x.title} · ${x.info||''}`)];
  for(const line of lines){const p=document.createElement('p');p.textContent=line;list.append(p)}
- if(lines.length===1){const p=document.createElement('p');p.textContent='Aucune consultation du jour ni inscription à venir.';list.append(p)}
+ if(lines.length===1){const p=document.createElement('p');p.textContent='Aucune activité dans les 30 derniers jours ni inscription à venir.';list.append(p)}
 }
 $('lookup').oninput=search;
 for(const b of document.querySelectorAll('[data-tab]'))b.onclick=()=>{for(const x of document.querySelectorAll('[data-tab]')){$(x.dataset.tab).hidden=x!==b;x.setAttribute('aria-current',String(x===b))}notice('')};
@@ -298,14 +298,14 @@ function editEvent(ev={},duplicate=false){
  ${field('Titre','title',ev.title||'','text','required')}${select('Type d’animation (facultatif)','eventType',['',...(defaults.eventTypes||[])],ev.eventType||'')}${field('Jour','date',ev.date||day(),'date',`required min="${day()}"`)}${field('Heure de début','time',ev.time||nowTime(),'time','required')}${field('Heure de fin','endTime',ev.endTime||addHour(nowTime()),'time','required')}${select('Salle obligatoire','room',['','Créazone','Salle JV'],ev.room||'')}${field('Renseignements','info',ev.info||'')}${field('Intervenant ou référent','referent',ev.referent||'')}${field('Public','audience',ev.audience||'')}${field('Âge minimum (ans)','minAge',ev.minAge??'','number','min="0" step="0.1"')}${field('Âge maximum (ans)','maxAge',ev.maxAge??'','number','min="0" step="0.1"')}${select('Mode','mode',['inscription','libre'],ev.mode||'inscription')}${field('Plafond strict facultatif','cap',ev.cap??defaults.limit??'','number','min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement||'')}</textarea></label>${field('Lien vers un visuel facultatif','image',ev.image||'','url')}
  ${ev.id&&!duplicate?select('Portée de la modification','scope',['one','following','all'],'one'):field('Nombre de séances (1 à 52)','repeat',1,'number','required min="1" max="52"')+select('Récurrence','frequency',['week','month'],'week')+field('Tous les','repeatEvery',1,'number','required min="1" max="12"')}
  <p id="seriesPreview"></p><p id="afmsg" role="status"></p><button class="primary">Enregistrer</button></form>`);
- const form=$('af'),f=form.elements;f.room.required=true;f.eventType.options[0].textContent='Non renseigné';
+ const form=$('af'),f=form.elements;f.room.required=true;if(f.scope)f.scope.querySelector('[value=all]').textContent='Cette séance et les séances à venir';f.eventType.options[0].textContent='Non renseigné';
  f.eventType.closest('label').insertAdjacentHTML('beforeend','<small>Sert à classer les séances et à filtrer les statistiques.</small>');
  if(!ev.id||duplicate){
   form.insertAdjacentHTML('afterbegin','<div class="templatePicker">'+select('Partir d’un modèle','template',[''],'')+'<small>'+ 'Le modèle remplit les paramètres de la séance. Les modèles se gèrent dans Administration → Animations.'+'</small></div>');
   updateTemplateChoices(form);
   f.template.onchange=()=>{const model=state.settings.eventTemplates?.[f.template.value];if(model){for(const [k,v] of Object.entries(model))if(f[k])f[k].value=k==='count'?(v?'oui':'non'):(v??'')}};
  }
- function preview(){const scope=f.scope?.value||'one',affected=state.events.filter(x=>x.id===ev.id||(ev.group&&x.group===ev.group&&!x.exception&&(scope==='all'||scope==='following'&&x.date>=ev.date)));$('seriesPreview').textContent=ev.id&&!duplicate?`${affected.length} séance(s) et ${affected.reduce((n,e)=>n+e.guests.length,0)} inscription(s) concernées. Les exceptions sont préservées.`:''}
+ function preview(){const scope=f.scope?.value||'one',affected=state.events.filter(x=>x.id===ev.id||(ev.group&&x.group===ev.group&&!x.exception&&x.date>=day()&&(scope==='all'||scope==='following'&&x.date>=ev.date)));$('seriesPreview').textContent=ev.id&&!duplicate?`${affected.length} séance(s) et ${affected.reduce((n,e)=>n+e.guests.length,0)} inscription(s) concernées. Les exceptions sont préservées.`:''}
  if(f.scope)f.scope.onchange=preview;preview();
  form.onsubmit=e=>{
   e.preventDefault();const data=Object.fromEntries(new FormData(form));data.count=true;for(const k of ['cap','minAge','maxAge'])data[k]=data[k]===''?null:+data[k];if(ev.id&&!duplicate){data.id=ev.id;data.revision=ev.revision}else data.repeat=+f.repeat.value;
@@ -385,7 +385,7 @@ $('config').onsubmit=e=>{
   if(['__proto__','constructor','prototype'].includes(code)){$('configMsg').textContent='Choisir un autre numéro de boîte.';return}
   cfg.boxes={...cfg.boxes,[code]:{title:f.boxTitle.value.trim(),sector:f.boxSector.value}};
  }
- const closing=adminSection==='postes'?state.videos.filter(a=>{const post=renamePost&&a.post===source?key:a.post,base=cfg.stations[post],next={...base,...base?.weekdays?.[new Date(a.date+'T12:00:00').getDay()],...base?.exceptions?.[a.date]};return next.enabled===false||cfg.closedDates.includes(a.date)}):[];
+ const closing=adminSection==='postes'?state.videos.filter(a=>{if(a.date<day())return false;const post=renamePost&&a.post===source?key:a.post,base=cfg.stations[post],next={...base,...base?.weekdays?.[new Date(a.date+'T12:00:00').getDay()],...base?.exceptions?.[a.date]};return next.enabled===false||cfg.closedDates.includes(a.date)}):[];
  if(closing.length&&!confirm('Êtes-vous sûr de fermer ? '+closing.length+' réservation(s) seront retirées et placées dans la corbeille.'))return;
  const section=adminSection,box=f.boxCode.value.trim();
  submit(form,'configMsg','config.save',{settings:cfg,revision:+form.dataset.revision,forceClose:closing.length>0,...(renamePost?{renamePost}:{})},()=>{
