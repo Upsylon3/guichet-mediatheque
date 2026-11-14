@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-JTHl5M6fIWZS+qJuYhQnOlvVUMDdtm3q6qCFYMuXxQ0='; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-AC7p6O6jXvWT/jNb59vyl9+B4M7M/Rks8ATOhFYJ0j8='; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -700,7 +700,14 @@ dialog {
       <label>Rechercher par carte ou par nom<input
           id="filterUsers"
           autocomplete="off" /></label><div id="userList"></div>
-      <form id="personForm" hidden autocomplete="off"><h3 id="personTitle"></h3><div class="fields">
+    </section>
+    <!-- Fiche et création utilisent le même dialogue, au-dessus de l’annuaire. -->
+    <dialog id="personDialog" aria-labelledby="personTitle">
+      <div class="bar">
+        <h2 id="personTitle">Fiche usager</h2>
+        <button id="closePerson" type="button">Fermer</button>
+      </div>
+      <form id="personForm" hidden autocomplete="off"><div class="fields">
           <label>Carte fictive<input
               name="card"
               required
@@ -708,7 +715,8 @@ dialog {
               placeholder="ESSAI-01"/></label>
           <label>Prénom<input name="first" /></label><label>Nom<input name="last" /></label><label>Date de naissance<input type="date" name="birth" /></label></div>
         <details id="noteDetails"><summary>Note interne</summary><label>Note sur la fiche<input maxlength="500" name="note" /></label></details>
-        <div class="actions"><button>Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form></section>
+        <div class="actions"><button>Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
+    </dialog>
     <section id="settings" hidden><h2>Administration</h2><form id="config"><h3>Postes de jeux vidéo</h3>
         <label>Poste à régler<select id="editPost"></select></label><div class="fields">
           <label>Nom du poste<input
@@ -2121,6 +2129,14 @@ $('openUsers').onclick = () => {
 };
 $('filterUsers').oninput = userList;
 $('createUser').onclick = () => openPerson();
+// Garder la fiche indépendante du dialogue des activités et des changements de carte.
+$('closePerson').onclick = () => {
+  if (!$('personForm').dataset.saving) $('personDialog').close();
+};
+$('personDialog').addEventListener('cancel', (event) => {
+  if ($('personForm').dataset.saving) event.preventDefault();
+});
+
 // Charger la fiche détaillée à la demande, séparément du cache de recherche.
 async function openPerson(card = '') {
   if ($('personForm').dataset.saving) return;
@@ -2158,6 +2174,8 @@ async function openPerson(card = '') {
   $('deleteUser').hidden = !card || !admin();
   $('personMsg').textContent = '';
   $('mergeUser').hidden = !card || !admin();
+  if (!$('personDialog').open) $('personDialog').showModal();
+  (card ? f.first : f.card).focus();
 }
 $('personForm').onsubmit = (e) => {
   e.preventDefault();
@@ -2189,6 +2207,7 @@ $('personForm').onsubmit = (e) => {
       drafts.delete(card);
       renderPending();
       notice('Fiche enregistrée.');
+      $('personDialog').close();
     },
   );
 };
@@ -2208,6 +2227,7 @@ $('deleteUser').onclick = () => {
     null,
     () => {
       $('personForm').hidden = true;
+      $('personDialog').close();
       pending.delete(card);
       drafts.delete(card);
       notice('Fiche supprimée.');

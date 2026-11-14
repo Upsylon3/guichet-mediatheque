@@ -361,3 +361,122 @@ test('Corbeille : confirmation, accès administrateur et suppression définitive
     await browser.close();
   }
 });
+
+test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    for (const viewport of [
+      { width: 1440, height: 900 },
+      { width: 360, height: 640 },
+    ]) {
+      const page = await browser.newPage({ viewport });
+      const errors = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      await page.goto(origin + '/');
+      await page.locator('#videoPlanning').waitFor({ state: 'visible' });
+      await page.locator('#role').selectOption({ label: 'Administrateur' });
+      await page.locator('#openUsers').click();
+      const last = page.locator('#userList button').last();
+      await last.scrollIntoViewIfNeeded();
+      const label = await last.textContent();
+      await last.click();
+      await page.locator('#personDialog').waitFor({ state: 'visible' });
+      assert.equal(
+        await page.locator('#personForm [name=card]').getAttribute('readonly'),
+        '',
+      );
+      assert.equal(
+        await page
+          .locator('#personForm [name=first]')
+          .evaluate((node) => node === document.activeElement),
+        true,
+      );
+      const box = await page.locator('#personDialog').boundingBox();
+      assert.ok(box.y >= 0 && box.y + box.height <= viewport.height);
+      // La couche modale empêche les clics de traverser vers la liste située dessous.
+      assert.equal(
+        await page.locator('#users').evaluate((node) => node.matches(':modal')),
+        false,
+      );
+      assert.equal(
+        await page
+          .locator('#personDialog')
+          .evaluate((node) => node.matches(':modal')),
+        true,
+      );
+      await page.locator('#personForm [name=first]').fill('Prénom corrigé');
+      await page.locator('#personForm button').first().click();
+      await page.locator('#personDialog').waitFor({ state: 'hidden' });
+      await page
+        .locator('#userList button')
+        .filter({ hasText: label.split(' · ')[0] })
+        .click();
+      assert.equal(
+        await page.locator('#personForm [name=first]').inputValue(),
+        'Prénom corrigé',
+      );
+      await page.keyboard.press('Escape');
+      await page.locator('#personDialog').waitFor({ state: 'hidden' });
+      await page.locator('#createUser').click();
+      assert.equal(
+        await page.locator('#personTitle').textContent(),
+        'Nouvel usager',
+      );
+      assert.equal(
+        await page.locator('#personForm [name=card]').inputValue(),
+        '',
+      );
+      assert.equal(
+        await page
+          .locator('#personForm [name=card]')
+          .evaluate((node) => node === document.activeElement),
+        true,
+      );
+      await page.locator('#closePerson').click();
+      await page.locator('#personDialog').waitFor({ state: 'hidden' });
+      await page.locator('#createUser').click();
+      // Une erreur de création conserve la saisie dans le dialogue ouvert.
+      await page.locator('#personForm [name=card]').fill(label.split(' · ')[0]);
+      await page.locator('#personForm [name=first]').fill('Création fictive');
+      await page.locator('#personForm button').first().click();
+      await text(page, '#personMsg', 'Carte déjà utilisée');
+      assert.equal(await page.locator('#personDialog').isVisible(), true);
+      assert.equal(
+        await page.locator('#personForm [name=first]').inputValue(),
+        'Création fictive',
+      );
+      await page.locator('#personForm [name=card]').fill('ESSAI-9001');
+      await page.locator('#personForm button').first().click();
+      await page.locator('#personDialog').waitFor({ state: 'hidden' });
+      await page.locator('#filterUsers').fill('ESSAI-9001');
+      await page.locator('#userList button').click();
+      // Le changement de carte garde son propre dialogue au-dessus de la fiche.
+      await page.locator('#replaceCard').click();
+      await page.locator('#replacement [name=target]').fill('ESSAI-9002');
+      page.once('dialog', (dialog) => dialog.accept());
+      await page.locator('#replacement button').click();
+      await page.locator('#modal').waitFor({ state: 'hidden' });
+      await page.waitForFunction(
+        () =>
+          document.querySelector('#personForm [name=card]').value ===
+          'ESSAI-9002',
+      );
+      assert.equal(await page.locator('#personDialog').isVisible(), true);
+      page.once('dialog', (dialog) => dialog.accept());
+      await page.locator('#deleteUser').click();
+      await page.locator('#personDialog').waitFor({ state: 'hidden' });
+      assert.equal(
+        await page.evaluate(async () =>
+          (await globalThis.guichetDirectory.list()).some(
+            (person) => person.carte === 'ESSAI-9002',
+          ),
+        ),
+        false,
+      );
+      assert.deepEqual(errors, []);
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+});

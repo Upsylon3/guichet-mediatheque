@@ -196,7 +196,14 @@
       <label>Rechercher par carte ou par nom<input
           id="filterUsers"
           autocomplete="off" /></label><div id="userList"></div>
-      <form id="personForm" hidden autocomplete="off"><h3 id="personTitle"></h3><div class="fields">
+    </section>
+    <!-- Fiche et création utilisent le même dialogue, au-dessus de l’annuaire. -->
+    <dialog id="personDialog" aria-labelledby="personTitle">
+      <div class="bar">
+        <h2 id="personTitle">Fiche usager</h2>
+        <button id="closePerson" type="button">Fermer</button>
+      </div>
+      <form id="personForm" hidden autocomplete="off"><div class="fields">
           <label>Carte fictive<input
               name="card"
               required
@@ -204,7 +211,8 @@
               placeholder="ESSAI-01"/></label>
           <label>Prénom<input name="first" /></label><label>Nom<input name="last" /></label><label>Date de naissance<input type="date" name="birth" /></label></div>
         <details id="noteDetails"><summary>Note interne</summary><label>Note sur la fiche<input maxlength="500" name="note" /></label></details>
-        <div class="actions"><button>Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form></section>
+        <div class="actions"><button>Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
+    </dialog>
     <section id="settings" hidden><h2>Administration</h2><form id="config"><h3>Postes de jeux vidéo</h3>
         <label>Poste à régler<select id="editPost"></select></label><div class="fields">
           <label>Nom du poste<input

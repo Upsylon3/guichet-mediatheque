@@ -480,6 +480,14 @@ $('openUsers').onclick = () => {
 };
 $('filterUsers').oninput = userList;
 $('createUser').onclick = () => openPerson();
+// Garder la fiche indépendante du dialogue des activités et des changements de carte.
+$('closePerson').onclick = () => {
+  if (!$('personForm').dataset.saving) $('personDialog').close();
+};
+$('personDialog').addEventListener('cancel', (event) => {
+  if ($('personForm').dataset.saving) event.preventDefault();
+});
+
 // Charger la fiche détaillée à la demande, séparément du cache de recherche.
 async function openPerson(card = '') {
   if ($('personForm').dataset.saving) return;
@@ -517,6 +525,8 @@ async function openPerson(card = '') {
   $('deleteUser').hidden = !card || !admin();
   $('personMsg').textContent = '';
   $('mergeUser').hidden = !card || !admin();
+  if (!$('personDialog').open) $('personDialog').showModal();
+  (card ? f.first : f.card).focus();
 }
 $('personForm').onsubmit = (e) => {
   e.preventDefault();
@@ -548,6 +558,7 @@ $('personForm').onsubmit = (e) => {
       drafts.delete(card);
       renderPending();
       notice('Fiche enregistrée.');
+      $('personDialog').close();
     },
   );
 };
@@ -567,6 +578,7 @@ $('deleteUser').onclick = () => {
     null,
     () => {
       $('personForm').hidden = true;
+      $('personDialog').close();
       pending.delete(card);
       drafts.delete(card);
       notice('Fiche supprimée.');

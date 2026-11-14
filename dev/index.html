@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-JTHl5M6fIWZS+qJuYhQnOlvVUMDdtm3q6qCFYMuXxQ0=' 'self'; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM=' 'self'; connect-src 'self' https://tmsmjerslmogjhyzkfrn.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-AC7p6O6jXvWT/jNb59vyl9+B4M7M/Rks8ATOhFYJ0j8=' 'self'; style-src 'sha256-ZJxFrdR18db5VwQqOqMR/BAKXnOpKn2xdLBfRJWmgDM=' 'self'; connect-src 'self' https://tmsmjerslmogjhyzkfrn.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -706,7 +706,14 @@ dialog {
       <label>Rechercher par carte ou par nom<input
           id="filterUsers"
           autocomplete="off" /></label><div id="userList"></div>
-      <form id="personForm" hidden autocomplete="off"><h3 id="personTitle"></h3><div class="fields">
+    </section>
+    <!-- Fiche et création utilisent le même dialogue, au-dessus de l’annuaire. -->
+    <dialog id="personDialog" aria-labelledby="personTitle">
+      <div class="bar">
+        <h2 id="personTitle">Fiche usager</h2>
+        <button id="closePerson" type="button">Fermer</button>
+      </div>
+      <form id="personForm" hidden autocomplete="off"><div class="fields">
           <label>Carte fictive<input
               name="card"
               required
@@ -714,7 +721,8 @@ dialog {
               placeholder="ESSAI-01"/></label>
           <label>Prénom<input name="first" /></label><label>Nom<input name="last" /></label><label>Date de naissance<input type="date" name="birth" /></label></div>
         <details id="noteDetails"><summary>Note interne</summary><label>Note sur la fiche<input maxlength="500" name="note" /></label></details>
-        <div class="actions"><button>Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form></section>
+        <div class="actions"><button>Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
+    </dialog>
     <section id="settings" hidden><h2>Administration</h2><form id="config"><h3>Postes de jeux vidéo</h3>
         <label>Poste à régler<select id="editPost"></select></label><div class="fields">
           <label>Nom du poste<input
