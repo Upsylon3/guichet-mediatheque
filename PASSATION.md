@@ -11,3 +11,12 @@ Après modification de `dev/app.js`, `dev/app.css`, `dev/demo.js` ou du gabarit 
 Les essais utilisent exclusivement des données fictives. La recette sur le matériel et le réseau du service, les validations institutionnelles et les procédures de sauvegarde/restauration restent nécessaires avant usage réel.
 
 Les liens vers GitHub et les documents du projet ont été retirés des pages du guichet. La documentation reste dans le dépôt. Pour un changement limité aux textes, liens ou styles, reconstruire les pages et vérifier le résultat ciblé ; la suite métier complète reste pertinente pour une modification des règles ou des transactions.
+
+## Publication sur GitHub Pages
+
+- Démonstration autonome : https://upsylon3.github.io/guichet-mediatheque/
+- Guichet partagé avec connexion : https://upsylon3.github.io/guichet-mediatheque/dev/
+
+Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement des deux versions ensemble. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
+
+`scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.

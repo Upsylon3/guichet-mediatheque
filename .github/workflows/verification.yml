@@ -1,14 +1,18 @@
-name: Vérification du guichet
+name: Vérification et publication du guichet
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
   demonstration:
     runs-on: ubuntu-22.04
     timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,3 +27,30 @@ jobs:
       - run: npm run build
       - run: git diff --exit-code -- index.html dev/index.html dev/config.json
       - run: npm run test:demo
+      - run: python scripts/prepare-pages.py
+      - name: Préparer GitHub Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v5
+      - name: Publier les fichiers vérifiés
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+  publication:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: demonstration
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Déployer les deux versions
+        id: deployment
+        uses: actions/deploy-pages@v4
