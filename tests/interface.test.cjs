@@ -33,7 +33,7 @@ test('Parcours réels à deux sessions : navigation, droits, annuaire, planning,
   fs.mkdirSync('test-results',{recursive:true});await a.screenshot({path:'test-results/animation-formulaire.png'});await a.locator('#close').click();
   await a.locator('#openStats').click();await waitText(a,'#statsMsg','actualisées');assert.ok(await a.locator('#statsTable tbody tr').count()>0);const download=a.waitForEvent('download');await a.locator('#exportStats').click();assert.match((await download).suggestedFilename(),/statistiques/);
   await a.locator('#openAdmin').click();await a.locator('#editPost').selectOption(post);await a.locator('#config [name=enabled]').uncheck();a.once('dialog',d=>{assert.match(d.message(),/réservation/);return d.dismiss()});await a.locator('#config .actions button').click();assert.equal((await state(token)).videos.some(x=>x.card===vc),true);
-  a.once('dialog',d=>d.accept());await a.locator('#config .actions button').click();await waitText(a,'#configMsg','appliqués');assert.equal((await state(token)).videos.some(x=>x.card===vc),false);
+  a.once('dialog',d=>d.accept());await a.locator('#config .actions button').click();await waitText(a,'#configMsg','Postes JV');assert.equal((await state(token)).videos.some(x=>x.card===vc),false);
   console.log('OK : salle et fin obligatoires, statistiques et CSV administratifs, fermeture forcée après confirmation');
   await a.locator('[data-tab=vid]').click();await a.locator('#theme').click();await a.screenshot({path:'test-results/guichet-bureau-sombre.png'});await b.locator('[data-tab=vid]').click();await b.screenshot({path:'test-results/guichet-360-sombre.png'});assert.deepEqual(errors,[]);
  }finally{await browser?.close();await cleanup(token,original)}

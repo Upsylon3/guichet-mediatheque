@@ -33,6 +33,7 @@ globalThis.guichetDirectory=(()=>{
   const ids=[],add=(list,x)=>{x={...x,id:x.id||crypto.randomUUID(),revision:(x.revision||0)+1};list.push(x);ids.push(x.id);return x};
   if(action==='config.save'){
    if(d.revision!==state.settingsRevision)fail('Réglages modifiés');
+   if(d.renamePost){const {source,target}=d.renamePost;if(!state.settings.stations[source]||!target||target.length>50||['__proto__','constructor','prototype'].includes(target)||Object.keys(state.settings.stations).some(k=>k!==source&&k.toLocaleLowerCase('fr')===target.toLocaleLowerCase('fr'))||d.settings.stations[source]||!d.settings.stations[target])fail('Renommage de poste invalide');for(const a of all())if((state.videos.includes(a)||a.kind==='vid')&&a.post===source){a.post=target;a.revision++}}
    for(const x of [...state.videos]){const b=d.settings.stations[x.post],cfg={...b,...b?.weekdays?.[new Date(x.date+'T12:00:00').getDay()],...b?.exceptions?.[x.date]};if(cfg.enabled===false||d.settings.closedDates?.includes(x.date)){if(!d.forceClose)fail('Réservation incompatible');execute('video.remove',{rows:[x]},op)}else if(!b||cfg.capacity<state.videos.filter(v=>v.date===x.date&&v.post===x.post&&v.slot===x.slot).length||!cfg.games.includes(x.game)||!cfg.slots.includes(x.slot+'–'+x.end))fail('Réservation incompatible')}
    state.settings=copy(d.settings);state.settingsRevision++;return {revision:state.settingsRevision};
   }
