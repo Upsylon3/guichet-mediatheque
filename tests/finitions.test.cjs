@@ -1,0 +1,23 @@
+const {test,before,after}=require('node:test'),assert=require('node:assert/strict'),{spawn}=require('node:child_process'),{chromium}=require('playwright');
+const {sampleDayPlan}=require('../dev/sample-data.js');let server,origin;
+before(async()=>{server=spawn('python',['scripts/serve-dev.py','--config','dev/config.json','--port','0']);origin=await new Promise((resolve,reject)=>{let output='';server.stdout.on('data',c=>{output+=c;const m=output.match(/http:\/\/127\.0\.0\.1:(\d+)/);if(m)resolve(m[0])});server.on('error',reject)})});after(()=>server?.kill());
+async function text(p,selector,value){await p.waitForFunction(({selector,value})=>document.querySelector(selector)?.textContent.includes(value),{selector,value})}
+test('Journée fictive cohérente avec cartes individuelles et salles sans chevauchement',()=>{
+ const settings={stations:{MARIO:{capacity:4,games:['Fictif'],slots:['09:00–10:00','10:00–11:00','11:00–12:00','14:00–15:00'],enabled:true}}},p=sampleDayPlan('2026-11-14',settings);
+ assert.equal(p.people.length,120);assert.equal(p.boards.length,28);assert.ok(p.videos.length>8);assert.equal(new Set(p.videos.map(x=>x.players[0].card)).size,p.videos.length);
+ for(const e of p.events){assert.equal(new Set(e.players.map(x=>x.card)).size,e.players.length);for(const g of e.players){assert.ok(p.people.some(x=>x.carte===g.card));assert.equal(g.companions,g.companionNames.length);if(e.cap)assert.equal(g.companions,0)}assert.ok(!p.events.some(x=>x!==e&&x.date===e.date&&x.room===e.room&&x.time<e.endTime&&e.time<x.endTime))}
+ assert.equal(Object.keys(p.templates).length,3);
+});
+test('Écrans épurés, retrait depuis Aujourd’hui et création de modèles sans séance',{timeout:60000},async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{})});try{
+  const p=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin+'/');await p.locator('#videoPlanning').waitFor({state:'visible'});
+  assert.equal(await p.getByRole('button',{name:/Exporter|Coller/}).count(),0);assert.equal(await p.locator('#videoListTools').isVisible(),false);assert.equal(await p.locator('#bulkVideo').isVisible(),false);
+  const remove=p.locator('#videoPlanning .cancelBooking').first(),label=await remove.getAttribute('aria-label');p.once('dialog',d=>d.dismiss());await remove.click();assert.equal(await p.getByRole('button',{name:label,exact:true}).count(),1);
+  p.once('dialog',d=>d.accept());await remove.click();await text(p,'#notice','Saisie retirée.');assert.equal(await p.getByRole('button',{name:label,exact:true}).count(),0);
+  await p.locator('#role').selectOption('Administrateur');await p.locator('#videoAll').click();assert.equal(await p.locator('#videoListTools').isVisible(),true);assert.equal(await p.locator('#bulkVideo').isDisabled(),true);await p.locator('#videos input[type=checkbox]').first().check();assert.equal(await p.locator('#bulkVideo').isEnabled(),true);await p.locator('#videoToday').click();assert.equal(await p.locator('#videoListTools').isVisible(),false);
+  await p.locator('[data-tab=ani]').click();await p.locator('#calendar .today').click();await p.locator('#new').click();assert.equal(await p.locator('#af [name=template] option').count(),4);await p.locator('#af [name=template]').selectOption('DÉMO · Atelier créatif (8 places)');assert.equal(await p.locator('#af [name=cap]').inputValue(),'8');await p.locator('#af [name=title]').fill('Modèle fictif de recette');assert.match(await p.locator('#af [name=eventType]').locator('..').textContent(),/statistiques/);
+  p.once('dialog',d=>d.accept('Mon modèle fictif'));await p.locator('#saveDraftTemplate').click();await text(p,'#afmsg','Modèle enregistré.');await p.locator('#close').click();assert.doesNotMatch(await p.locator('#eventsTable').innerText(),/Modèle fictif de recette/);
+  await p.locator('#calendar .today').click();await p.locator('#new').click();await p.locator('#af [name=template]').selectOption('Mon modèle fictif');assert.equal(await p.locator('#af [name=title]').inputValue(),'Modèle fictif de recette');await p.locator('#close').click();
+  await p.locator('#openAdmin').click();await p.locator('[data-admin-tab=liens]').click();assert.equal(await p.locator('#config [name=selections]').count(),0);await p.locator('#openStats').click();await text(p,'#statsMsg','actualisées');assert.equal(await p.getByRole('button',{name:/Exporter|Coller/}).count(),0);assert.deepEqual(errors,[]);
+ }finally{await browser.close()}
+});

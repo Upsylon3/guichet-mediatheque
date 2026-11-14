@@ -4,10 +4,11 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "check": "python scripts/check-csp.py && node --check dev/app.js && node --check dev/directory.js && python -m py_compile scripts/serve-dev.py scripts/build-dev.py scripts/prepare-dev-accounts.py && node --check dev/demo.js",
-    "test": "npm run check && node --test --test-concurrency=1 tests/administration.test.cjs tests/metiers.test.cjs tests/interface.test.cjs tests/demo.test.cjs",
-    "test:demo": "npm run check && node --test tests/demo.test.cjs",
-    "build": "python scripts/build-demo.py && python scripts/build-dev.py"
+    "check": "python scripts/check-csp.py && node --check dev/app.js && node --check dev/directory.js && python -m py_compile scripts/serve-dev.py scripts/build-dev.py scripts/prepare-dev-accounts.py && node --check dev/demo.js && node --check dev/sample-data.js && node --check scripts/seed-demo-day.cjs",
+    "test": "npm run check && node --test --test-concurrency=1 tests/finitions.test.cjs tests/administration.test.cjs tests/metiers.test.cjs tests/interface.test.cjs tests/demo.test.cjs",
+    "test:demo": "npm run check && node --test tests/demo.test.cjs tests/finitions.test.cjs",
+    "build": "python scripts/build-demo.py && python scripts/build-dev.py",
+    "seed:demo": "node scripts/seed-demo-day.cjs --seed-fictional"
   },
   "devDependencies": {
     "playwright": "1.58.2"
