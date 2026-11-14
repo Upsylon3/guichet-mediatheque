@@ -2,7 +2,7 @@
 
 Application d’accueil pour les jeux de société, les jeux vidéo, les animations et un annuaire partagé.
 
-[Guichet partagé de développement](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/dev/index.html) · [Démonstration publique autonome](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/index.html)
+[Guichet partagé de développement](https://upsylon3.github.io/guichet-mediatheque/dev/) · [Démonstration publique autonome](https://upsylon3.github.io/guichet-mediatheque/)
 
 **Données fictives uniquement.** Les comptes sont attribués par le service, sans inscription publique. La base de développement distante se situe à Paris. Aucun besoin de virtualisation.
 
@@ -44,3 +44,12 @@ Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. Les 
 La démonstration autonome se recharge avec une journée fictive déjà remplie. Ses modifications de passage restent en mémoire. Pour préparer aussi la base partagée, lancer `npm run seed:demo` avec le compte administrateur fictif local configuré. Ce script est limité au projet de développement connu et conserve les données existantes. Il fournit 120 fiches fictives, des consultations, des réservations JV, des animations du jour et à J+7/J+16 ainsi que trois modèles. Une seconde exécution le même jour évite les doublons. En cas de conflit de salle, la séance fictive concernée est ignorée. Les données fictives sont repérables par Démo ou DÉMO.
 
 La documentation reste accessible depuis le dépôt et les documents remis au service. Les pages du guichet n’affichent aucun lien vers le dépôt GitHub ni vers les documents du projet. Les raccourcis métier Catalogue et V-smart restent disponibles.
+
+## Publication sur GitHub Pages
+
+- Démonstration autonome : https://upsylon3.github.io/guichet-mediatheque/
+- Guichet partagé avec connexion : https://upsylon3.github.io/guichet-mediatheque/dev/
+
+Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement des deux versions ensemble. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
+
+`scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.

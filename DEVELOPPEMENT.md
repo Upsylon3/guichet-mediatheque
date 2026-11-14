@@ -2,7 +2,7 @@
 
 ## Accès
 
-Ouvrir le guichet partagé publié depuis le README et se connecter avec un compte attribué par le service. Les mots de passe d’exemple figurent uniquement dans le document d’accès privé. L’inscription publique est désactivée. L’hébergeur peut demander de cliquer sur « Open the page ».
+Ouvrir le guichet partagé publié depuis le README et se connecter avec un compte attribué par le service. Les mots de passe d’exemple figurent uniquement dans le document d’accès privé. L’inscription publique est désactivée. Les deux versions sont publiées sur GitHub Pages : la démonstration à la racine et le guichet partagé sous `/dev/`.
 
 Lancement local : `python scripts/serve-dev.py --config dev/config.json`, puis `http://127.0.0.1:8000/dev.html`. Le serveur écoute seulement sur 127.0.0.1 et ne sert aucun fichier privé. Python 3.10+ suffit pour l’interface. Les comptes et réglages de test se trouvent dans `.env.accounts.json` et `.env.local.json`, ignorés par Git. La configuration publiée contient seulement une URL et une clé publique publishable, sans secret d’administration.
 
@@ -68,3 +68,12 @@ Dans Statistiques, Extraire les statistiques (CSV) télécharge les agrégats de
 ## Documentation et liens de l’interface
 
 Le guichet ne comporte aucun lien vers le dépôt GitHub ou la documentation du projet. Consulter les documents depuis le dépôt ou les fichiers remis au service. Les raccourcis métier Catalogue et V-smart se règlent dans Administration → Liens du service.
+
+## Publication sur GitHub Pages
+
+- Démonstration autonome : https://upsylon3.github.io/guichet-mediatheque/
+- Guichet partagé avec connexion : https://upsylon3.github.io/guichet-mediatheque/dev/
+
+Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement des deux versions ensemble. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
+
+`scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.
