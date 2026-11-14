@@ -1,6 +1,5 @@
 'use strict';
-// L'application connectée utilise les mêmes trois onglets ; la démonstration
-// autonome ne charge pas ce module et ne reçoit aucune configuration distante.
+// Parcours du guichet et services communs aux activités.
 const $=id=>document.getElementById(id),api=globalThis.guichetDirectory;
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const opts=(items,selected)=>items.map(x=>`<option ${x===selected?'selected':''} value="${esc(x)}">${esc(x)}</option>`).join('');
@@ -16,16 +15,16 @@ const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${Str
 const labelDate=d=>new Date(d+'T12:00:00').toLocaleDateString('fr-FR');
 const nameOf=card=>[people[card]?.prenom,people[card]?.nom].filter(Boolean).join(' ');
 const cardLabel=card=>[card,nameOf(card)].filter(Boolean).join(' · ');
-const may=right=>admin()||(right==='events'?state.settings.manageEvents:state.settings.permissions?.[right]??['edit','cancel'].includes(right));
+const may=right=>admin()||(!['bulk','export','stats'].includes(right)&&(right==='events'?state.settings.manageEvents:state.settings.permissions?.[right]??['edit','cancel'].includes(right)));
 const record=id=>[...state.boards,...state.videos,...state.events,...state.events.flatMap(e=>[...e.guests,...e.counts]),...state.trash].find(x=>x.id===id);
 const rows=items=>items.map(x=>({id:x.id,revision:x.revision}));
 const notice=text=>$('notice').textContent=text;
-const cardPattern='required pattern="[0-9]{7}" title="Saisir les 7 chiffres imprimés sous le code-barres" placeholder="0000001"';
-document.querySelector('header .muted').textContent='Développement partagé · données fictives uniquement';
-$('role').closest('label').hidden=true;
-for(const input of document.querySelectorAll('input[name=card]')){input.pattern='[0-9]{7}';input.placeholder='0000001';input.title='Saisir les 7 chiffres imprimés sous le code-barres'}
-for(const label of document.querySelectorAll('label'))if(label.firstChild?.nodeType===Node.TEXT_NODE&&label.firstChild.textContent==='Carte fictive')label.firstChild.textContent='Carte (7 chiffres)';
-$('lookup').placeholder='0000001';
+const cardPattern=api.demo?'required pattern="ESSAI-[0-9]{1,4}" title="Utiliser une carte ESSAI" placeholder="ESSAI-01"':'required pattern="[0-9]{7}" title="Saisir les 7 chiffres imprimés sous le code-barres" placeholder="0000001"';
+document.querySelector('header .muted').textContent=api.demo?'Démonstration autonome · données fictives':'Développement partagé · données fictives uniquement';
+$('role').closest('label').hidden=!api.demo;
+for(const input of document.querySelectorAll('input[name=card]')){input.pattern=api.demo?'ESSAI-[0-9]{1,4}':'[0-9]{7}';input.placeholder=api.demo?'ESSAI-01':'0000001';input.title=api.demo?'Carte fictive de la forme ESSAI-01':'Saisir les 7 chiffres imprimés sous le code-barres'}
+for(const label of document.querySelectorAll('label'))if(label.firstChild?.nodeType===Node.TEXT_NODE&&label.firstChild.textContent==='Carte fictive')label.firstChild.textContent=api.demo?'Carte fictive':'Carte (7 chiffres)';
+$('lookup').placeholder=api.demo?'ESSAI-01':'0000001';
 $('board').querySelector('.fields').insertAdjacentHTML('beforeend',field('Date','date',day(),'date','required')+'<output name="boxTitle"></output>');
 $('board').insertAdjacentHTML('afterend','<div class="actions"><label>Filtrer les consultations<input id="filter-soc"></label><button id="export-soc">Exporter la sélection</button><button id="paste-soc">Coller des lignes</button></div>');
 $('videos').insertAdjacentHTML('beforebegin','<div class="actions"><label>Filtrer les inscriptions<input id="filter-vid"></label><button id="export-vid">Exporter la sélection</button><button id="paste-vid">Coller des lignes</button></div>');
@@ -34,6 +33,7 @@ $('paste-vid').insertAdjacentHTML('afterend','<button id="bulkVideo">Déplacer l
 $('calendar').insertAdjacentHTML('afterend','<h3>Tableau des séances</h3><label>Filtrer les séances<input id="filter-ani"></label><button id="export-ani">Exporter la sélection</button><div id="eventsTable"></div>');
 $('openAdmin').insertAdjacentHTML('afterend','<button id="openTrash">Corbeille</button><button id="undo" disabled>Annuler la dernière opération</button>');
 $('settings').insertAdjacentHTML('beforeend','<h3>Comptes attribués par le service</h3><button id="manageRoles">Gérer les habilitations</button><p>Les comptes sont créés par l’administration Auth du service, sans inscription publique.</p>');
+$('deleteUser').insertAdjacentHTML('beforebegin','<button type="button" id="replaceCard" hidden>Changer le numéro de carte</button>');
 $('deleteUser').insertAdjacentHTML('afterend','<button type="button" id="mergeUser" hidden>Remplacer / fusionner la carte</button><button type="button" id="undoMerge" hidden>Annuler la fusion du jour</button>');
 $('pending').insertAdjacentHTML('afterend','<section id="trash" hidden><h2>Corbeille du jour et des réservations futures</h2><div id="trashList"></div></section>');
 $('config').insertAdjacentHTML('beforeend',`<h3>Disponibilité du poste</h3><label><span><input name="enabled" type="checkbox" checked> Poste ouvert</span></label>${field('Consigne affichée','instruction')}
@@ -56,8 +56,8 @@ async function refresh(force=false){
   state=next;people=Object.fromEntries(list.map(p=>[p.carte,p]));
   if(changed)render();
   for(const input of document.querySelectorAll('input[name=card]'))updateKnown(input);
-  $('syncStatus').textContent='Données partagées synchronisées · '+new Date().toLocaleTimeString('fr-FR');
- }catch(error){$('syncStatus').textContent='Non synchronisé : '+error.message;throw error}
+  if($('syncStatus'))$('syncStatus').textContent='Données partagées synchronisées · '+new Date().toLocaleTimeString('fr-FR');
+ }catch(error){if($('syncStatus'))$('syncStatus').textContent='Non synchronisé : '+error.message;throw error}
  finally{refreshPromise=null}})();
  return refreshPromise;
 }
@@ -71,7 +71,7 @@ function updateKnown(input){const output=input.closest('.player')?.querySelector
 document.addEventListener('input',e=>{
  if(e.target.name==='card'){e.target.value=e.target.value.trim();e.target.setCustomValidity('');updateKnown(e.target)}
 });
-document.addEventListener('invalid',e=>{if(e.target.name==='card')e.target.setCustomValidity('Saisir les 7 chiffres imprimés sous le code-barres')},true);
+document.addEventListener('invalid',e=>{if(e.target.name==='card')e.target.setCustomValidity(api.demo?'Carte fictive de la forme ESSAI-01':'Saisir les 7 chiffres imprimés sous le code-barres')},true);
 function modal(title,html){$('heading').textContent=title;$('body').innerHTML=html;if(!$('modal').open)$('modal').showModal()}
 $('close').onclick=()=>$('modal').close();
 function conflict(error,form){
@@ -121,7 +121,7 @@ function renderTrash(){
  for(const item of state.trash){
   const row=document.createElement('div');row.className='row';const text=document.createElement('span');
   text.textContent=[labelDate(item.date),({soc:'Consultation',vid:'Jeux vidéo',ani:'Animation',guest:'Participant',count:'Comptage'})[item.kind],item.title||cardLabel(item.card)].join(' · ');
-  const b=document.createElement('button');b.textContent='Restaurer';b.onclick=()=>command(({soc:'board',vid:'video',ani:'event',guest:'guest',count:'count'})[item.kind]+'.restore',{rows:rows([item])},'Saisie restaurée.');row.append(text,b);$('trashList').append(row);
+  const b=document.createElement('button');b.textContent='Restaurer';b.onclick=()=>{if(['guest','count'].includes(item.kind)&&!confirmHorizon(item.date))return;return command(({soc:'board',vid:'video',ani:'event',guest:'guest',count:'count'})[item.kind]+'.restore',{rows:rows([item]),confirmEarly:beyondHorizon(item.date)},'Saisie restaurée.')};row.append(text,b);$('trashList').append(row);
  }
  if(!state.trash.length)$('trashList').textContent='Corbeille vide.';
 }
@@ -147,14 +147,14 @@ async function openPerson(card=''){
  f.card.value=card;f.card.readOnly=!!card;f.first.value=p.prenom||'';f.last.value=p.nom||'';f.birth.value=p.date_naissance||'';f.birth.max=day();f.note.value=p.note_interne||'';
  form.dataset.revision=p.revision||'';
  $('personTitle').textContent=card?'Fiche usager':'Nouvel usager';$('noteDetails').hidden=!card;$('noteDetails').open=false;
- $('deleteUser').hidden=!card||!admin();$('personMsg').textContent='';
+ $('replaceCard').hidden=!card;$('deleteUser').hidden=!card||!admin();$('personMsg').textContent='';
  $('mergeUser').hidden=!card||!admin();
 }
 $('personForm').onsubmit=e=>{
  e.preventDefault();const f=e.target.elements,card=f.card.value.trim();
  submit(e.target,'personMsg',()=>api.save(card,{prenom:f.first.value.trim()||null,nom:f.last.value.trim()||null,date_naissance:f.birth.value||null,note_interne:f.note.value.trim()||null},!f.card.readOnly,+e.target.dataset.revision||undefined),null,()=>{
   e.target.dataset.revision=people[card]?.revision||'';
-  f.card.readOnly=true;$('noteDetails').hidden=false;$('deleteUser').hidden=!admin();pending.delete(card);drafts.delete(card);renderPending();notice('Fiche enregistrée.');
+  f.card.readOnly=true;$('noteDetails').hidden=false;$('replaceCard').hidden=false;$('deleteUser').hidden=!admin();pending.delete(card);drafts.delete(card);renderPending();notice('Fiche enregistrée.');
  });
 };
 $('deleteUser').onclick=()=>{
@@ -168,7 +168,7 @@ function renderPending(){
  for(const card of pending)if(!people[card]||!drafts.has(card)&&(people[card].prenom||people[card].nom||people[card].date_naissance))pending.delete(card);
  f.reader.replaceChildren(...[...pending].map(card=>new Option(cardLabel(card),card)));
  if(pending.has(selected))f.reader.value=selected;
- $('pending').hidden=pending.size===0;
+ $('pending').hidden=pending.size===0||!['soc','vid','ani','users'].includes(activeTab);
  if(f.reader.value!==selected)readDraft();
 }
 function readDraft(){const f=$('identity').elements,d=drafts.get(f.reader.value)||{};for(const k of ['first','last','birth'])f[k].value=d[k]||'';f.birth.max=day();$('identity').dataset.revision=d.revision||people[f.reader.value]?.revision||''}
@@ -198,7 +198,7 @@ $('board').onsubmit=e=>{
 };
 function table(container,items,kind,description,edit){
  const search=(tableFilters[kind]||'').toLocaleLowerCase('fr');$(container).replaceChildren();
- const wrap=document.createElement('div');wrap.className='tableWrap';const table=document.createElement('table');table.innerHTML='<thead><tr><th>Sélection</th><th>Saisie</th><th>Actions</th></tr></thead>';const tbody=document.createElement('tbody');table.append(tbody);wrap.append(table);
+ const wrap=document.createElement('div');wrap.className='tableWrap';const table=document.createElement('table');table.innerHTML='<thead><tr>'+(admin()?'<th>Sélection</th>':'')+'<th>Saisie</th><th>Actions</th></tr></thead>';const tbody=document.createElement('tbody');table.append(tbody);wrap.append(table);
  for(const item of items){
   const label=description(item);if(!label.toLocaleLowerCase('fr').includes(search))continue;
   const row=document.createElement('tr'),checkCell=document.createElement('td'),textCell=document.createElement('td'),actionCell=document.createElement('td');
@@ -207,7 +207,7 @@ function table(container,items,kind,description,edit){
   checkCell.append(checkbox);textCell.textContent=label;
   if(edit&&may('edit')){const b=document.createElement('button');b.textContent='Modifier / déplacer';b.onclick=()=>edit(item);actionCell.append(b)}
   if(may('cancel')&&(kind!=='event'||may('events'))){const b=document.createElement('button');b.textContent='Retirer';b.onclick=()=>remove(kind,[item]);actionCell.append(b)}
-  row.append(checkCell,textCell,actionCell);tbody.append(row);
+  if(admin())row.append(checkCell);row.append(textCell,actionCell);tbody.append(row);
  }
  if(tbody.children.length)$(container).append(wrap);else $(container).textContent='Aucune saisie.';
 }
@@ -221,22 +221,27 @@ function editBoard(item){
 
 // Jeux vidéo : tous les joueurs sont confirmés dans une seule transaction.
 function station(post,date){const p=state.settings.stations[post];return p?{...p,...p.weekdays?.[new Date(date+'T12:00:00').getDay()],...p.exceptions?.[date]}:null}
-function playerRow({card='',companions=0,age='',ageUnit='ans',category='Enfant'}={},ageFields=false){return `<div class="player fields">${field('Carte','card',card,'text',cardPattern)}<output name="known">${esc(nameOf(card))}</output>${field('Accompagnateurs','companions',companions,'number','min="0" max="100" required')}${ageFields?select('Participant','category',['Enfant','Adulte'],category)+field('Âge facultatif','age',age,'number','min="0" step="0.1"')+select('Unité','ageUnit',['ans','mois'],ageUnit):''}<button type="button" class="removePlayer">Retirer ce joueur</button></div>`}
-function bindPlayers(form,ageFields=false){
- form.querySelector('.addPlayer').onclick=()=>{form.querySelector('.players').insertAdjacentHTML('beforeend',playerRow({},ageFields));bindRemovals(form)};bindRemovals(form);
+function playerRow({card='',age='',ageUnit='ans',category='Enfant',companionNames=[]}={},ageFields=false,unlimited=false){return `<div class="player fields">${field('Carte','card',card,'text',cardPattern)}<output name="known">${esc(nameOf(card))}</output>${ageFields?select('Participant','category',['Enfant','Adulte'],category)+field('Âge facultatif','age',age,'number','min="0" step="0.1"')+select('Unité','ageUnit',['ans','mois'],ageUnit):''}${unlimited?`<label>Noms des accompagnateurs sans carte (un par ligne)<textarea name="companionNames" rows="2">${esc(companionNames.join('\n'))}</textarea></label>`:''}<button type="button" class="removePlayer">Retirer cette personne</button></div>`}
+function bindPlayers(form,ageFields=false,unlimited=false){
+ form.querySelector('.addPlayer').onclick=()=>{form.querySelector('.players').insertAdjacentHTML('beforeend',playerRow({},ageFields,unlimited));bindRemovals(form)};bindRemovals(form);
 }
 function bindRemovals(form){for(const b of form.querySelectorAll('.removePlayer'))b.onclick=()=>{if(form.querySelectorAll('.player').length>1)b.closest('.player').remove()}}
-function players(form){return [...form.querySelectorAll('.player')].map(row=>({card:row.querySelector('[name=card]').value.trim(),companions:+row.querySelector('[name=companions]').value,...(row.querySelector('[name=age]')?{age:row.querySelector('[name=age]').value,ageUnit:row.querySelector('[name=ageUnit]').value,category:row.querySelector('[name=category]').value}:{})}))}
+function players(form){return [...form.querySelectorAll('.player')].map(row=>{const names=row.querySelector('[name=companionNames]')?.value.split('\n').map(x=>x.trim()).filter(Boolean)||[];return {card:row.querySelector('[name=card]').value.trim(),companions:names.length,companionNames:names,...(row.querySelector('[name=age]')?{age:row.querySelector('[name=age]').value,ageUnit:row.querySelector('[name=ageUnit]').value,category:row.querySelector('[name=category]').value}:{})}})}
+const nowTime=()=>new Intl.DateTimeFormat('fr-FR',{timeZone:'Europe/Paris',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
+const plusDays=(date,n)=>{const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
+const beyondHorizon=date=>!admin()&&date>plusDays(day(),15);
+function confirmHorizon(date){return !beyondHorizon(date)||confirm('Attention : cette animation se déroule au-delà des 15 prochains jours. Confirmer cette inscription anticipée ?')}
+function defaultSlot(slots,date){const time=nowTime();return date===day()?(slots.find(x=>x.slice(0,5)<=time&&x.slice(-5)>time)||slots.find(x=>x.slice(0,5)>=time)||slots[slots.length-1])?.slice(0,5):slots[0]?.slice(0,5)}
 function videoForm(moving=[]){
- const initial=moving[0]||lastVideo,date=initial.date||day(),post=initial.post||Object.keys(state.settings.stations)[0];
+ const initial=moving[0]||{...lastVideo,date:day(),slot:''},date=initial.date||day(),post=initial.post||Object.keys(state.settings.stations)[0];
  modal(moving.length?'Déplacer les joueurs':'Inscrire aux jeux vidéo',`<form id="vf"><div class="fields">${field('Jour','date',date,'date',`required min="${day()}"`)}${select('Poste','post',Object.keys(state.settings.stations),post)}<label>Créneau<select name="slot"></select></label><label>Jeu<select name="game" required></select></label></div><p id="videoInstruction"></p><div class="players">${(moving.length?moving:[{}]).map(p=>playerRow(p)).join('')}</div><button type="button" class="addPlayer">Ajouter un joueur</button><p id="vfmsg" role="status"></p><div id="alternatives"></div><button class="primary">${moving.length?'Déplacer':'Inscrire'}</button></form>`);
  const form=$('vf'),f=form.elements;bindPlayers(form);
  if(moving.length){for(const input of form.querySelectorAll('.players input'))input.readOnly=true;form.querySelector('.addPlayer').hidden=true;for(const b of form.querySelectorAll('.removePlayer'))b.hidden=true}
  function availability(reset=false){
   const cfg=station(f.post.value,f.date.value);const current=f.slot.value;
-  if(reset){f.slot.innerHTML=opts((cfg?.slots||[]).map(s=>s.slice(0,5)),initial.slot||current)}
+  if(reset){f.slot.innerHTML=opts((cfg?.slots||[]).map(s=>s.slice(0,5)),initial.slot||defaultSlot(cfg?.slots||[],f.date.value)||current)}
   const bookings=state.videos.filter(x=>x.date===f.date.value&&x.post===f.post.value&&x.slot===f.slot.value&&!moving.some(m=>m.id===x.id));
-  const remaining=(cfg?.enabled===false||state.settings.closedDates?.includes(f.date.value))?0:(cfg?.capacity||0)-bookings.reduce((n,x)=>n+1+x.companions,0);
+  const remaining=(cfg?.enabled===false||state.settings.closedDates?.includes(f.date.value))?0:(cfg?.capacity||0)-bookings.length;
   const shared=bookings[0]?.game,game=f.game.value||initial.game||'';
   f.game.innerHTML='<option value="">Choisir un jeu</option>'+opts(shared?[shared]:cfg?.games||[],shared||game);
   $('vfmsg').textContent=remaining+' place(s) disponible(s). '+(shared?'Jeu en cours : '+shared:'');
@@ -255,11 +260,11 @@ function videoForm(moving=[]){
  };
 }
 function alternatives(form,moving=[]){
- const f=form.elements,group=players(form),need=group.reduce((n,p)=>n+1+p.companions,0),target=$('alternatives');target.replaceChildren();if(!f.game.value)return;
+ const f=form.elements,group=players(form),need=group.length,target=$('alternatives');target.replaceChildren();if(!f.game.value)return;
  let count=0;
  for(const [post] of Object.entries(state.settings.stations))for(const range of station(post,f.date.value)?.slots||[]){
   const cfg=station(post,f.date.value),slot=range.slice(0,5),bookings=state.videos.filter(x=>x.date===f.date.value&&x.post===post&&x.slot===slot&&!moving.some(m=>m.id===x.id));
-  if(post===f.post.value&&slot===f.slot.value||slot<f.slot.value||cfg.enabled===false||!cfg.games.includes(f.game.value)||bookings.some(x=>x.game!==f.game.value)||bookings.reduce((n,x)=>n+1+x.companions,0)+need>cfg.capacity)continue;
+  if(post===f.post.value&&slot===f.slot.value||slot<f.slot.value||cfg.enabled===false||!cfg.games.includes(f.game.value)||bookings.some(x=>x.game!==f.game.value)||bookings.length+need>cfg.capacity)continue;
   if(count++>=5)break;
   const b=document.createElement('button');b.type='button';b.textContent=`Autre possibilité : ${post} ${range}`;b.onclick=()=>{f.post.value=post;f.post.onchange();f.slot.value=slot;f.slot.onchange()};target.append(b);
  }
@@ -276,7 +281,7 @@ function calendar(){
  $('month').textContent=month.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});const grid=$('calendar');grid.innerHTML=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d=>'<b>'+d+'</b>').join('');
  for(let i=0;i<(month.getDay()+6)%7;i++)grid.append(document.createElement('span'));
  for(let n=1;n<=new Date(month.getFullYear(),month.getMonth()+1,0).getDate();n++){
-  const date=iso(new Date(month.getFullYear(),month.getMonth(),n)),events=state.events.filter(e=>e.date===date),b=document.createElement('button');b.className='day'+(date===day()?' today':'')+(events.length?' busy':'');b.dataset.date=date;b.textContent=n;b.setAttribute('aria-label',labelDate(date));
+  const date=iso(new Date(month.getFullYear(),month.getMonth(),n)),events=state.events.filter(e=>e.date===date),b=document.createElement('button');b.className='day'+(date===day()?' today':'')+(events.length?' busy':'');b.dataset.date=date;if(beyondHorizon(date)){b.classList.add('beyondHorizon');b.title='Au-delà de J+15 : confirmation nécessaire pour inscrire';}b.textContent=n;b.setAttribute('aria-label',labelDate(date));
   for(const ev of events){const s=document.createElement('small');s.textContent=ev.title;b.append(s)}b.onclick=()=>openDay(date);
   b.onkeydown=e=>{const step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-7,ArrowDown:7}[e.key];if(step){e.preventDefault();const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+step);month=new Date(d.getFullYear(),d.getMonth(),1);calendar();document.querySelector(`[data-date="${iso(d)}"]`)?.focus()}};grid.append(b);
  }
@@ -290,10 +295,10 @@ function openDay(date){
 function editEvent(ev={},duplicate=false){
  const previous=state.events.filter(x=>x.id===ev.id||ev.group&&x.group===ev.group&&!x.exception);
  const defaults=state.settings;modal(duplicate?'Dupliquer la séance':ev.id?'Modifier la séance':'Nouvelle animation',`<form id="af"><div class="fields">
- ${field('Titre','title',ev.title||'','text','required')}${select('Type','eventType',['',...(defaults.eventTypes||[])],ev.eventType||'')}${field('Jour','date',ev.date||day(),'date',`required min="${day()}"`)}${field('Heure de début','time',ev.time||'14:00','time','required')}${field('Heure de fin','endTime',ev.endTime||'','time')}${field('Lieu et renseignements','info',ev.info||'')}${field('Intervenant ou référent','referent',ev.referent||'')}${field('Public','audience',ev.audience||'')}${field('Âge minimum (ans)','minAge',ev.minAge??'','number','min="0" step="0.1"')}${field('Âge maximum (ans)','maxAge',ev.maxAge??'','number','min="0" step="0.1"')}${field('Ouverture des inscriptions','openDate',ev.openDate||'','date')}${select('Mode','mode',['inscription','libre'],ev.mode||'inscription')}${field('Plafond strict facultatif','cap',ev.cap??defaults.limit??'','number','min="1"')}${select('Accompagnateurs','count',['oui','non'],ev.id?(ev.count?'oui':'non'):defaults.count||'oui')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement||'')}</textarea></label>${field('Lien vers un visuel facultatif','image',ev.image||'','url')}
+ ${field('Titre','title',ev.title||'','text','required')}${select('Type','eventType',['',...(defaults.eventTypes||[])],ev.eventType||'')}${field('Jour','date',ev.date||day(),'date',`required min="${day()}"`)}${field('Heure de début','time',ev.time||nowTime(),'time','required')}${field('Heure de fin','endTime',ev.endTime||addHour(nowTime()),'time','required')}${select('Salle obligatoire','room',['','Créazone','Salle JV'],ev.room||'')}${field('Renseignements','info',ev.info||'')}${field('Intervenant ou référent','referent',ev.referent||'')}${field('Public','audience',ev.audience||'')}${field('Âge minimum (ans)','minAge',ev.minAge??'','number','min="0" step="0.1"')}${field('Âge maximum (ans)','maxAge',ev.maxAge??'','number','min="0" step="0.1"')}${select('Mode','mode',['inscription','libre'],ev.mode||'inscription')}${field('Plafond strict facultatif','cap',ev.cap??defaults.limit??'','number','min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement||'')}</textarea></label>${field('Lien vers un visuel facultatif','image',ev.image||'','url')}
  ${ev.id&&!duplicate?select('Portée de la modification','scope',['one','following','all'],'one'):field('Nombre de séances (1 à 52)','repeat',1,'number','required min="1" max="52"')+select('Récurrence','frequency',['week','month'],'week')+field('Tous les','repeatEvery',1,'number','required min="1" max="12"')}
  <p id="seriesPreview"></p><p id="afmsg" role="status"></p><button class="primary">Enregistrer</button></form>`);
- const form=$('af'),f=form.elements;
+ const form=$('af'),f=form.elements;f.room.required=true;
  if(!ev.id){
   form.insertAdjacentHTML('afterbegin',select('Modèle facultatif','template',['',...Object.keys(state.settings.eventTemplates||{})],''));
   f.template.onchange=()=>{const model=state.settings.eventTemplates?.[f.template.value];if(model){for(const [k,v] of Object.entries(model))if(f[k])f[k].value=k==='count'?(v?'oui':'non'):(v??'')}};
@@ -301,7 +306,7 @@ function editEvent(ev={},duplicate=false){
  function preview(){const scope=f.scope?.value||'one',affected=state.events.filter(x=>x.id===ev.id||(ev.group&&x.group===ev.group&&!x.exception&&(scope==='all'||scope==='following'&&x.date>=ev.date)));$('seriesPreview').textContent=ev.id&&!duplicate?`${affected.length} séance(s) et ${affected.reduce((n,e)=>n+e.guests.length,0)} inscription(s) concernées. Les exceptions sont préservées.`:''}
  if(f.scope)f.scope.onchange=preview;preview();
  form.onsubmit=e=>{
-  e.preventDefault();const data=Object.fromEntries(new FormData(form));data.count=f.count.value==='oui';for(const k of ['cap','minAge','maxAge'])data[k]=data[k]===''?null:+data[k];if(ev.id&&!duplicate){data.id=ev.id;data.revision=ev.revision}else data.repeat=+f.repeat.value;
+  e.preventDefault();const data=Object.fromEntries(new FormData(form));data.count=true;for(const k of ['cap','minAge','maxAge'])data[k]=data[k]===''?null:+data[k];if(ev.id&&!duplicate){data.id=ev.id;data.revision=ev.revision}else data.repeat=+f.repeat.value;
   if(ev.id&&!duplicate&&!confirm($('seriesPreview').textContent+' Enregistrer ?'))return;
   submit(form,'afmsg','event.save',data,result=>{month=new Date(data.date.slice(0,7)+'-01T12:00:00');calendar();detailEvent(result.ids[0]);notice('Séance enregistrée.')},result=>ev.id&&!duplicate?{action:'event.undo',data:{events:previous.filter(x=>result.ids.includes(x.id)).map(x=>({...x,revision:record(x.id).revision,scope:'one',restoreException:!!x.exception}))}}:inverseAdd('event',result));
  };
@@ -309,32 +314,32 @@ function editEvent(ev={},duplicate=false){
 function occupied(ev){return ev.mode==='libre'?ev.counts.reduce((n,c)=>n+c.kids+c.adults,0):ev.guests.reduce((n,g)=>n+1+(ev.count?g.companions:0),0)}
 function detailEvent(id){
  const ev=state.events.find(x=>x.id===id);if(!ev){notice('Séance absente ou supprimée.');return}selectedEvent=id;
- modal(ev.title,`<p>${esc(labelDate(ev.date)+' · '+ev.time+(ev.endTime?'–'+ev.endTime:'')+' · '+(ev.info||''))}</p><p>${esc([ev.referent,ev.audience,ev.minAge!=null?'À partir de '+ev.minAge+' ans':'',ev.maxAge!=null?'Jusqu’à '+ev.maxAge+' ans':''].filter(Boolean).join(' · '))}</p><p>${esc(ev.announcement||'')}</p>${safeLink(ev.image)?`<p><a href="${esc(safeLink(ev.image))}" target="_blank" rel="noopener noreferrer">Voir le visuel ↗</a></p>`:''}<p id="eventPlaces">${occupied(ev)}${ev.cap?' / '+ev.cap:''} place(s) · accompagnateurs ${ev.count?'inclus':'hors jauge'}</p><div id="guests"></div>
- ${ev.mode==='libre'?`<form id="freeCount"><div class="fields">${field('Enfants','kids',0,'number','min="0" required')}${field('Adultes','adults',0,'number','min="0" required')}</div><p id="guestmsg" role="status"></p><button>Ajouter le comptage</button></form>`:`<form id="guest"><div class="players">${playerRow({},true)}</div><button type="button" class="addPlayer">Ajouter une personne</button><p id="guestmsg" role="status"></p><button class="primary">Inscrire le groupe</button></form>`}
+ modal(ev.title,`<p>${esc(labelDate(ev.date)+' · '+ev.time+(ev.endTime?'–'+ev.endTime:'')+' · '+(ev.room||'')+' · '+(ev.info||''))}</p><p>${esc([ev.referent,ev.audience,ev.minAge!=null?'À partir de '+ev.minAge+' ans':'',ev.maxAge!=null?'Jusqu’à '+ev.maxAge+' ans':''].filter(Boolean).join(' · '))}</p><p>${esc(ev.announcement||'')}</p>${safeLink(ev.image)?`<p><a href="${esc(safeLink(ev.image))}" target="_blank" rel="noopener noreferrer">Voir le visuel ↗</a></p>`:''}<p id="eventPlaces">${occupied(ev)}${ev.cap?' / '+ev.cap:''} personne(s)${!ev.cap?' · accompagnateurs nommés sans carte autorisés':' · une carte par personne'}</p><div id="guests"></div>
+ ${ev.mode==='libre'?`<form id="freeCount"><div class="fields">${field('Enfants','kids',0,'number','min="0" required')}${field('Adultes','adults',0,'number','min="0" required')}</div><p id="guestmsg" role="status"></p><button>Ajouter le comptage</button></form>`:`<form id="guest"><div class="players">${playerRow({},true,!ev.cap)}</div><button type="button" class="addPlayer">Ajouter une personne</button><p id="guestmsg" role="status"></p><button class="primary">Inscrire le groupe</button></form>`}
  <div class="actions"><button id="change">Modifier</button><button id="duplicate">Dupliquer</button><button id="saveTemplate">Enregistrer comme modèle</button><button id="remove">Supprimer la séance</button><button id="exportGuests">Exporter la sélection</button><button id="pasteGuests">Coller des lignes</button></div>`);
  renderGuests(ev);
  for(const id of ['change','duplicate','remove','saveTemplate'])$(id).hidden=!may('events');
  $('saveTemplate').hidden=!admin();
  $('saveTemplate').onclick=async()=>{
   const label=prompt('Nom du modèle réutilisable',ev.title);if(!label?.trim())return;
-  const keys=['title','time','endTime','info','referent','audience','minAge','maxAge','mode','cap','count','announcement','image','eventType'];
+  const keys=['title','time','endTime','room','info','referent','audience','minAge','maxAge','mode','cap','count','announcement','image','eventType'];
   const cfg=structuredClone(state.settings);cfg.eventTemplates={...cfg.eventTemplates,[label.trim()]:Object.fromEntries(keys.map(k=>[k,ev[k]??null]))};
   await command('config.save',{settings:cfg,revision:state.settingsRevision},'Modèle enregistré.');
  };
  $('change').onclick=()=>editEvent(ev);$('duplicate').onclick=()=>editEvent(ev,true);$('remove').onclick=()=>removeSeries(ev);
  $('exportGuests').hidden=!may('export');$('pasteGuests').hidden=!may('bulk');$('exportGuests').onclick=()=>exportRows('guest',ev.guests);$('pasteGuests').onclick=()=>pasteRows('guest',ev.id);
- if(ev.mode==='libre'){$('freeCount').onsubmit=e=>{e.preventDefault();const f=e.target.elements;submit(e.target,'guestmsg','count.add',{eventId:id,kids:+f.kids.value,adults:+f.adults.value},()=>{detailEvent(id);notice('Comptage enregistré.')},result=>inverseAdd('count',result))};return}
- const form=$('guest');bindPlayers(form,true);
+ if(ev.mode==='libre'){$('freeCount').onsubmit=e=>{e.preventDefault();const f=e.target.elements;if(!confirmHorizon(ev.date))return;submit(e.target,'guestmsg','count.add',{eventId:id,kids:+f.kids.value,adults:+f.adults.value,confirmEarly:beyondHorizon(ev.date)},()=>{detailEvent(id);notice('Comptage enregistré.')},result=>inverseAdd('count',result))};return}
+ const form=$('guest');bindPlayers(form,true,!ev.cap);if(beyondHorizon(ev.date))$('guestmsg').textContent='Au-delà de J+15 : une confirmation sera demandée.';
  if(state.settings.askAge===false&&ev.minAge==null&&ev.maxAge==null){for(const input of form.querySelectorAll('[name=age],[name=ageUnit]'))input.closest('label').hidden=true}
- form.onsubmit=e=>{e.preventDefault();const group=players(form);submit(form,'guestmsg','guest.book',{eventId:id,players:group},()=>{queue(group.map(p=>p.card));detailEvent(id);notice('Personne inscrite.')},result=>inverseAdd('guest',result))};
+ form.onsubmit=e=>{e.preventDefault();const group=players(form);if(!confirmHorizon(ev.date))return;submit(form,'guestmsg','guest.book',{eventId:id,players:group,confirmEarly:beyondHorizon(ev.date)},()=>{queue(group.map(p=>p.card));detailEvent(id);notice('Personne inscrite.')},result=>inverseAdd('guest',result))};
 }
 function renderGuests(ev){
- table('guests',ev.mode==='libre'?ev.counts:ev.guests,ev.mode==='libre'?'count':'guest',g=>ev.mode==='libre'?`${g.kids} enfants + ${g.adults} adultes`:cardLabel(g.card)+(g.category?' · '+g.category:'')+(g.age?` · ${g.age} ${g.ageUnit||'ans'}`:'')+(g.companions?` · ${g.companions} accompagnateur(s)`:''),ev.mode==='libre'?null:moveGuest);
+ table('guests',ev.mode==='libre'?ev.counts:ev.guests,ev.mode==='libre'?'count':'guest',g=>ev.mode==='libre'?`${g.kids} enfants + ${g.adults} adultes`:cardLabel(g.card)+(g.category?' · '+g.category:'')+(g.age?` · ${g.age} ${g.ageUnit||'ans'}`:'')+(g.companionNames?.length?' · Accompagnateurs : '+g.companionNames.join(', '):''),ev.mode==='libre'?null:moveGuest);
 }
 function moveGuest(item){
  const group=state.events.flatMap(e=>e.guests).filter(g=>g.group===item.group);
  modal('Déplacer des participants',`<form id="moveGuest"><label>Séance de destination<select name="eventId">${state.events.filter(e=>e.mode!=='libre').map(e=>`<option value="${esc(e.id)}" ${e.id===item.eventId?'selected':''}>${esc(labelDate(e.date)+' · '+e.time+' · '+e.title)}</option>`).join('')}</select></label>${select('Participants','scope',['Cette personne','Tout le groupe'],'Cette personne')}<p id="moveMsg" role="status"></p><button>Déplacer</button></form>`);
- $('moveGuest').onsubmit=e=>{e.preventDefault();const f=e.target.elements,selected=f.scope.value==='Tout le groupe'?group:[item];submit(e.target,'moveMsg','guest.move',{eventId:f.eventId.value,rows:rows(selected)},()=>detailEvent(f.eventId.value))};
+ $('moveGuest').onsubmit=e=>{e.preventDefault();const f=e.target.elements,selected=f.scope.value==='Tout le groupe'?group:[item],target=state.events.find(e=>e.id===f.eventId.value);if(!confirmHorizon(target.date))return;submit(e.target,'moveMsg','guest.move',{eventId:f.eventId.value,rows:rows(selected),confirmEarly:beyondHorizon(target.date)},()=>detailEvent(f.eventId.value))};
 }
 
 // Administration partagée, avec contrôle de révision et protection des réservations.
@@ -361,10 +366,11 @@ $('config').onsubmit=e=>{
  if(f.weekday.value!=='default'){const base=cfg.stations[key];p={...base,weekdays:{...base.weekdays,[f.weekday.value]:{capacity:p.capacity,games:p.games,slots:p.slots,enabled:p.enabled,instruction:p.instruction}}}}
  if(f.exceptionDate.value){p.exceptions={...p.exceptions};p.exceptions[f.exceptionDate.value]={enabled:!f.exceptionClosed.checked,...(f.exceptionSlots.value.trim()?{slots:lines(f.exceptionSlots.value).map(s=>s.replace(/\s*[-–]\s*/g,'–')).sort()}:{}),...(f.exceptionGames.value.trim()?{games:lines(f.exceptionGames.value)}:{})}}
  cfg.stations[key]=p;cfg.limit=f.limit.value===''?null:+f.limit.value;cfg.count=f.count.value;cfg.manageEvents=f.manageEvents.checked;cfg.closedDates=lines(f.closedDates.value);
- cfg.permissions=Object.fromEntries(['edit','cancel','bulk','export'].map(k=>[k,f['permission-'+k].checked]));cfg.links=Object.fromEntries(['catalogue','vsmart','selections'].map(k=>[k,f[k].value.trim()]));
+ cfg.permissions=Object.fromEntries(['edit','cancel','bulk','export'].map(k=>[k,['bulk','export'].includes(k)?false:f['permission-'+k].checked]));cfg.links=Object.fromEntries(['catalogue','vsmart','selections'].map(k=>[k,f[k].value.trim()]));
  cfg.eventTypes=lines(f.eventTypes.value);cfg.askAge=f.askAge.checked;
  if(f.boxCode.value.trim())cfg.boxes={...cfg.boxes,[f.boxCode.value.trim()]:{title:f.boxTitle.value.trim(),sector:f.boxSector.value}};
- submit(e.target,'configMsg','config.save',{settings:cfg,revision:+e.target.dataset.revision},()=>{configList(key);notice('Réglages partagés enregistrés.');$('configMsg').textContent='Réglages appliqués à tous les postes.'});
+ const closing=state.videos.filter(a=>{const base=cfg.stations[a.post],next={...base,...base?.weekdays?.[new Date(a.date+'T12:00:00').getDay()],...base?.exceptions?.[a.date]};return next.enabled===false||cfg.closedDates.includes(a.date)});if(closing.length&&!confirm('Êtes-vous sûr de fermer ? '+closing.length+' réservation(s) seront retirées et placées dans la corbeille.'))return;
+ submit(e.target,'configMsg','config.save',{settings:cfg,revision:+e.target.dataset.revision,forceClose:closing.length>0},()=>{configList(key);notice('Réglages partagés enregistrés.');$('configMsg').textContent='Réglages appliqués à tous les postes.'});
 };
 
 $('manageRoles').onclick=async()=>{
@@ -398,10 +404,10 @@ async function exportRows(kind,list){
  }catch(error){notice(error.message)}
 }
 function pasteRows(kind,eventId){
- modal('Coller des lignes',`<form id="paste"><p>Colonnes séparées par des tabulations, sans en-tête : ${kind==='board'?'carte, boîte, enfants, adultes, date, secteur':kind==='video'?'carte, accompagnateurs, date, poste, heure de début, jeu':'carte, accompagnateurs, âge facultatif, unité (ans/mois)'}. Aucun historique passé n’est accepté.</p><label>Lignes à préparer<textarea name="text" rows="8" required></textarea></label><button type="button" id="previewPaste">Afficher l’aperçu</button><div id="pastePreview"></div><p id="pasteMsg" role="status"></p><button id="confirmPaste" hidden>Confirmer tout le lot</button></form>`);
+ modal('Coller des lignes',`<form id="paste"><p>Colonnes séparées par des tabulations, sans en-tête : ${kind==='board'?'carte, boîte, enfants, adultes, date, secteur':kind==='video'?'carte, date, poste, heure de début, jeu':'carte, âge facultatif, unité (ans/mois), catégorie (Enfant/Adulte)'}. Aucun historique passé n’est accepté.</p><label>Lignes à préparer<textarea name="text" rows="8" required></textarea></label><button type="button" id="previewPaste">Afficher l’aperçu</button><div id="pastePreview"></div><p id="pasteMsg" role="status"></p><button id="confirmPaste" hidden>Confirmer tout le lot</button></form>`);
  let commands=[];const form=$('paste');form.elements.text.oninput=()=>{$('confirmPaste').hidden=true;commands=[]};
  $('previewPaste').onclick=()=>{try{
-  commands=form.elements.text.value.trim().split(/\r?\n/).filter(Boolean).map(line=>{const c=line.split('\t').map(s=>s.trim());return {action:kind==='board'?'board.save':kind==='video'?'video.book':'guest.book',data:kind==='board'?{card:c[0],box:c[1],kids:+c[2],adults:+c[3],date:c[4]||day(),sector:c[5]||$('sector').value}:kind==='video'?{date:c[2],post:c[3],slot:c[4],game:c[5],players:[{card:c[0],companions:+c[1]}]}:{eventId,players:[{card:c[0],companions:+c[1],age:c[2]||'',ageUnit:c[3]||'ans'}]}}});
+  commands=form.elements.text.value.trim().split(/\r?\n/).filter(Boolean).map(line=>{const c=line.split('\t').map(s=>s.trim());return {action:kind==='board'?'board.save':kind==='video'?'video.book':'guest.book',data:kind==='board'?{card:c[0],box:c[1],kids:+c[2],adults:+c[3],date:c[4]||day(),sector:c[5]||$('sector').value}:kind==='video'?{date:c[1]||day(),post:c[2],slot:c[3],game:c[4],players:[{card:c[0],companions:0}]}:{eventId,players:[{card:c[0],companions:0,age:c[1]||'',ageUnit:c[2]||'ans',category:c[3]||'Enfant'}]}}});
   const pre=document.createElement('pre');pre.textContent=commands.map((x,i)=>{const d=x.data;return `${i+1}. ${d.card||d.players.map(p=>p.card+' ('+(1+p.companions)+' personne(s))').join(', ')} · ${d.date||'séance sélectionnée'} · ${d.box||d.post||'Animation'} · ${d.sector||d.slot||''} · ${d.game||''}`}).join('\n');pre.style.whiteSpace='pre-wrap';$('pastePreview').replaceChildren(pre);$('confirmPaste').hidden=false;
  }catch(error){$('pasteMsg').textContent='Vérifier les colonnes : '+error.message}};
  form.onsubmit=e=>{e.preventDefault();if(!commands.length)return;submit(form,'pasteMsg','batch',{commands},()=>{$('modal').close();notice('Lot enregistré en entier.');queue(commands.flatMap(c=>c.data.players?.map(p=>p.card)||[c.data.card]))},result=>({action:kind+'.remove',data:{rows:rows(result.flatMap(x=>x.ids).map(record).filter(Boolean))}}))};
@@ -416,12 +422,12 @@ function renderLinks(){
  const catalogue=safeLink(state.settings.links?.catalogue);if(catalogue)header.querySelector('a').href=catalogue;
 }
 function render(){
- userList();renderBoards();table('videos',state.videos,'video',x=>`${labelDate(x.date)} · ${x.slot}–${x.end} · ${x.post} · ${cardLabel(x.card)} · ${x.game} · ${1+x.companions} personne(s)`,editVideo);
- calendar();renderTrash();renderPending();search();renderLinks();$('openAdmin').hidden=!admin();
- table('eventsTable',state.events,'event',e=>`${labelDate(e.date)} · ${e.time} · ${e.title} · ${e.info||''} · ${occupied(e)} place(s)`,may('events')?editEvent:null);
+ userList();renderBoards();renderVideoPlanning();table('videos',state.videos,'video',x=>`${labelDate(x.date)} · ${x.slot}–${x.end} · ${x.post} · ${cardLabel(x.card)} · ${x.game} · 1 joueur`,editVideo);
+ calendar();renderTrash();renderPending();search();renderLinks();$('openAdmin').hidden=!admin();$('openStats').hidden=!admin();if(!admin()&&['stats','settings'].includes(activeTab))activateTab('vid');if(!admin()){$('statsTable').replaceChildren();$('statsSummary').textContent='';statsRows=[];}
+ table('eventsTable',state.events,'event',e=>`${labelDate(e.date)} · ${e.time} · ${e.title} · ${e.room||''} · ${e.info||''} · ${occupied(e)} place(s)`,may('events')?editEvent:null);
  $('export-ani').hidden=!may('export');
- $('bulkBoard').hidden=!may('bulk');$('bulkVideo').hidden=!may('edit');$('mergeUser').hidden=!admin()||!$('personForm').elements.card.readOnly;
- $('totals').textContent=state.totals.map(t=>`${labelDate(t.jour)} · ${t.activite} ${t.secteur} : ${t.passages} passage(s), ${t.personnes} personnes`).join(' | ')||'Aucun jour clôturé.';
+ $('bulkBoard').hidden=!may('bulk');$('bulkVideo').hidden=!admin();$('mergeUser').hidden=!admin()||!$('personForm').elements.card.readOnly;
+ $('totals').textContent=(state.totals||[]).map(t=>`${labelDate(t.jour)} · ${t.activite} ${t.secteur} : ${t.passages} passage(s), ${t.personnes} personnes`).join(' | ')||'Aucun jour clôturé.';
  for(const suffix of ['soc','vid']){$('export-'+suffix).hidden=!may('export');$('paste-'+suffix).hidden=!may('bulk')}
  if($('modal').open&&$('guests')&&selectedEvent){const ev=state.events.find(x=>x.id===selectedEvent);if(ev){renderGuests(ev);$('eventPlaces').textContent=`${occupied(ev)}${ev.cap?' / '+ev.cap:''} place(s)`}}
 }
@@ -443,4 +449,83 @@ function removeSeries(ev){
  form.elements.scope.onchange=preview;preview();
  form.onsubmit=e=>{e.preventDefault();if(!confirm($('removePreview').textContent+' Continuer ?'))return;submit(form,'removeMsg','event.remove',{rows:rows(affected)},result=>{$('modal').close();notice('Séances placées dans la corbeille.')},result=>({action:'event.restore',data:{rows:rows(result.ids.map(record))}}))};
 }
+function addHour(time){const n=Math.min(1439,+time.slice(0,2)*60 + +time.slice(3)+60);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
+let activeTab='vid',statsRows=[];
+function activateTab(tab){
+ if(['settings','stats'].includes(tab)&&!admin())tab='vid';activeTab=tab;
+ for(const id of ['soc','vid','ani','users','settings','stats','trash'])$(id).hidden=id!==tab;
+ for(const b of document.querySelectorAll('[data-tab]'))b.setAttribute('aria-current',String(b.dataset.tab===tab));
+ $('pending').hidden=pending.size===0||!['soc','vid','ani','users'].includes(tab);
+ if(tab==='users')userList();if(tab==='settings')configList(Object.keys(state.settings.stations)[0]);
+ if(tab==='trash')renderTrash();if(tab==='stats')loadStats();notice('');
+}
+function setupWorkspace(){
+ const main=document.querySelector('main'),nav=document.querySelector('nav');
+ const aside=document.createElement('aside');aside.id='sidebar';aside.setAttribute('aria-label','Menu du guichet');
+ aside.innerHTML='<div class="brand">Guichet<br>médiathèque</div>';main.prepend(aside);aside.append(nav);
+ const buttons=[...nav.querySelectorAll('button')];nav.replaceChildren(buttons[1],buttons[0],buttons[2]);
+ for(const [id,tab,label] of [['openUsers','users','Usagers'],['openAdmin','settings','Administration'],['openTrash','trash','Corbeille']]){const b=$(id);b.dataset.tab=tab;b.textContent=label;nav.append(b)}
+ const stats=document.createElement('section');stats.id='stats';stats.hidden=true;
+ stats.innerHTML='<h2>Statistiques</h2><p>Effectifs déclarés et inscriptions. Les réservations ne constituent pas une présence vérifiée.</p><form id="statsFilter"><div class="fields">'+field('Du','from',plusDays(day(),-30),'date','required')+field('Au','to',day(),'date','required')+select('Regroupement','period',['jour','semaine','mois'],'jour')+'</div><div class="fields">'+['activite','secteur','poste','jeu','boite','salle','type','categorie'].map((k,i)=>select(['Activité','Secteur','Poste JV','Jeu vidéo','Boîte','Salle','Type d’animation','Catégorie'][i],k,[''],'')).join('')+'</div><button>Actualiser</button><button type="button" id="exportStats">Exporter les statistiques</button></form><p id="statsMsg" role="status"></p><div id="statsSummary"></div><div id="statsTable" class="tableWrap"></div>';
+ main.append(stats);const sb=document.createElement('button');sb.id='openStats';sb.dataset.tab='stats';sb.textContent='Statistiques';nav.insertBefore(sb,$('openAdmin'));
+ const tools=document.createElement('div');tools.className='sidebarTools';tools.append($('undo'));
+ const theme=document.createElement('button');theme.id='theme';theme.type='button';theme.textContent='Mode sombre';tools.append(theme);aside.append(tools);
+ $('undo').title='Annuler la dernière opération (Ctrl+Z, hors champ de saisie)';
+ const setTheme=value=>{document.documentElement.dataset.theme=value;theme.textContent=value==='dark'?'Mode clair':'Mode sombre';theme.setAttribute('aria-pressed',String(value==='dark'))};
+ try{setTheme(localStorage.getItem('guichet-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'))}catch{setTheme('light')}
+ theme.onclick=()=>{const value=document.documentElement.dataset.theme==='dark'?'light':'dark';setTheme(value);try{localStorage.setItem('guichet-theme',value)}catch{}};
+ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key.toLowerCase()==='z'&&!e.target.closest('input,textarea,select,[contenteditable="true"]')){e.preventDefault();if(!$('undo').disabled)$('undo').click()}});
+ for(const b of nav.querySelectorAll('[data-tab]'))b.onclick=()=>activateTab(b.dataset.tab);
+ const bar=document.createElement('div');bar.className='bar';bar.innerHTML='<h3>Aujourd’hui</h3><button id="videoToday">Aujourd’hui</button><button id="videoAll">Toutes les réservations</button>';
+ $('videos').before(bar);const planning=document.createElement('div');planning.id='videoPlanning';planning.className='tableWrap';bar.after(planning);
+ $('videoToday').onclick=()=>{tableFilters.videoToday=true;renderVideoPlanning()};$('videoAll').onclick=()=>{tableFilters.videoToday=false;renderVideoPlanning()};tableFilters.videoToday=true;
+ const total=$('totals');total.previousElementSibling.remove();total.hidden=true;
+ for(const k of ['bulk','export'])$('config').elements['permission-'+k].closest('label').hidden=true;
+ $('config').elements.count.closest('label').hidden=true;
+ $('statsFilter').onsubmit=e=>{e.preventDefault();loadStats()};
+ for(const select of $('statsFilter').querySelectorAll('select'))select.onchange=renderStats;
+ $('exportStats').onclick=()=>downloadCsv('statistiques',statsDisplay());
+ $('replaceCard').onclick=()=>{
+  const f=$('personForm').elements,source=f.card.value,revision=+$('personForm').dataset.revision;
+  modal('Remplacement d’une carte perdue',`<form id="replacement"><p>${esc(cardLabel(source))}. Vérifier l’identité avant de changer le numéro. Les inscriptions et la limite hebdomadaire suivent la même fiche.</p>${field('Nouveau numéro de carte','target','','text',cardPattern)}<p id="replaceMsg" role="status"></p><button>Remplacer la carte</button></form>`);
+  $('replacement').onsubmit=e=>{e.preventDefault();const target=e.target.elements.target.value.trim();if(!confirm('Remplacer '+source+' par '+target+' pour '+nameOf(source)+' ?'))return;submit(e.target,'replaceMsg','user.replace',{source,target,revision},async()=>{$('modal').close();await openPerson(target);notice('Numéro de carte remplacé.');})};
+ };
+ activateTab('vid');
+}
+function renderVideoPlanning(){
+ const today=tableFilters.videoToday!==false;$('videos').hidden=today;$('videoPlanning').hidden=!today;
+ $('videoToday').setAttribute('aria-pressed',String(today));$('videoAll').setAttribute('aria-pressed',String(!today));
+ const container=$('videoPlanning');container.replaceChildren();if(!today)return;
+ const posts=Object.keys(state.settings.stations),ranges=[...new Set(posts.flatMap(p=>station(p,day())?.slots||[]))].sort();
+ const t=document.createElement('table');t.className='planningGrid';const caption=document.createElement('caption');caption.textContent='Planning JV du '+labelDate(day());t.append(caption);
+ const head=document.createElement('thead'),hr=document.createElement('tr');for(const label of ['Horaire',...posts]){const th=document.createElement('th');th.textContent=label;hr.append(th)}head.append(hr);t.append(head);const body=document.createElement('tbody');t.append(body);
+ for(const range of ranges){const tr=document.createElement('tr');if(range.slice(0,5)<=nowTime()&&range.slice(-5)>nowTime())tr.className='currentSlot';const time=document.createElement('th');time.scope='row';time.textContent=range;tr.append(time);
+  for(const post of posts){const td=document.createElement('td'),cfg=station(post,day());if(!cfg.slots.includes(range)){td.textContent='Hors grille';td.className='unavailable';tr.append(td);continue}
+   const list=state.videos.filter(x=>x.date===day()&&x.post===post&&x.slot===range.slice(0,5)),closed=cfg.enabled===false||state.settings.closedDates?.includes(day());
+   const title=document.createElement('strong');title.textContent=list[0]?.game||(closed?'Poste fermé':'Jeu à choisir');td.append(title);
+   for(const x of list){const line=document.createElement('div'),button=document.createElement('button');button.textContent=cardLabel(x.card);button.title='Ouvrir cette inscription';button.onclick=()=>editVideo(x);line.append(button);td.append(line)}
+   const space=document.createElement('small');space.textContent=closed?'Fermé':Math.max(0,cfg.capacity-list.length)+' place(s) libre(s)';td.append(space);tr.append(td);
+  }body.append(tr);
+ }container.append(t);
+}
+async function loadStats(){
+ if(!admin())return;const f=$('statsFilter').elements;
+ try{statsRows=await api.stats(f.from.value,f.to.value);for(const key of ['activite','secteur','poste','jeu','boite','salle','type','categorie']){const before=f[key].value;f[key].innerHTML=opts(['',...new Set(statsRows.map(x=>x.dimensions[key]).filter(Boolean))],before)}renderStats();$('statsMsg').textContent='Statistiques actualisées.'}catch(error){$('statsMsg').textContent=error.message}
+}
+function statsDisplay(){
+ const f=$('statsFilter').elements,groups=new Map();
+ for(const row of statsRows){if(['activite','secteur','poste','jeu','boite','salle','type','categorie'].some(k=>f[k].value&&row.dimensions[k]!==f[k].value))continue;
+  let period=row.jour;if(f.period.value==='mois')period=period.slice(0,7);if(f.period.value==='semaine'){const date=new Date(period+'T12:00:00');date.setDate(date.getDate()-(date.getDay()+6)%7);period=iso(date)}
+  const dims=row.dimensions,key=JSON.stringify([period,dims]),sum=groups.get(key)||{periode:period,...dims,passages:0,personnes:0,enfants:0,adultes:0,accompagnateurs:0};for(const k of ['passages','personnes','enfants','adultes','accompagnateurs'])sum[k]+=row[k];groups.set(key,sum);
+ }return [...groups.values()].sort((a,b)=>a.periode.localeCompare(b.periode)||a.activite.localeCompare(b.activite));
+}
+function renderStats(){
+ const list=statsDisplay();$('statsSummary').textContent=list.reduce((n,x)=>n+x.passages,0)+' saisie(s), '+list.reduce((n,x)=>n+x.personnes,0)+' personnes déclarées. Enfants/adultes détaillés seulement lorsque ces champs existent.';
+ const t=document.createElement('table'),cols=['periode','activite','secteur','poste','jeu','boite','salle','type','heure','categorie','passages','personnes','enfants','adultes','accompagnateurs'];
+ const head=document.createElement('thead'),hr=document.createElement('tr');for(const c of cols){const th=document.createElement('th');th.textContent=c;hr.append(th)}head.append(hr);t.append(head);
+ const body=document.createElement('tbody');for(const x of list){const tr=document.createElement('tr');for(const c of cols){const td=document.createElement('td');td.textContent=x[c]??'';tr.append(td)}body.append(tr)}t.append(body);$('statsTable').replaceChildren(t);
+}
+function downloadCsv(name,list){const cols=[...new Set(list.flatMap(Object.keys))],quote=x=>'"'+String(x??'').replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"';const csv=[cols,...list.map(x=>cols.map(c=>x[c]))].map(r=>r.map(quote).join(';')).join('\r\n'),url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name+'-'+day()+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+
+setupWorkspace();
 api.enableLogin();

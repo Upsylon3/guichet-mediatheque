@@ -1,19 +1,23 @@
 """Construire l'entrée statique connectée avec une clé publique, jamais un secret."""
 import base64
+import argparse
 import importlib.util
 import json
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-config = json.loads((root / '.env.local.json').read_text(encoding='utf-8-sig'))
-key = config['ANON_KEY']
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--config', type=Path, default=root / 'dev/config.json')
+args = parser.parse_args()
+config = json.loads(args.config.read_text(encoding='utf-8-sig'))
+key = config.get('ANON_KEY') or config['anonKey']
 if not key.startswith('sb_publishable_'):
     try:
         payload = json.loads(base64.urlsafe_b64decode(key.split('.')[1] + '=='))
         assert payload['role'] == 'anon'
     except Exception:
         raise SystemExit('La publication nécessite une clé publishable ou anon. Aucune clé secrète n’est autorisée.')
-url = config['SUPABASE_URL'].rstrip('/')
+url = (config.get('SUPABASE_URL') or config['url']).rstrip('/')
 if not url.startswith('https://') or not url.endswith('.supabase.co'):
     raise SystemExit('Utiliser l’origine HTTPS du projet Supabase distant de développement.')
 spec = importlib.util.spec_from_file_location('guichet_server', root / 'scripts/serve-dev.py')

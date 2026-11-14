@@ -1,1 +1,29 @@
 .tableWrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 6px;border-bottom:1px solid #dce3da;vertical-align:top}th{font-size:14px}td:last-child button{margin:2px}.player{border-top:1px solid #dce3da;padding:12px 0;margin:12px 0}#serviceLinks{display:flex;gap:12px;flex-wrap:wrap}.conflict{border:2px solid #a56a18;padding:12px;margin:12px 0}.actions{margin-bottom:12px}#userList{display:flex;gap:5px;flex-wrap:wrap}@media(max-width:530px){td,th{padding:7px 3px;font-size:13px}td:last-child button{font-size:12px;padding:6px}.tableWrap{max-width:100%}}
+:root{color-scheme:light;--bg:#f2f4f7;--surface:#fff;--ink:#203247;--muted:#5b6b7e;--border:#ccd5df;--accent:#245b87;--active:#e2edf8;--sidebar:#173653}
+:root[data-theme=dark]{color-scheme:dark;--bg:#111a24;--surface:#1b2938;--ink:#e0e9f3;--muted:#adbed0;--border:#45576c;--accent:#93caff;--active:#29435b;--sidebar:#101e2d}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+main{max-width:none;margin-left:238px;padding:24px 28px;min-width:0}
+main header{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--border)}
+h1,h2{font-family:inherit}main h1{font-size:28px}h2{font-size:23px}h3{font-size:18px}
+section,dialog{background:var(--surface);color:var(--ink);border-color:var(--border);border-radius:6px}
+body>section:first-of-type{max-width:760px;margin:8vh auto;padding:30px}
+body:has(main:not([hidden]))>section:first-of-type{margin:0 0 0 238px;max-width:none;padding:8px 28px;border:0;border-bottom:1px solid var(--border);border-radius:0}
+body:has(main:not([hidden]))>section:first-of-type>h1,body:has(main:not([hidden]))>section:first-of-type>p:first-of-type{display:none}
+#sidebar{position:fixed;inset:0 auto 0 0;width:238px;padding:25px 16px;background:var(--sidebar);color:#f1f6fc;overflow-y:auto;z-index:2}
+.brand{font-size:24px;font-weight:700;line-height:1.25;padding:0 12px 22px}
+#sidebar nav{display:flex;flex-direction:column;align-items:stretch;gap:5px;margin:0;border:0;padding:0}
+#sidebar button{max-width:100%;white-space:normal;text-align:left;background:transparent;border-color:transparent;color:#e4edf8;border-radius:5px;padding:12px}
+#sidebar button[aria-current=true]{background:#345e84;color:white;border-left:3px solid #b8daf8}
+#sidebar button:hover{background:#284c6b}#sidebar button:disabled{opacity:.45}
+.sidebarTools{display:grid;gap:5px;margin-top:25px;border-top:1px solid #5d7388;padding-top:12px}
+button,input,select,textarea{background:var(--surface);color:var(--ink);border-color:var(--border);border-radius:4px}
+button.primary,button[aria-pressed=true]{background:var(--accent);color:var(--surface);border-color:var(--accent)}
+button[aria-current=true]{background:var(--active);color:var(--ink)}a{color:var(--accent)}.muted,small{color:var(--muted)}
+th,td,.row,.player,nav{border-color:var(--border)}caption{text-align:left;font-weight:600;padding:12px 0}
+.day.busy{background:var(--active)}.day.beyondHorizon{background:var(--bg);color:var(--muted);border-style:dashed}
+.day.beyondHorizon::after{content:'J+15';display:block;font-size:10px}#calendar .today{outline-color:var(--accent)}
+.currentSlot{background:var(--active)}.currentSlot th:first-child::after{content:' · en cours';font-weight:700}
+#statsFilter button{margin:14px 8px 14px 0}#statsSummary{font-size:18px;padding:16px 0}
+.fields>*{min-width:0}dialog{width:min(790px,96vw)}#notice:empty{display:none}
+@media(max-width:760px){#sidebar{position:static;width:auto;padding:14px}.brand{font-size:21px;padding:0 0 12px}#sidebar nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#sidebar button{padding:9px}.sidebarTools{display:flex;flex-wrap:wrap;margin-top:12px;padding-top:8px}main{margin:0;padding:14px}body:has(main:not([hidden]))>section:first-of-type{margin:0;padding:8px 14px}main header{margin-top:20px}main h1{font-size:25px}body>section:first-of-type{margin:20px 12px}#statsFilter .fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.planningGrid{min-width:820px}.planningGrid td{min-width:130px}.planningGrid td button{display:block;font-size:12px;padding:4px;margin:5px 0;text-align:left}.planningGrid td small{display:block;padding-top:8px}.planningGrid .unavailable{background:var(--bg);color:var(--muted)}.planningGrid th:first-child{min-width:125px}

@@ -1,34 +1,35 @@
 # Guichet médiathèque
 
-Un annuaire commun et trois activités partagés entre les postes d’accueil.
+Application d’accueil pour les jeux de société, les jeux vidéo, les animations et un annuaire partagé.
 
-**[Ouvrir le guichet partagé de développement](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/dev/index.html)** · **[Démonstration publique autonome](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/index.html)**
+[Guichet partagé de développement](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/dev/index.html) · [Démonstration publique autonome](https://raw.githack.com/Upsylon3/guichet-mediatheque/main/index.html)
 
-**Données fictives uniquement.** Le guichet connecté utilise un projet Supabase de développement à Paris. Il ne nécessite ni Docker, ni WSL, ni modification de Vanguard. Les comptes sont attribués par le service et l’inscription publique est désactivée.
+**Données fictives uniquement.** Les comptes sont attribués par le service, sans inscription publique. La base de développement distante se situe à Paris. Aucun besoin de virtualisation.
 
-## Ce qui est partagé
+## Utilisation
 
-- Annuaire : cartes de sept chiffres avec zéros initiaux, identité facultative après passage, note dans la fiche détaillée, fusion manuelle réversible. La suppression reste réservée à l’administration et bloquée par les liens actifs ou la corbeille.
-- Jeux de société : boîte, titre connu ou à compléter, secteur, date, enfants/adultes, correction, déplacement, sélection et annulation.
-- Jeux vidéo : plusieurs joueurs confirmés ensemble, accompagnateurs inclus, contrôle serveur des places, jeux et chevauchements, alternatives, déplacement d’une personne ou d’un groupe.
-- Animations : calendrier et tableau, séances, séries hebdomadaires ou mensuelles, exceptions, modèles, enfants/adultes, âge en ans ou mois, inscriptions de groupes et comptage en entrée libre.
-- Administration : postes, jeux, capacités de 1 à 4, grilles par jour de semaine, exceptions datées, fermetures, boîtes, types et modèles d’animation, raccourcis et habilitations.
-- Tables filtrables, imports avec aperçu puis transaction complète, exports des lignes sélectionnées selon les droits, corbeille et annulation.
+Le menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Les administrateurs disposent aussi de Statistiques et Administration. Corbeille et annulation sont communes. Le mode clair ou sombre suit le choix de chaque navigateur.
 
-Les autres sessions reçoivent les modifications sans rechargement. Les conflits et échecs réseau conservent la saisie. Au changement de date selon Europe/Paris, le serveur garde les totaux par jour et activité et supprime les anciennes participations nominatives, y compris les références de reprise et d’annulation. Les réservations futures et les fiches restent conservées.
+- Jeux vidéo : planning d’aujourd’hui par poste et par horaire, une carte par joueur, une inscription par semaine civile du lundi au dimanche. Aucun accompagnateur sans carte.
+- Jeux de société : une carte pour la consultation, avec les effectifs des enfants et des adultes qui partagent la boîte.
+- Animations : une carte par participant. Créazone ou Salle JV et deux horaires obligatoires, sans chevauchement dans une même salle. Accompagnateurs nommés sans carte uniquement pour les animations sans jauge. Au-delà de J+15, les agents confirment un avertissement avant inscription.
+- Usagers : recherche par nom ou carte, identité facultative, note détaillée, changement de carte conservant fiche et inscriptions. Suppression et fusion réservées à l’administration.
+- Statistiques : filtres de période et de dimensions, regroupement jour/semaine/mois et export CSV anonyme. Imports et exports de listes réservés à l’administration.
 
-## Utiliser ou développer
+Les données confirmées se synchronisent entre les sessions sans rechargement. Ctrl+Z annule la dernière opération prise en charge, sauf pendant la modification d’un champ où l’annulation de texte reste prioritaire.
 
-Le lien du guichet connecté peut s’ouvrir dans deux profils de navigateur ou depuis deux ordinateurs. Utiliser les comptes fictifs fournis séparément. La configuration publiée contient uniquement l’URL Supabase et sa clé publique ; aucun mot de passe ni secret d’administration.
+## Lancement
 
-Pour travailler localement, lancer `python scripts/serve-dev.py --config dev/config.json`, puis ouvrir `http://127.0.0.1:8000/dev.html`. Python 3.10 ou ultérieur suffit pour l’interface. La configuration privée `.env.local.json` peut aussi être utilisée, comme décrit dans le guide.
+Depuis le dépôt : `python scripts/serve-dev.py --config dev/config.json`, puis ouvrir `http://127.0.0.1:8000/dev.html`.
 
-La page `index.html` reste autonome : cartes ESSAI, utilisateurs et activités en mémoire, réglages de démonstration propres au navigateur, aucune connexion applicative. Elle peut toujours s’ouvrir directement depuis le disque.
+La démonstration `index.html` s’ouvre aussi directement depuis le disque. Elle conserve les données fictives de passage en mémoire et ne contacte aucun service distant. Ses cartes utilisent le format ESSAI-01. Son profil est simulé. Les parcours sont communs à l’application partagée, les protections d’exploitation reposent sur le serveur de cette dernière.
 
-**[Guide de développement et lancement](DEVELOPPEMENT.md)** · **[Recette complète](RECETTE-GUICHET.md)** · **[Cahier des charges](CAHIER-DES-CHARGES.md)** · **[Revue de la collectivité](REVUE-COLLECTIVITE.md)** · **[Droits et composants](DROITS.md)**
+## Documentation
 
-## Vérifications
+[Guide d’utilisation et de développement](DEVELOPPEMENT.md) · [Cahier des charges](CAHIER-DES-CHARGES.md) · [Recette](RECETTE-GUICHET.md) · [Passation](PASSATION.md) · [Revue institutionnelle](REVUE-COLLECTIVITE.md) · [Droits et composants](DROITS.md)
 
-Avec les deux comptes fictifs configurés localement : `npm ci`, `npx playwright install chromium`, puis `npm test`. Les tests démarrent leurs propres serveurs temporaires. Le workflow GitHub vérifie la démonstration et les sources sans recevoir les mots de passe des comptes. Les essais connectés et la recette SQL de clôture ont aussi été exécutés sur la véritable base distante.
+## Vérification et construction
 
-Le serveur interne, l’usage de données réelles, les sauvegardes d’exploitation et les validations institutionnelles restent à organiser avec la collectivité. Cette version fournit le développement partagé et sa recette fictive.
+`npm ci`, `npx playwright install chromium`, `npm run build`, puis `npm test`. Les essais connectés utilisent une configuration et deux comptes fictifs dans des fichiers ignorés par Git. Le workflow public vérifie la démonstration sans secrets. `supabase/tests/cloture.sql` vérifie clôture, statistiques et quota dans une transaction annulée.
+
+Les usages réels, les sauvegardes d’exploitation et la recette sur le matériel de la collectivité restent à valider avant mise en service.
