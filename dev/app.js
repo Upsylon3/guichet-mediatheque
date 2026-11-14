@@ -28,6 +28,8 @@ $('lookup').placeholder=api.demo?'ESSAI-01':'0000001';
 $('board').querySelector('.fields').insertAdjacentHTML('beforeend',field('Date','date',day(),'date','required')+'<output name="boxTitle"></output>');
 $('board').insertAdjacentHTML('afterend','<div class="actions"><label>Filtrer les consultations<input id="filter-soc"></label><button id="bulkBoard">Corriger la sélection</button></div>');
 $('videos').insertAdjacentHTML('beforebegin','<div class="actions" id="videoListTools"><label>Filtrer les inscriptions<input id="filter-vid"></label><button id="bulkVideo" disabled>Déplacer la sélection</button></div>');
+$('ani').querySelector('.bar').insertAdjacentHTML('afterend','<button id="quickRegister" class="primary">Inscrire</button>');
+ $('quickRegister').onclick=quickRegistration;
 $('calendar').insertAdjacentHTML('afterend','<h3>Tableau des séances</h3><label>Filtrer les séances<input id="filter-ani"></label><div id="eventsTable"></div>');
 $('openAdmin').insertAdjacentHTML('afterend','<button id="openTrash">Corbeille</button><button id="undo" disabled>Annuler la dernière opération</button>');
 $('settings').insertAdjacentHTML('beforeend','<h3>Comptes attribués par le service</h3><button id="manageRoles">Gérer les habilitations</button><p>Les comptes sont créés par l’administration Auth du service, sans inscription publique.</p>');
@@ -38,7 +40,7 @@ $('config').insertAdjacentHTML('beforeend',`<h3>Disponibilité du poste</h3><lab
 <h3>Exception pour une date</h3><div class="fields">${field('Date de l’exception','exceptionDate','','date')}<label><span><input type="checkbox" name="exceptionClosed"> Fermer le poste ce jour</span></label></div>
 <label>Créneaux exceptionnels (un par ligne)<textarea name="exceptionSlots" rows="3"></textarea></label><label>Jeux exceptionnels (un par ligne)<textarea name="exceptionGames" rows="3"></textarea></label><p>Une date et des horaires vides conservent la grille habituelle. Les réservations incompatibles bloquent l’enregistrement.</p>
 <h3>Journées fermées</h3><label>Dates AAAA-MM-JJ (une par ligne)<textarea name="closedDates" rows="3"></textarea></label>
-<h3>Actions déléguées aux agents</h3>${['edit','cancel','bulk','export'].map((k,i)=>`<label><span><input type="checkbox" name="permission-${k}"> ${['Corriger et déplacer','Annuler des inscriptions','Importer et corriger en lot','Exporter une sélection nominative'][i]}</span></label>`).join('')}
+<h3>Actions déléguées aux agents</h3>${['edit','cancel','bulk','export','templates'].map((k,i)=>`<label><span><input type="checkbox" name="permission-${k}"> ${['Corriger et déplacer','Annuler des inscriptions','Importer et corriger en lot','Exporter une sélection nominative','Gérer les modèles d’animations'][i]}</span></label>`).join('')}
 <h3>Raccourcis du service</h3>${field('Catalogue','catalogue','','url')}${field('V-smart (facultatif)','vsmart','','url')}
 <h3>Boîtes de jeux de société</h3><div class="fields">${field('Numéro de boîte','boxCode')}${field('Titre','boxTitle')}${select('Secteur de la boîte','boxSector',['Jeunesse','Pop Zone'],'Jeunesse')}</div><p>Pour ajouter ou corriger une boîte, renseigner ces champs puis enregistrer les réglages.</p>`);
 $('config').elements.games.closest('label').insertAdjacentHTML('beforebegin',`<label>Grille concernée<select name="weekday"><option value="default">Grille habituelle</option>${['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select></label>`);
@@ -298,20 +300,9 @@ function editEvent(ev={},duplicate=false){
  <p id="seriesPreview"></p><p id="afmsg" role="status"></p><button class="primary">Enregistrer</button></form>`);
  const form=$('af'),f=form.elements;f.room.required=true;f.eventType.options[0].textContent='Non renseigné';
  f.eventType.closest('label').insertAdjacentHTML('beforeend','<small>Sert à classer les séances et à filtrer les statistiques.</small>');
- if(admin()){
-  form.querySelector('button.primary').insertAdjacentHTML('beforebegin','<button type="button" id="saveDraftTemplate">Enregistrer comme modèle</button>');
-  $('saveDraftTemplate').onclick=async()=>{
-   for(const key of eventTemplateKeys.filter(k=>f[k]))if(!f[key].reportValidity())return;
-   const values=Object.fromEntries(new FormData(form));for(const key of ['cap','minAge','maxAge'])values[key]=values[key]===''?null:+values[key];values.count=true;
-   const name=prompt('Nom du modèle réutilisable',values.title||'Nouveau modèle');if(!name?.trim())return;
-   if(state.settings.eventTemplates?.[name.trim()]&&!confirm('Remplacer le modèle « '+name.trim()+' » ?'))return;
-   const cfg=structuredClone(state.settings);cfg.eventTemplates={...cfg.eventTemplates,[name.trim()]:Object.fromEntries(eventTemplateKeys.map(k=>[k,values[k]??null]))};
-   await submit(form,'afmsg','config.save',{settings:cfg,revision:state.settingsRevision},()=>{$('afmsg').textContent='Modèle enregistré. La séance n’a pas été créée.';updateTemplateChoices(form,name.trim())});
-  };
- }
  if(!ev.id||duplicate){
-  form.insertAdjacentHTML('afterbegin','<div class="templatePicker">'+select('Partir d’un modèle','template',[''],'')+'<small>'+ (admin()?'Choisir un modèle existant, ou remplir les paramètres puis cliquer sur « Enregistrer comme modèle ».':'Le modèle remplit les paramètres de la séance.')+'</small></div>');
-  updateTemplateChoices(form);if($('saveDraftTemplate'))form.querySelector('.templatePicker').append($('saveDraftTemplate'));
+  form.insertAdjacentHTML('afterbegin','<div class="templatePicker">'+select('Partir d’un modèle','template',[''],'')+'<small>'+ 'Le modèle remplit les paramètres de la séance. Les modèles se gèrent dans Administration → Animations.'+'</small></div>');
+  updateTemplateChoices(form);
   f.template.onchange=()=>{const model=state.settings.eventTemplates?.[f.template.value];if(model){for(const [k,v] of Object.entries(model))if(f[k])f[k].value=k==='count'?(v?'oui':'non'):(v??'')}};
  }
  function preview(){const scope=f.scope?.value||'one',affected=state.events.filter(x=>x.id===ev.id||(ev.group&&x.group===ev.group&&!x.exception&&(scope==='all'||scope==='following'&&x.date>=ev.date)));$('seriesPreview').textContent=ev.id&&!duplicate?`${affected.length} séance(s) et ${affected.reduce((n,e)=>n+e.guests.length,0)} inscription(s) concernées. Les exceptions sont préservées.`:''}
@@ -322,21 +313,24 @@ function editEvent(ev={},duplicate=false){
   submit(form,'afmsg','event.save',data,result=>{month=new Date(data.date.slice(0,7)+'-01T12:00:00');calendar();detailEvent(result.ids[0]);notice('Séance enregistrée.')},result=>ev.id&&!duplicate?{action:'event.undo',data:{events:previous.filter(x=>result.ids.includes(x.id)).map(x=>({...x,revision:record(x.id).revision,scope:'one',restoreException:!!x.exception}))}}:inverseAdd('event',result));
  };
 }
+function quickRegistration(){
+ const events=state.events.filter(e=>e.mode==='inscription'&&e.date>=day()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)||a.title.localeCompare(b.title,'fr'));
+ modal('Inscription rapide à une animation',`<form id="quickGuest"><label>Animation (ordre chronologique)<select name="eventId" required><option value="">Choisir une séance</option>${events.map(e=>`<option value="${esc(e.id)}" ${e.cap&&occupied(e)>=e.cap?'disabled':''}>${esc(labelDate(e.date)+' · '+e.time+' · '+e.title+' · '+e.room+' · '+(e.cap?Math.max(0,e.cap-occupied(e))+' place(s) libre(s)':'sans jauge'))}</option>`).join('')}</select></label><p id="quickInfo">Les animations en entrée libre se comptent depuis leur séance. Les séances complètes sont indiquées dans la liste.</p><div class="players">${playerRow({},true)}</div><button type="button" class="addPlayer">Ajouter une personne</button><p>La carte retrouve l’identité connue. Une fiche nouvelle pourra être complétée après l’inscription.</p><p id="quickMsg" role="status"></p><button class="primary">Inscrire</button></form>`);
+ const form=$('quickGuest'),choice=form.elements.eventId;bindPlayers(form,true);
+ choice.onchange=()=>{const ev=state.events.find(e=>e.id===choice.value),saved=players(form);form.querySelector('.players').innerHTML=saved.map(x=>playerRow(x,true,!!ev&&!ev.cap)).join('');bindPlayers(form,true,!!ev&&!ev.cap);$('quickInfo').textContent=ev?(ev.cap?'Une carte par personne.':'Accompagnateurs sans carte autorisés : renseigner leurs noms.')+(beyondHorizon(ev.date)?' Au-delà de J+15 : une confirmation sera demandée.':''):'';};
+ form.onsubmit=e=>{e.preventDefault();const ev=state.events.find(x=>x.id===choice.value);if(!ev||ev.mode!=='inscription'||ev.date<day()){$('quickMsg').textContent='Séance indisponible. Choisir une autre animation.';return}if(!confirmHorizon(ev.date))return;const group=players(form);
+  submit(form,'quickMsg','guest.book',{eventId:ev.id,players:group,confirmEarly:beyondHorizon(ev.date)},()=>{queue(group.map(x=>x.card));$('modal').close();notice('Inscription à « '+ev.title+' » enregistrée.');},result=>inverseAdd('guest',result));
+ };
+ if(!events.length)$('quickMsg').textContent='Aucune séance sur inscription à venir.';
+}
 function occupied(ev){return ev.mode==='libre'?ev.counts.reduce((n,c)=>n+c.kids+c.adults,0):ev.guests.reduce((n,g)=>n+1+(ev.count?g.companions:0),0)}
 function detailEvent(id){
  const ev=state.events.find(x=>x.id===id);if(!ev){notice('Séance absente ou supprimée.');return}selectedEvent=id;
  modal(ev.title,`<p>${esc(labelDate(ev.date)+' · '+ev.time+(ev.endTime?'–'+ev.endTime:'')+' · '+(ev.room||'')+' · '+(ev.info||''))}</p><p>${esc([ev.referent,ev.audience,ev.minAge!=null?'À partir de '+ev.minAge+' ans':'',ev.maxAge!=null?'Jusqu’à '+ev.maxAge+' ans':''].filter(Boolean).join(' · '))}</p><p>${esc(ev.announcement||'')}</p>${safeLink(ev.image)?`<p><a href="${esc(safeLink(ev.image))}" target="_blank" rel="noopener noreferrer">Voir le visuel ↗</a></p>`:''}<p id="eventPlaces">${occupied(ev)}${ev.cap?' / '+ev.cap:''} personne(s)${!ev.cap?' · accompagnateurs nommés sans carte autorisés':' · une carte par personne'}</p><div id="guests"></div>
  ${ev.mode==='libre'?`<form id="freeCount"><div class="fields">${field('Enfants','kids',0,'number','min="0" required')}${field('Adultes','adults',0,'number','min="0" required')}</div><p id="guestmsg" role="status"></p><button>Ajouter le comptage</button></form>`:`<form id="guest"><div class="players">${playerRow({},true,!ev.cap)}</div><button type="button" class="addPlayer">Ajouter une personne</button><p id="guestmsg" role="status"></p><button class="primary">Inscrire le groupe</button></form>`}
- <div class="actions"><button id="change">Modifier</button><button id="duplicate">Dupliquer</button><button id="saveTemplate">Enregistrer comme modèle</button><button id="remove">Supprimer la séance</button></div>`);
+ <div class="actions"><button id="change">Modifier</button><button id="duplicate">Dupliquer</button><button id="remove">Supprimer la séance</button></div>`);
  renderGuests(ev);
- for(const id of ['change','duplicate','remove','saveTemplate'])$(id).hidden=!may('events');
- $('saveTemplate').hidden=!admin();
- $('saveTemplate').onclick=async()=>{
-  const label=prompt('Nom du modèle réutilisable',ev.title);if(!label?.trim())return;
-  const keys=eventTemplateKeys;
-  const cfg=structuredClone(state.settings);cfg.eventTemplates={...cfg.eventTemplates,[label.trim()]:Object.fromEntries(keys.map(k=>[k,ev[k]??null]))};
-  await command('config.save',{settings:cfg,revision:state.settingsRevision},'Modèle enregistré.');
- };
+ for(const id of ['change','duplicate','remove'])$(id).hidden=!may('events');
  $('change').onclick=()=>editEvent(ev);$('duplicate').onclick=()=>editEvent(ev,true);$('remove').onclick=()=>removeSeries(ev);
  if(ev.mode==='libre'){$('freeCount').onsubmit=e=>{e.preventDefault();const f=e.target.elements;if(!confirmHorizon(ev.date))return;submit(e.target,'guestmsg','count.add',{eventId:id,kids:+f.kids.value,adults:+f.adults.value,confirmEarly:beyondHorizon(ev.date)},()=>{detailEvent(id);notice('Comptage enregistré.')},result=>inverseAdd('count',result))};return}
  const form=$('guest');bindPlayers(form,true,!ev.cap);if(beyondHorizon(ev.date))$('guestmsg').textContent='Au-delà de J+15 : une confirmation sera demandée.';
@@ -362,7 +356,7 @@ function readConfig(){
  f.weekday.value='default';f.weekday.disabled=!p;
  f.games.value=p?.games.join('\n')||'';f.slots.value=p?.slots.join('\n')||'';f.limit.value=cfg.limit??'';f.count.value=cfg.count||'oui';f.manageEvents.checked=!!cfg.manageEvents;f.enabled.checked=p?.enabled!==false;f.instruction.value=p?.instruction||'';
  f.exceptionDate.value='';f.exceptionClosed.checked=false;f.exceptionSlots.value='';f.exceptionGames.value='';f.closedDates.value=(cfg.closedDates||[]).join('\n');
- for(const k of ['edit','cancel','bulk','export'])f['permission-'+k].checked=cfg.permissions?.[k]??['edit','cancel'].includes(k);
+ for(const k of ['edit','cancel','bulk','export','templates'])f['permission-'+k].checked=cfg.permissions?.[k]??['edit','cancel'].includes(k);
  for(const k of ['catalogue','vsmart'])f[k].value=cfg.links?.[k]||'';$('configMsg').textContent='';
  f.eventTypes.value=(cfg.eventTypes||[]).join('\n');f.askAge.checked=cfg.askAge!==false;f.boxCode.value='';f.boxTitle.value='';f.boxSector.value='Jeunesse';
  f.weekday.onchange=()=>{const grid={...p,...p?.weekdays?.[f.weekday.value]};f.capacity.value=grid.capacity;f.games.value=grid.games.join('\n');f.slots.value=grid.slots.join('\n');f.enabled.checked=grid.enabled!==false;f.instruction.value=grid.instruction||''};
@@ -383,7 +377,7 @@ $('config').onsubmit=e=>{
  }else if(adminSection==='animations'){
   cfg.limit=f.limit.value===''?null:+f.limit.value;cfg.eventTypes=lines(f.eventTypes.value);cfg.askAge=f.askAge.checked;
  }else if(adminSection==='acces'){
-  cfg.manageEvents=f.manageEvents.checked;cfg.permissions={...cfg.permissions,edit:f['permission-edit'].checked,cancel:f['permission-cancel'].checked,bulk:false,export:false};
+  cfg.manageEvents=f.manageEvents.checked;cfg.permissions={...cfg.permissions,edit:f['permission-edit'].checked,cancel:f['permission-cancel'].checked,bulk:false,export:false,templates:f['permission-templates'].checked};
  }else if(adminSection==='liens'){
   cfg.links=Object.fromEntries(['catalogue','vsmart'].map(k=>[k,f[k].value.trim()]));
  }else if(adminSection==='societe'){
@@ -432,7 +426,7 @@ function renderLinks(){
 }
 function render(){
  userList();renderBoards();renderVideoPlanning();table('videos',state.videos,'video',x=>`${labelDate(x.date)} · ${x.slot}–${x.end} · ${x.post} · ${cardLabel(x.card)} · ${x.game} · 1 joueur`,editVideo);
- updateBulkTools();calendar();renderTrash();renderPending();search();renderLinks();$('openAdmin').hidden=!admin();$('openStats').hidden=!admin();if(!admin()&&['stats','settings'].includes(activeTab))activateTab('vid');if(!admin()){$('statsTable').replaceChildren();$('statsSummary').textContent='';statsRows=[];}
+ updateBulkTools();calendar();renderTrash();renderPending();search();renderLinks();$('openAdmin').hidden=!may('templates');$('openStats').hidden=!admin();if(!admin()&&(activeTab==='stats'||activeTab==='settings'&&!may('templates')))activateTab('vid');applyAdminPanel();renderTemplates();if(!admin()){$('statsTable').replaceChildren();$('statsSummary').textContent='';statsRows=[];}
  table('eventsTable',state.events,'event',e=>`${labelDate(e.date)} · ${e.time} · ${e.title}${e.eventType?' · '+e.eventType:''} · ${e.room||''} · ${e.info||''} · ${occupied(e)} place(s)`,may('events')?editEvent:null);
  $('bulkBoard').hidden=!may('bulk');$('bulkVideo').hidden=!admin();$('mergeUser').hidden=!admin()||!$('personForm').elements.card.readOnly;
  $('totals').textContent=(state.totals||[]).map(t=>`${labelDate(t.jour)} · ${t.activite} ${t.secteur} : ${t.passages} passage(s), ${t.personnes} personnes`).join(' | ')||'Aucun jour clôturé.';
@@ -459,11 +453,11 @@ function removeSeries(ev){
 function addHour(time){const n=Math.min(1439,+time.slice(0,2)*60 + +time.slice(3)+60);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
 let activeTab='vid',statsRows=[];
 function activateTab(tab){
- if(['settings','stats'].includes(tab)&&!admin())tab='vid';if(activeTab==='settings'&&tab!=='settings'&&!discardAdminDraft())return;activeTab=tab;
+ if(tab==='stats'&&!admin()||tab==='settings'&&!may('templates'))tab='vid';if(activeTab==='settings'&&tab!=='settings'&&!discardAdminDraft())return;activeTab=tab;
  for(const id of ['soc','vid','ani','users','settings','stats','trash'])$(id).hidden=id!==tab;
  for(const b of document.querySelectorAll('[data-tab]'))b.setAttribute('aria-current',String(b.dataset.tab===tab));
  $('pending').hidden=pending.size===0||!['soc','vid','ani','users'].includes(tab);
- if(tab==='users')userList();if(tab==='settings')configList($('editPost').value||Object.keys(state.settings.stations)[0]);
+ if(tab==='settings'&&!admin())adminSection='animations';if(tab==='users')userList();if(tab==='settings')configList($('editPost').value||Object.keys(state.settings.stations)[0]);
  if(tab==='trash')renderTrash();if(tab==='stats')loadStats();notice('');
 }
 function setupWorkspace(){
@@ -473,7 +467,7 @@ function setupWorkspace(){
  const buttons=[...nav.querySelectorAll('button')];nav.replaceChildren(buttons[1],buttons[0],buttons[2]);
  for(const [id,tab,label] of [['openUsers','users','Usagers'],['openAdmin','settings','Administration'],['openTrash','trash','Corbeille']]){const b=$(id);b.dataset.tab=tab;b.textContent=label;nav.append(b)}
  const stats=document.createElement('section');stats.id='stats';stats.hidden=true;
- stats.innerHTML='<h2>Statistiques</h2><p>Effectifs déclarés et inscriptions. Les réservations ne constituent pas une présence vérifiée.</p><form id="statsFilter"><div class="fields">'+field('Du','from',plusDays(day(),-30),'date','required')+field('Au','to',day(),'date','required')+select('Regroupement','period',['jour','semaine','mois'],'jour')+'</div><div class="fields">'+['activite','secteur','poste','jeu','boite','salle','type','categorie'].map((k,i)=>select(['Activité','Secteur','Poste JV','Jeu vidéo','Boîte','Salle','Type d’animation','Catégorie'][i],k,[''],'')).join('')+'</div><button>Actualiser</button></form><p id="statsMsg" role="status"></p><div id="statsSummary"></div><div id="statsTable" class="tableWrap"></div>';
+ stats.innerHTML='<h2>Statistiques</h2><p>Effectifs déclarés et inscriptions. Les réservations ne constituent pas une présence vérifiée.</p><form id="statsFilter"><div class="fields">'+field('Du','from',plusDays(day(),-30),'date','required')+field('Au','to',day(),'date','required')+select('Regroupement','period',['jour','semaine','mois'],'jour')+'</div><div class="fields">'+['activite','secteur','poste','jeu','boite','salle','type','categorie'].map((k,i)=>select(['Activité','Secteur','Poste JV','Jeu vidéo','Boîte','Salle','Type d’animation','Catégorie'][i],k,[''],'')).join('')+'</div><button>Actualiser</button><button type="button" id="exportStats">Extraire les statistiques (CSV)</button></form><p id="statsMsg" role="status"></p><div id="statsSummary"></div><div id="statsTable" class="tableWrap"></div>';
  main.append(stats);const sb=document.createElement('button');sb.id='openStats';sb.dataset.tab='stats';sb.textContent='Statistiques';nav.insertBefore(sb,$('openAdmin'));
  const tools=document.createElement('div');tools.className='sidebarTools';tools.append($('undo'));
  const theme=document.createElement('button');theme.id='theme';theme.type='button';theme.textContent='Mode sombre';tools.append(theme);aside.append(tools);
@@ -490,6 +484,7 @@ function setupWorkspace(){
  for(const k of ['bulk','export'])$('config').elements['permission-'+k].closest('label').hidden=true;
  $('config').elements.count.closest('label').hidden=true;
  setupAdministration();
+ $('exportStats').onclick=exportStats;
  $('statsFilter').onsubmit=e=>{e.preventDefault();loadStats()};
  for(const select of $('statsFilter').querySelectorAll('select'))select.onchange=renderStats;
  $('replaceCard').onclick=()=>{
@@ -519,7 +514,7 @@ function renderVideoPlanning(){
 }
 async function loadStats(){
  if(!admin())return;const f=$('statsFilter').elements;
- try{statsRows=await api.stats(f.from.value,f.to.value);for(const key of ['activite','secteur','poste','jeu','boite','salle','type','categorie']){const before=f[key].value;f[key].innerHTML=opts(['',...new Set(statsRows.map(x=>x.dimensions[key]).filter(Boolean))],before)}renderStats();$('statsMsg').textContent='Statistiques actualisées.'}catch(error){$('statsMsg').textContent=error.message}
+ try{statsRows=await api.stats(f.from.value,f.to.value);for(const key of ['activite','secteur','poste','jeu','boite','salle','type','categorie']){const before=f[key].value;f[key].innerHTML=opts(['',...new Set(statsRows.map(x=>x.dimensions[key]).filter(Boolean))],before)}renderStats();$('statsMsg').textContent='Statistiques actualisées.';return true;}catch(error){$('statsMsg').textContent=error.message}
 }
 function statsDisplay(){
  const f=$('statsFilter').elements,groups=new Map();
@@ -542,11 +537,14 @@ function discardAdminDraft(){
  delete form.dataset.dirty;return true;
 }
 function applyAdminPanel(){
+ if(!admin()&&may('templates'))adminSection='animations';
  for(const panel of document.querySelectorAll('[data-admin-panel]')){
-  const active=panel.dataset.adminPanel===adminSection;panel.hidden=!active;
-  for(const input of panel.querySelectorAll('input,select,textarea,button'))input.disabled=!active||input.closest('label')?.hidden||input.name==='weekday'&&!$('config').dataset.postKey;
+  const active=panel.dataset.adminPanel===adminSection&&(admin()||may('templates'));panel.hidden=!active;
+  for(const input of panel.querySelectorAll('input,select,textarea,button'))input.disabled=!!$('config').dataset.saving||!active||input.closest('label')?.hidden||input.name==='weekday'&&!$('config').dataset.postKey;
  }
- for(const button of document.querySelectorAll('[data-admin-tab]')){const active=button.dataset.adminTab===adminSection;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1}
+ for(const button of document.querySelectorAll('[data-admin-tab]')){const active=button.dataset.adminTab===adminSection;button.hidden=!admin()&&button.dataset.adminTab!=='animations';button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1}
+ for(const group of $('admin-animations').children)if(group.id!=='templateManager')group.hidden=!admin()||group.querySelector('[name=count]')!==null;
+ $('adminSave').closest('.actions').hidden=!admin();
  $('adminSave').textContent='Enregistrer : '+adminLabels[adminSection];
 }
 function readBoxList(selected=''){
@@ -560,8 +558,8 @@ function setupAdministration(){
  const panels={};for(const[key,label]of Object.entries(adminLabels)){
   const panel=document.createElement('div');panel.dataset.adminPanel=key;panel.id='admin-'+key;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','admin-tab-'+key);panels[key]=panel;
   const button=document.createElement('button');button.type='button';button.id='admin-tab-'+key;button.dataset.adminTab=key;button.textContent=label;button.setAttribute('role','tab');button.setAttribute('aria-controls',panel.id);tabs.append(button);
-  button.onclick=()=>{if(key===adminSection)return;if(!discardAdminDraft())return;readConfig();adminSection=key;applyAdminPanel()};
-  button.onkeydown=e=>{const list=[...tabs.children],index=list.indexOf(button);let target;if(e.key==='ArrowRight')target=list[(index+1)%list.length];if(e.key==='ArrowLeft')target=list[(index+list.length-1)%list.length];if(e.key==='Home')target=list[0];if(e.key==='End')target=list[list.length-1];if(target){e.preventDefault();target.click();if(target.getAttribute('aria-selected')==='true')target.focus()}};
+  button.onclick=()=>{if(!admin()&&key!=='animations')return;if(key===adminSection)return;if(!discardAdminDraft())return;readConfig();adminSection=key;applyAdminPanel()};
+  button.onkeydown=e=>{const list=[...tabs.children].filter(x=>!x.hidden),index=list.indexOf(button);let target;if(e.key==='ArrowRight')target=list[(index+1)%list.length];if(e.key==='ArrowLeft')target=list[(index+list.length-1)%list.length];if(e.key==='Home')target=list[0];if(e.key==='End')target=list[list.length-1];if(target){e.preventDefault();target.click();if(target.getAttribute('aria-selected')==='true')target.focus()}};
  }
  const group=(panel,title,names,help)=>{const fieldset=document.createElement('fieldset');fieldset.className='adminGroup';const legend=document.createElement('legend');legend.textContent=title;fieldset.append(legend);if(help){const p=document.createElement('p');p.className='muted';p.textContent=help;fieldset.append(p)}const fields=document.createElement('div');fields.className='adminFields';for(const name of names)fields.append((name==='editPost'?$('editPost'):f[name]).closest('label'));fieldset.append(fields);panel.append(fieldset);return fieldset};
  group(panels.postes,'Poste à gérer',['editPost'],'Sélectionner un poste existant pour le modifier ou créer un nouveau poste.');
@@ -574,9 +572,11 @@ function setupAdministration(){
  group(panels.animations,'Valeurs proposées à la création',['limit','askAge','eventTypes'],'Ces valeurs concernent les nouvelles séances. Les types servent à classer les séances dans les statistiques.');
  group(panels.animations,'Réglage conservé',['count']);
  const rules=document.createElement('p');rules.className='adminHelp';rules.textContent='Les salles Créazone et Salle JV, les cartes individuelles et la confirmation au-delà de J+15 suivent les règles communes du service.';panels.animations.append(rules);
+ const models=document.createElement('fieldset');models.id='templateManager';models.className='adminGroup';models.innerHTML='<legend>Modèles d’animations</legend><p>Un modèle prépare les paramètres d’une nouvelle séance. Le modifier ou le supprimer ne change pas les séances déjà créées.</p><button type="button" id="newTemplate">Créer un modèle</button><div id="templateList"></div>';panels.animations.append(models);
+ models.querySelector('#newTemplate').onclick=()=>editTemplate();
  const boxSelect=document.createElement('label');boxSelect.textContent='Boîte à gérer';const boxChoice=document.createElement('select');boxChoice.id='editBox';boxSelect.append(boxChoice);panels.societe.append(boxSelect);
  group(panels.societe,'Catalogue des boîtes',['boxCode','boxTitle','boxSector'],'Choisir une boîte pour la corriger. Pour en ajouter une, choisir Nouvelle boîte et renseigner son numéro, son titre et son secteur.');
- group(panels.acces,'Actions autorisées aux agents',['manageEvents','permission-edit','permission-cancel','permission-bulk','permission-export'],'Les statistiques, paramètres et suppressions de fiches restent réservés à l’administration.');
+ group(panels.acces,'Actions autorisées aux agents',['manageEvents','permission-edit','permission-cancel','permission-templates','permission-bulk','permission-export'],'Ces droits s’appliquent aux agents réguliers. La gestion des modèles est indépendante de celle des séances. Les statistiques, autres paramètres et suppressions de fiches restent réservés à l’administration.');
  const accountGroup=document.createElement('fieldset');accountGroup.className='adminGroup';accountGroup.innerHTML='<legend>Comptes du personnel</legend><p class="muted">Créer les comptes dans l’administration Auth du service, puis leur attribuer une habilitation. L’inscription publique est désactivée.</p>';roles.type='button';accountGroup.append(roles);panels.acces.append(accountGroup);
  group(panels.liens,'Raccourcis du service',['catalogue','vsmart'],'Adresses complètes commençant par https:// ou http://. V-smart est facultatif.');
  actions.classList.add('adminActions');actions.querySelector('button').id='adminSave';msg.className='adminFeedback';actions.append(msg);
@@ -595,6 +595,30 @@ function setupAdministration(){
 }
 
 const eventTemplateKeys=['title','time','endTime','room','info','referent','audience','minAge','maxAge','mode','cap','count','announcement','image','eventType'];
+function renderTemplates(){
+ const list=$('templateList');if(!list)return;const signature=JSON.stringify([!!may('templates'),state.settings.eventTemplates]);if(list.dataset.signature===signature)return;list.dataset.signature=signature;list.replaceChildren();if(!may('templates'))return;
+ for(const [name,model] of Object.entries(state.settings.eventTemplates||{}).sort(([a],[b])=>a.localeCompare(b,'fr'))){
+  const row=document.createElement('div');row.className='templateActions';const label=document.createElement('span');label.textContent=name+' · '+model.title;row.append(label);
+  const edit=document.createElement('button');edit.type='button';edit.textContent='Modifier';edit.setAttribute('aria-label','Modifier le modèle '+name);edit.onclick=()=>editTemplate(name);row.append(edit);
+  const remove=document.createElement('button');remove.type='button';remove.textContent='Supprimer';remove.setAttribute('aria-label','Supprimer le modèle '+name);remove.onclick=async()=>{if(confirm('Supprimer le modèle « '+name+' » ? Les séances existantes seront conservées.'))await command('template.remove',{name,revision:state.settingsRevision},'Modèle supprimé.')};row.append(remove);list.append(row);
+ }if(!list.children.length)list.textContent='Aucun modèle. Créer un premier modèle pour préparer les prochaines séances.';
+}
+function editTemplate(name=''){
+ if(!may('templates'))return;const m=state.settings.eventTemplates?.[name]||{},revision=state.settingsRevision;
+ modal(name?'Modifier un modèle':'Créer un modèle',`<form id="templateForm"><p>Ces paramètres seront proposés pour une nouvelle séance ; aucune séance n’est créée ici.</p><div class="fields">
+ ${field('Nom du modèle','name',name,'text','required maxlength="100"')}${field('Titre de la séance','title',m.title||'','text','required maxlength="200"')}${select('Type d’animation (facultatif)','eventType',['',...(state.settings.eventTypes||[]),...(m.eventType&&!(state.settings.eventTypes||[]).includes(m.eventType)?[m.eventType]:[])],m.eventType||'')}
+ ${field('Heure de début','time',m.time||'14:00','time','required')}${field('Heure de fin','endTime',m.endTime||'15:00','time','required')}${select('Salle obligatoire','room',['','Créazone','Salle JV'],m.room||'')}
+ ${field('Renseignements','info',m.info||'')}${field('Intervenant ou référent','referent',m.referent||'')}${field('Public','audience',m.audience||'')}${field('Âge minimum (ans)','minAge',m.minAge??'','number','min="0" step="0.1"')}${field('Âge maximum (ans)','maxAge',m.maxAge??'','number','min="0" step="0.1"')}${select('Mode','mode',['inscription','libre'],m.mode||'inscription')}${field('Plafond strict facultatif','cap',m.cap??'','number','min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(m.announcement||'')}</textarea></label>${field('Lien vers un visuel facultatif','image',m.image||'','url')}<p id="templateMsg" role="status"></p><button class="primary">Enregistrer le modèle</button></form>`);
+ const form=$('templateForm');form.elements.room.required=true;form.onsubmit=e=>{e.preventDefault();const values=Object.fromEntries(new FormData(form));for(const k of ['cap','minAge','maxAge'])values[k]=values[k]===''?null:+values[k];values.count=true;
+  submit(form,'templateMsg','template.save',{name:values.name.trim(),oldName:name,model:Object.fromEntries(eventTemplateKeys.map(k=>[k,values[k]??null])),revision},()=>{$('modal').close();notice('Modèle enregistré.');renderTemplates()});
+ };
+}
+async function exportStats(){
+ if(!admin()||!$('statsFilter').reportValidity()||!await loadStats())return;const cols=['periode','activite','secteur','poste','jeu','boite','salle','type','heure','categorie','passages','personnes','enfants','adultes','accompagnateurs'];
+ const quote=value=>{let v=String(value??'');if(/^[\s]*[=+@-]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+ const csv='\ufeff'+[cols,...statsDisplay().map(x=>cols.map(k=>x[k]??''))].map(row=>row.map(quote).join(';')).join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='statistiques-'+$('statsFilter').elements.from.value+'-'+$('statsFilter').elements.to.value+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);$('statsMsg').textContent='Extraction CSV des statistiques affichées téléchargée.';
+}
 function updateTemplateChoices(form,selected=''){
  const input=form.elements.template;if(!input)return;input.innerHTML='<option value="">Sans modèle</option>'+opts(Object.keys(state.settings.eventTemplates||{}).sort((a,b)=>a.localeCompare(b,'fr')),selected);
 }

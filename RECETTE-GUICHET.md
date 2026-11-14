@@ -30,4 +30,8 @@ Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du
 
 ## Dernières finitions
 
-`tests/finitions.test.cjs` vérifie la cohérence des cartes et salles du jeu fictif, le retrait direct d’une réservation depuis Aujourd’hui avec refus puis accord, le masquage des outils de sélection dans ce planning et leur activation dans la liste, l’absence de boutons Exporter/Coller et du lien Sélections, et l’enregistrement d’un modèle depuis un brouillon sans créer une séance. Le modèle est aussi testé dans l’application partagée depuis une autre session.
+`tests/finitions.test.cjs` vérifie la cohérence des cartes et salles du jeu fictif, le retrait direct d’une réservation depuis Aujourd’hui avec refus puis accord, le masquage des outils de sélection dans ce planning et leur activation dans la liste, l’absence d’exports nominatifs et du lien Sélections, l’extraction CSV statistique, et l’enregistrement d’un modèle depuis Administration → Animations sans créer une séance. Le modèle est aussi testé dans l’application partagée depuis une autre session.
+
+`tests/modeles.test.cjs` vérifie le refus serveur par défaut, la délégation et sa révocation depuis Accès des agents, la visibilité limitée à la gestion des modèles dans une seconde session à 360 px, la création, la modification et la suppression propagées, les conflits de révision et les paramètres invalides. Les autres réglages, les séances existantes et le refus de statistiques aux agents sont vérifiés.
+
+`tests/finitions.test.cjs` vérifie aussi l’inscription rapide chronologique, les séances complètes grisées, les accompagnateurs nommés seulement sans jauge et le refus puis l’accord explicite après J+15.
