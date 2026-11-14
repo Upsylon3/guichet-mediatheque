@@ -9,6 +9,13 @@ test('Journée fictive cohérente avec cartes individuelles et salles sans cheva
  assert.equal(Object.keys(p.templates).length,3);
 });
 
+test('Refus JV : rappel du jour, de l’horaire et du poste existant',{timeout:60000},async()=>{
+ const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{})});try{
+  const p=await browser.newPage();await p.goto(origin+'/');await p.locator('#videoPlanning').waitFor({state:'visible'});const before=await p.evaluate(()=>globalThis.guichetDirectory.state()),existing=before.videos[0];
+  await p.locator('#addvideo').click();await p.locator('#vf [name=slot]').selectOption({index:4});await p.locator('#vf [name=game]').selectOption({index:1});await p.locator('#vf [name=card]').fill(existing.card);await p.locator('#vf button.primary').click();await text(p,'#vfmsg','déjà inscrit(e)');const message=await p.locator('#vfmsg').textContent();assert.ok(message.includes(existing.card));assert.ok(message.includes(existing.post));assert.ok(message.includes(existing.date.split('-').reverse().join('/')));assert.ok(message.includes('de '+existing.slot+' à '+existing.end));assert.equal((await p.evaluate(()=>globalThis.guichetDirectory.state())).videos.length,before.videos.length);assert.equal(await p.locator('#vf [name=card]').inputValue(),existing.card);
+ }finally{await browser.close()}
+});
+
 test('Inscription rapide : chronologie, jauge, accompagnateurs et confirmation J+15',{timeout:60000},async()=>{
  const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{})});try{
   const p=await browser.newPage({viewport:{width:360,height:900}});await p.goto(origin+'/');await p.locator('[data-tab=ani]').click();await p.locator('#quickRegister').click();

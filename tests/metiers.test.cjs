@@ -13,7 +13,8 @@ test('Règles du guichet : individus, quota hebdomadaire, salles, horizon, droit
   await cmd(agent,'video.book',{...book(c1),players:[{card:c1,companions:1}]},400);
   assert.equal((await api('/rest/v1/usagers?carte=eq.'+c1,admin,undefined,'GET')).data.length,0);
   const op=crypto.randomUUID(),first=await cmd(agent,'video.book',book(c1),200,op);assert.deepEqual(await cmd(agent,'video.book',book(c1),200,op),first);
-  await cmd(agent,'video.book',book(c1,date,'10:00'),409);
+  const duplicate=await cmd(agent,'video.book',book(c1,date,'10:00'),409);
+  assert.ok(duplicate.message.includes('Carte '+c1));assert.ok(duplicate.message.includes(date.split('-').reverse().join('/')));assert.ok(duplicate.message.includes('de 09:00 à 10:00'));assert.ok(duplicate.message.includes('sur le poste '+prefix));assert.match(duplicate.message,/dimanche|lundi|mardi|mercredi|jeudi|vendredi|samedi/);
   const weekday=new Date(date+'T12:00:00Z').getUTCDay();const sameWeek=weekday===0?plus(date,0):next;
   await cmd(agent,'video.book',book(c1,sameWeek,'10:00'),409);
   const r2=await cmd(agent,'video.book',book(c2));s=await state(admin);
@@ -26,7 +27,7 @@ test('Règles du guichet : individus, quota hebdomadaire, salles, horizon, droit
   assert.equal(simultaneous.filter(x=>x.status===200).length,1);assert.equal(simultaneous.filter(x=>x.data.code==='PT409').length,1);fixture.ids.push(...simultaneous.find(x=>x.status===200).data.ids);
   const renamed=await card(admin),person=(await api('/rest/v1/usagers?carte=eq.'+c1,admin,undefined,'GET')).data[0];
   await cmd(agent,'user.replace',{source:c1,target:renamed,revision:person.revision});s=await state(admin);assert.equal(s.videos.find(x=>x.id===first.ids[0]).card,renamed);
-  const after=(await api('/rest/v1/usagers?carte=eq.'+renamed,admin,undefined,'GET')).data[0];assert.equal(after.id,person.id);await cmd(agent,'video.book',book(renamed),409);
+  const after=(await api('/rest/v1/usagers?carte=eq.'+renamed,admin,undefined,'GET')).data[0];assert.equal(after.id,person.id);const replaced=await cmd(agent,'video.book',book(renamed),409);assert.ok(replaced.message.includes('Carte '+renamed));assert.ok(replaced.message.includes('de 10:00 à 11:00'));assert.ok(replaced.message.includes('sur le poste '+prefix));
   await cmd(agent,'user.replace',{source:renamed,target:c2,revision:after.revision},409);
   console.log('OK : remplacement de carte conserve UUID, inscriptions et quota hebdomadaire');
   const ev=(day,title,time='08:00',room='Créazone',extra={})=>({date:day,title,time,endTime:time.slice(0,2)+':30',room,mode:'inscription',cap:2,count:true,repeat:1,...extra});

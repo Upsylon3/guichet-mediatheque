@@ -8,6 +8,9 @@ Un menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Le
 
 Les comptes du personnel sont attribués, sans inscription publique. Les agents peuvent saisir les activités et compléter les identités. L’administration attribue les délégations de correction, d’annulation et de gestion des séances. Les statistiques sont exclusivement administratives, sans délégation. Les boutons d’import et d’export nominatif sont retirés de l’interface. Seul Statistiques propose une extraction CSV des agrégats affichés, réservée aux administrateurs. La suppression et la fusion de fiches restent administratives.
 
+
+Lorsqu’une inscription JV est refusée à cause de la limite hebdomadaire, le message identifie la carte concernée et rappelle le jour de la semaine, la date, les heures de début et de fin et le poste de sa réservation existante. Il utilise les informations actuelles après un déplacement ou un changement de carte. Pour une inscription passée dont le détail a déjà été purgé à la clôture quotidienne, le refus précise que ce détail n’est plus disponible ; le quota reste appliqué sans conserver davantage d’historique.
+
 ## Jeux de société
 
 Une consultation comporte une carte de sept chiffres, une boîte, un secteur Jeunesse ou Pop Zone, une date et les effectifs enfants/adultes. Une personne consulte et partage le jeu avec les autres. La carte n’identifie donc pas chaque personne de ce groupe. Une consultation avec deux enfants et un adulte compte une consultation et trois personnes. Aucun mouvement de prêt.

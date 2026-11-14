@@ -56,7 +56,9 @@ begin
  begin
  perform guichet_prive.video(gen_random_uuid(),jsonb_build_object('date',guichet_prive.jour(),'post','MARIO','slot','11:15','game','Circuit','players',jsonb_build_array(jsonb_build_object('card',numero,'companions',0))));
  raise exception 'Une seconde inscription a été acceptée après clôture';
- exception when sqlstate 'PT409' then null;end;
+ exception when sqlstate 'PT409' then
+  if position('n’est plus disponible après la clôture quotidienne' in sqlerrm)=0 or position('10:15' in sqlerrm)>0 or position('MARIO' in sqlerrm)>0 then raise exception 'Le refus après purge doit expliquer l’absence de détail sans réexposer l’ancienne réservation';end if;
+ end;
  select jsonb_agg(to_jsonb(t) order by jour,dimensions) into mesure_avant from guichet_prive.statistiques t;
  perform guichet_prive.cloturer(guichet_prive.jour()+1);
  select jsonb_agg(to_jsonb(t) order by jour,dimensions) into mesure_apres from guichet_prive.statistiques t;

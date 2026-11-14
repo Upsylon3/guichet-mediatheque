@@ -22,6 +22,9 @@ Usagers : rechercher par carte ou nom. Ouvrir la bonne fiche, vérifier l’iden
 
 Ctrl+Z annule la dernière opération prise en charge hors des champs de saisie. Dans un champ, l’annulation de texte du navigateur reste disponible. La corbeille est partagée et ses restaurations revérifient toutes les règles.
 
+
+Lorsqu’une inscription JV est refusée à cause de la limite hebdomadaire, le message identifie la carte concernée et rappelle le jour de la semaine, la date, les heures de début et de fin et le poste de sa réservation existante. Il utilise les informations actuelles après un déplacement ou un changement de carte. Pour une inscription passée dont le détail a déjà été purgé à la clôture quotidienne, le refus précise que ce détail n’est plus disponible ; le quota reste appliqué sans conserver davantage d’historique.
+
 ## Administration
 
 Les grilles suivent la priorité habituelle, jour de semaine, exception datée. Fermer un poste déjà réservé exige une confirmation avec le nombre de réservations à retirer. L’opération les place dans la corbeille et ferme le poste ensemble. Une restauration attend sa réouverture. Les incompatibilités de capacité ou d’horaires restent bloquantes.

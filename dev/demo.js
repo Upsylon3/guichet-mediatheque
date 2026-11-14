@@ -24,7 +24,7 @@ globalThis.guichetDirectory=(()=>{
   if(new Set(d.players.map(p=>p.card)).size!==d.players.length)fail('Carte en double');
   const other=state.videos.filter(x=>!old.includes(x.id)),taken=other.filter(x=>x.date===d.date&&x.post===d.post&&x.slot===d.slot);
   if(taken.length+d.players.length>cfg.capacity)fail('Places insuffisantes');if(taken.some(x=>x.game!==d.game))fail('Rejoindre le jeu déjà choisi');
-  for(const p of d.players){if(p.companions)fail('Une carte par joueur, aucun accompagnateur');if(other.some(x=>x.card===p.card&&week(x.date)===week(d.date)))fail('Une seule inscription JV par semaine');ensure(p.card)}
+  for(const p of d.players){if(p.companions)fail('Une carte par joueur, aucun accompagnateur');const existing=other.find(x=>x.card===p.card&&week(x.date)===week(d.date));if(existing){const date=new Date(existing.date+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});fail('Carte '+p.card+' : déjà inscrit(e) le '+date+' de '+existing.slot+' à '+existing.end+' sur le poste '+existing.post+'. Une seule inscription JV par semaine, du lundi au dimanche.')}ensure(p.card)}
   return d.players.map(p=>({...p,post:d.post,date:d.date,slot:d.slot,end:range.slice(-5),game:d.game,companions:0}));
  }
  function execute(action,d,op){
