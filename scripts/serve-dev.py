@@ -1,6 +1,7 @@
 """Entrée de développement locale, sans copier l'interface publique."""
 
 import argparse
+import hashlib
 import json
 import re
 from urllib.parse import urlsplit
@@ -20,17 +21,23 @@ LOGIN = """<section><h1>Guichet partagé de développement</h1>
 # Dériver la page connectée de la construction autonome et adapter sa politique CSP.
 def dev_page(url):
     page = (ROOT / "index.html").read_text(encoding="utf-8")
+
+    # Une nouvelle source reçoit une nouvelle URL : le cache ne mélange pas les versions.
+    def asset(name):
+        digest = hashlib.sha256((ROOT / "dev" / name).read_bytes()).hexdigest()[:16]
+        return f"/dev/{name}?v={digest}"
+
     # Conserver les empreintes des scripts/styles de la page autonome.
     page = page.replace("; style-src", " 'self'; style-src", 1)
     page = page.replace("; connect-src", " 'self'; connect-src", 1)
     page = page.replace(
-        "</style>", '</style><link rel="stylesheet" href="/dev/app.css">', 1
+        "</style>", f'</style><link rel="stylesheet" href="{asset("app.css")}">', 1
     )
     page = page.replace("connect-src 'none'", "connect-src 'self' " + url)
     page = page.replace("<main>", LOGIN + "<main hidden>", 1)
     return re.sub(
         r"<script>.*?</script>",
-        '<script src="/dev/directory.js"></script><script src="/dev/app.js"></script>',
+        f'<script src="{asset("directory.js")}"></script><script src="{asset("app.js")}"></script>',
         page,
         flags=re.S,
     )
@@ -76,7 +83,8 @@ def handler(url, anon_key):
                     ),
                 ),
             }
-            content = resources.get(self.path)
+            # Les paramètres de version ne modifient pas la liste des fichiers autorisés.
+            content = resources.get(urlsplit(self.path).path)
             if not content:
                 self.send_error(404)
                 return
