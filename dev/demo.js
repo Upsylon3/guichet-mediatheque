@@ -31,6 +31,15 @@ globalThis.guichetDirectory=(()=>{
   if(api.profile!=='administrateur'&&['config.save','stats','export','batch'].includes(action))fail('Administration réservée');
   if(api.profile!=='administrateur'&&action.startsWith('event.')&&!state.settings.manageEvents)fail('Gestion des séances réservée');
   const ids=[],add=(list,x)=>{x={...x,id:x.id||crypto.randomUUID(),revision:(x.revision||0)+1};list.push(x);ids.push(x.id);return x};
+  if(action==='template.save'||action==='template.remove'){
+   if(api.profile!=='administrateur'&&!state.settings.permissions?.templates)fail('Gestion des modèles non déléguée');
+   if(d.revision!==state.settingsRevision)fail('Conflit : modèles modifiés depuis une autre session.');
+   const models=state.settings.eventTemplates||{},name=d.name;
+   if(!name||name!==name.trim()||name.length>100||['__proto__','constructor','prototype'].includes(name))fail('Nom de modèle invalide');
+   if(action==='template.remove'){if(!Object.hasOwn(models,name))fail('Modèle absent');delete models[name]}
+   else{if(d.oldName&&!Object.hasOwn(models,d.oldName)||name!==d.oldName&&Object.hasOwn(models,name))fail('Modèle absent ou nom déjà utilisé');const m=d.model;if(!m.title?.trim()||!['Créazone','Salle JV'].includes(m.room)||!m.time||m.time>=m.endTime||!['inscription','libre'].includes(m.mode)||m.cap!=null&&(!Number.isInteger(m.cap)||m.cap<1)||m.minAge!=null&&m.minAge<0||m.maxAge!=null&&m.maxAge<(m.minAge??0))fail('Vérifier les paramètres du modèle');if(d.oldName)delete models[d.oldName];models[name]=copy(m)}
+   state.settings.eventTemplates=models;state.settingsRevision++;return {revision:state.settingsRevision};
+  }
   if(action==='config.save'){
    if(d.revision!==state.settingsRevision)fail('Réglages modifiés');
    if(d.renamePost){const {source,target}=d.renamePost;if(!state.settings.stations[source]||!target||target.length>50||['__proto__','constructor','prototype'].includes(target)||Object.keys(state.settings.stations).some(k=>k!==source&&k.toLocaleLowerCase('fr')===target.toLocaleLowerCase('fr'))||d.settings.stations[source]||!d.settings.stations[target])fail('Renommage de poste invalide');for(const a of all())if((state.videos.includes(a)||a.kind==='vid')&&a.post===source){a.post=target;a.revision++}}
