@@ -9,13 +9,17 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LOGIN = """<section><h1>Guichet partagé de développement</h1>
-<p>Données fictives uniquement. Comptes attribués par le service, sans inscription publique.</p>
-<form id="login"><div class="fields">
-<label>Adresse du compte<input name="email" type="email" required autocomplete="username"></label>
-<label>Mot de passe<input name="password" type="password" required autocomplete="current-password"></label>
-</div><button name="submit" disabled>Se connecter</button><p id="loginMsg" role="status"></p></form>
-<p id="sessionProfile" hidden></p><p id="syncStatus" role="status"></p></section>"""
+LOGIN = """<section id="access"><form id="login">
+<h1>Guichet médiathèque</h1><p>Données fictives uniquement.</p>
+<div class="loginOptions">
+<button name="agentLogin" type="button" class="primary" disabled>Entrer en tant qu’agent</button>
+<button name="adminLogin" type="button" aria-expanded="false" aria-controls="adminLoginFields" disabled>Entrer en tant qu’administrateur</button>
+</div>
+<div id="adminLoginFields" hidden><label>Mot de passe administrateur<input name="password" type="password" autocomplete="current-password" required></label>
+<button name="submit" class="primary" disabled>Se connecter</button></div>
+<p id="loginMsg" role="status"></p></form>
+<div class="sessionTools"><p id="sessionProfile" hidden></p><p id="syncStatus" role="status"></p><button id="logout" type="button" hidden>Se déconnecter</button></div>
+</section>"""
 
 
 # Dériver la page connectée de la construction autonome et adapter sa politique CSP.
@@ -24,7 +28,8 @@ def dev_page(url):
 
     # Une nouvelle source reçoit une nouvelle URL : le cache ne mélange pas les versions.
     def asset(name):
-        digest = hashlib.sha256((ROOT / "dev" / name).read_bytes()).hexdigest()[:16]
+        source = (ROOT / "dev" / name).read_text(encoding="utf-8")
+        digest = hashlib.sha256(source.encode("utf-8")).hexdigest()[:16]
         return f"/dev/{name}?v={digest}"
 
     # Conserver les empreintes des scripts/styles de la page autonome.

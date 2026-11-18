@@ -123,24 +123,8 @@ globalThis.guichetDirectory = (() => {
   };
   function eventCheck(ev) {
     dateCheck(ev.date);
-    if (
-      !['Créazone', 'Salle JV'].includes(ev.room) ||
-      !ev.time ||
-      !ev.endTime ||
-      ev.time >= ev.endTime
-    )
-      fail('Choisir une salle et deux horaires valides');
-    if (
-      state.events.some(
-        (x) =>
-          x.id !== ev.id &&
-          x.date === ev.date &&
-          x.room === ev.room &&
-          x.time < ev.endTime &&
-          ev.time < x.endTime,
-      )
-    )
-      fail('La salle accueille déjà une animation sur cet horaire');
+    if (!ev.time || !ev.endTime || ev.time >= ev.endTime)
+      fail('Renseigner deux horaires valides');
   }
   // Vérifier capacité, jeu commun et quota quotidien avant toute mutation.
   function booking(d, old = []) {
@@ -280,8 +264,8 @@ globalThis.guichetDirectory = (() => {
         const m = d.model;
         if (
           !m.title?.trim() ||
-          !['Créazone', 'Salle JV'].includes(m.room) ||
           !m.time ||
+          !m.endTime ||
           m.time >= m.endTime ||
           !['inscription', 'libre'].includes(m.mode) ||
           (m.cap != null && (!Number.isInteger(m.cap) || m.cap < 1)) ||
@@ -431,10 +415,15 @@ globalThis.guichetDirectory = (() => {
       for (const p of list) {
         if (ev.guests.some((g) => g.card === p.card && !old.includes(g)))
           fail('Carte déjà inscrite');
-        if (ev.cap && p.companions) fail('Chaque personne doit avoir sa carte');
-        if (p.companions !== (p.companionNames || []).length)
-          fail('Nommer les accompagnateurs');
-        ensure(p.card);
+        if (!old.length && (p.companions || p.companionNames?.length))
+          fail('Inscrire uniquement des participants avec une carte');
+        const age = String(p.age ?? '').trim();
+        if (!age && (!old.length || ev.minAge != null || ev.maxAge != null))
+          fail('Renseigner l’âge de chaque participant');
+        const years = Number(age) / (p.ageUnit === 'mois' ? 12 : 1);
+        if (age && (!Number.isFinite(years) || years < (ev.minAge ?? 0) || years > Math.min(ev.maxAge ?? 130, 130)))
+          fail('Vérifier les conditions d’âge de la séance');
+        if (!/^ESSAI-[0-9]{1,4}$/.test(p.card)) fail('Vérifier la carte fictive');
       }
       if (
         ev.cap &&
@@ -445,8 +434,13 @@ globalThis.guichetDirectory = (() => {
         e.guests = e.guests.filter((x) => !old.includes(x));
       state.trash = state.trash.filter((x) => !old.includes(x));
       const group = crypto.randomUUID();
-      for (const p of list)
-        add(ev.guests, { ...p, eventId: ev.id, date: ev.date, group });
+      for (const p of list) {
+        ensure(p.card);
+        add(ev.guests, {
+          ...p, ...(!old.length ? { companions: 0 } : {}),
+          eventId: ev.id, date: ev.date, group,
+        });
+      }
     } else if (action === 'count.add') {
       const ev =
         state.events.find((x) => x.id === d.eventId) || fail('Séance absente');

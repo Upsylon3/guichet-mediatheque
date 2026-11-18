@@ -49,9 +49,11 @@ let state = {
   people = {},
   poll,
   refreshPromise,
+  completedCardAt = -Infinity,
   personRequest = 0,
   initialized = false;
 let month = new Date(),
+  selectedDate = '',
   lastVideo = {},
   lastUndo,
   tableFilters = {},
@@ -71,6 +73,12 @@ const labelDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('fr-FR');
 const nameOf = (card) =>
   [people[card]?.prenom, people[card]?.nom].filter(Boolean).join(' ');
 const cardLabel = (card) => [card, nameOf(card)].filter(Boolean).join(' · ');
+const searchKey = (value) =>
+  value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLocaleLowerCase('fr').trim();
+const matchesPerson = (person, query) => {
+  const key = searchKey(cardLabel(person.carte));
+  return searchKey(query).split(/\s+/).every((part) => key.includes(part));
+};
 const may = (right) =>
   admin() ||
   (!['bulk', 'export', 'stats'].includes(right) &&
@@ -90,13 +98,17 @@ const rows = (items) => items.map((x) => ({ id: x.id, revision: x.revision }));
 const notice = (text) => ($('notice').textContent = text);
 const cardPattern = api.demo
   ? 'required pattern="ESSAI-[0-9]{1,4}" title="Utiliser une carte ESSAI" placeholder="ESSAI-01"'
-  : 'required pattern="[0-9]{7}" title="Saisir les 7 chiffres imprimés sous le code-barres" placeholder="0000001"';
+  : 'required data-card maxlength="7" inputmode="numeric" pattern="[0-9]{7}" title="Saisir les 7 chiffres imprimés sous le code-barres" placeholder="0000001"';
 // Adapter la structure commune au mode autonome ou au guichet connecté.
 document.querySelector('header .muted').textContent = api.demo
   ? 'Démonstration autonome · données fictives'
   : 'Développement partagé · données fictives uniquement';
 $('role').closest('label').hidden = !api.demo;
 for (const input of document.querySelectorAll('input[name=card]')) {
+  if (!api.demo) {
+    input.maxLength = 7;
+    input.inputMode = 'numeric';
+  }
   input.pattern = api.demo ? 'ESSAI-[0-9]{1,4}' : '[0-9]{7}';
   input.placeholder = api.demo ? 'ESSAI-01' : '0000001';
   input.title = api.demo
@@ -111,7 +123,7 @@ for (const label of document.querySelectorAll('label'))
     label.firstChild.textContent = api.demo
       ? 'Carte fictive'
       : 'Carte (7 chiffres)';
-$('lookup').placeholder = api.demo ? 'ESSAI-01' : '0000001';
+$('lookup').placeholder = api.demo ? 'ESSAI-01 ou nom' : '0000001 ou nom';
 $('board')
   .querySelector('.fields')
   .insertAdjacentHTML(
@@ -121,7 +133,7 @@ $('board')
   );
 $('board').insertAdjacentHTML(
   'afterend',
-  '<div class="actions"><label>Filtrer les consultations<input id="filter-soc"></label><button id="bulkBoard">Corriger la sélection</button></div>',
+  '<div class="actions"><button type="button" id="boardDay" aria-pressed="true">Jour sélectionné</button><button type="button" id="boardAll" aria-pressed="false">Toutes les consultations</button><label>Filtrer les consultations<input id="filter-soc"></label><button id="bulkBoard">Corriger la sélection</button></div>',
 );
 $('videos').insertAdjacentHTML(
   'beforebegin',
@@ -131,7 +143,7 @@ $('ani')
   .querySelector('.bar')
   .insertAdjacentHTML(
     'afterend',
-    '<button id="quickRegister" class="primary">Inscrire</button>',
+    '<div class="bar"><h2>Séances d’animation</h2><button id="quickRegister" class="primary">Inscrire</button></div>',
   );
 $('quickRegister').onclick = quickRegistration;
 $('calendar').insertAdjacentHTML(
@@ -141,10 +153,6 @@ $('calendar').insertAdjacentHTML(
 $('openAdmin').insertAdjacentHTML(
   'afterend',
   '<button id="openTrash">Corbeille</button><button id="undo" disabled>Annuler la dernière opération</button>',
-);
-$('settings').insertAdjacentHTML(
-  'beforeend',
-  '<h3>Comptes attribués par le service</h3><button id="manageRoles">Gérer les habilitations</button><p>Les comptes sont créés par l’administration Auth du service, sans inscription publique.</p>',
 );
 $('deleteUser').insertAdjacentHTML(
   'beforebegin',
@@ -160,12 +168,11 @@ $('pending').insertAdjacentHTML(
 );
 $('config').insertAdjacentHTML(
   'beforeend',
-  `<h3>Disponibilité du poste</h3><label><span><input name="enabled" type="checkbox" checked> Poste ouvert</span></label>${field('Consigne affichée', 'instruction')}
+  `<h3>Disponibilité du poste</h3><label><span><input name="enabled" type="checkbox" checked> Poste ouvert</span></label>${field('Usage ou nom secondaire', 'postAlias', '', 'text', 'maxlength="50"')}${field('Consigne affichée', 'instruction')}
 <h3>Exception pour une date</h3><div class="fields">${field('Date de l’exception', 'exceptionDate', '', 'date')}<label><span><input type="checkbox" name="exceptionClosed"> Fermer le poste ce jour</span></label></div>
 <label>Créneaux exceptionnels (un par ligne)<textarea name="exceptionSlots" rows="3"></textarea></label><label>Jeux exceptionnels (un par ligne)<textarea name="exceptionGames" rows="3"></textarea></label><p>Une date et des horaires vides conservent la grille habituelle. Les réservations incompatibles bloquent l’enregistrement.</p>
 <h3>Journées fermées</h3><label>Dates AAAA-MM-JJ (une par ligne)<textarea name="closedDates" rows="3"></textarea></label>
-<h3>Actions déléguées aux agents</h3>${['edit', 'cancel', 'bulk', 'export', 'templates'].map((k, i) => `<label><span><input type="checkbox" name="permission-${k}"> ${['Corriger et déplacer', 'Annuler des inscriptions', 'Importer et corriger en lot', 'Exporter une sélection nominative', 'Gérer les modèles d’animations'][i]}</span></label>`).join('')}
-<h3>Raccourcis du service</h3>${field('Catalogue', 'catalogue', '', 'url')}${field('V-smart (facultatif)', 'vsmart', '', 'url')}
+<h3>Actions déléguées aux agents</h3>${['edit', 'cancel', 'templates'].map((k, i) => `<label><span><input type="checkbox" name="permission-${k}"> ${['Modifier les consultations et déplacer les inscriptions', 'Retirer les consultations et les inscriptions', 'Créer, modifier ou supprimer les modèles d’animation'][i]}</span></label>`).join('')}
 <h3>Boîtes de jeux de société</h3><div class="fields">${field('Numéro de boîte', 'boxCode')}${field('Titre', 'boxTitle')}${select('Secteur de la boîte', 'boxSector', ['Jeunesse', 'Pop Zone'], 'Jeunesse')}</div><p>Pour ajouter ou corriger une boîte, renseigner ces champs puis enregistrer les réglages.</p>`,
 );
 $('config')
@@ -176,7 +183,7 @@ $('config')
   );
 $('config').insertAdjacentHTML(
   'beforeend',
-  '<h3>Types d’animation</h3><label>Types proposés (un par ligne)<textarea name="eventTypes" rows="3"></textarea></label><label><span><input name="askAge" type="checkbox" checked> Proposer le champ âge dans les animations</span></label>',
+  '<h3>Types d’animation</h3><label>Types proposés (un par ligne)<textarea name="eventTypes" rows="3"></textarea></label>',
 );
 $('config').append($('config').querySelector('.actions'), $('configMsg'));
 
@@ -223,6 +230,7 @@ api.onReady = async () => {
   if (!initialized) {
     month = new Date(day().slice(0, 7) + '-01T12:00:00');
     $('board').elements.date.value = day();
+      selectedDate = day();
     initialized = true;
   }
   $('board').elements.date.min = day();
@@ -236,12 +244,32 @@ function updateKnown(input) {
   if (output) output.value = nameOf(input.value.trim());
 }
 document.addEventListener('input', (e) => {
-  if (e.target.name === 'card') {
-    e.target.value = e.target.value.trim();
-    e.target.setCustomValidity('');
-    updateKnown(e.target);
+  const input = e.target;
+  if (input.name === 'card' || input.hasAttribute('data-card')) {
+    const before = input.value;
+    input.value = api.demo ? before.trim() : before.replace(/[^0-9]/g, '').slice(0, 7);
+    input.setCustomValidity('');
+    if (input.name === 'card') updateKnown(input);
+    if (!api.demo && input.value.length === 7 && document.activeElement === input) {
+      const controls = [...input.form.elements];
+      const next = controls.slice(controls.indexOf(input) + 1).find((control) =>
+        control.matches('input:not([readonly]), select, button:not(.removePlayer)') &&
+        !control.disabled && control.getClientRects().length,
+      );
+      if (next) {
+        completedCardAt = performance.now();
+        next.focus();
+      }
+    }
   }
-});
+}, true);
+document.addEventListener('keydown', (event) => {
+  // Certaines douchettes ajoutent immédiatement une touche Entrée ou Tab.
+  if (['Enter', 'Tab'].includes(event.key) && performance.now() - completedCardAt < 90) {
+    event.preventDefault();
+    completedCardAt = -Infinity;
+  }
+}, true);
 document.addEventListener(
   'invalid',
   (e) => {
@@ -459,26 +487,47 @@ function renderTrash() {
 }
 
 // Annuaire et compléments : aucun rafraîchissement ne remplace un brouillon.
+let userPage = 0;
+const pageSize = 25;
 function userList() {
-  const search = $('filterUsers').value.trim().toLocaleLowerCase('fr');
-  $('userList').replaceChildren();
-  for (const p of Object.values(people).sort((a, b) =>
-    a.carte.localeCompare(b.carte),
-  )) {
-    const label = cardLabel(p.carte);
-    if (!label.toLocaleLowerCase('fr').includes(search)) continue;
-    const button = document.createElement('button');
-    button.textContent = label;
-    button.onclick = () => openPerson(p.carte);
-    $('userList').append(button);
-  }
+  const query = $('filterUsers').value;
+  const users = Object.values(people)
+    .filter((person) => matchesPerson(person, query))
+    .sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr') ||
+      (a.prenom || '').localeCompare(b.prenom || '', 'fr') ||
+      a.carte.localeCompare(b.carte));
+  userPage = Math.min(userPage, Math.max(0, Math.ceil(users.length / pageSize) - 1));
+  const from = userPage * pageSize;
+  const pageUsers = users.slice(from, from + pageSize);
+  $('userList').innerHTML = users.length
+    ? '<table><thead><tr><th scope="col">Nom</th><th scope="col">Prénom</th><th scope="col">Carte</th><th scope="col">Fiche</th></tr></thead><tbody>' +
+      pageUsers.map((person) => `<tr><td>${esc(person.nom || '—')}</td><td>${esc(person.prenom || '—')}</td><td>${esc(person.carte)}</td><td><button type="button" data-person="${esc(person.carte)}" aria-label="Ouvrir la fiche ${esc(cardLabel(person.carte))}">Ouvrir</button></td></tr>`).join('') +
+      '</tbody></table>'
+    : '<p>Aucun usager trouvé.</p>';
+  $('userPagination').hidden = users.length <= pageSize;
+  $('userPrev').disabled = userPage === 0;
+  $('userNext').disabled = from + pageSize >= users.length;
+  $('userRange').textContent = `${from + 1}–${from + pageUsers.length} sur ${users.length}`;
 }
+for (const [id, offset] of [['userPrev', -1], ['userNext', 1]]) {
+  $(id).onclick = () => {
+    userPage += offset;
+    userList();
+  };
+}
+$('userList').onclick = (event) => {
+  const card = event.target.closest('button[data-person]')?.dataset.person;
+  if (card) openPerson(card);
+};
 $('openUsers').onclick = () => {
   $('users').hidden = !$('users').hidden;
   $('settings').hidden = true;
   userList();
 };
-$('filterUsers').oninput = userList;
+$('filterUsers').oninput = () => {
+  userPage = 0;
+  userList();
+};
 $('createUser').onclick = () => openPerson();
 // Garder la fiche indépendante du dialogue des activités et des changements de carte.
 $('closePerson').onclick = () => {
@@ -526,7 +575,7 @@ async function openPerson(card = '') {
   $('personMsg').textContent = '';
   $('mergeUser').hidden = !card || !admin();
   if (!$('personDialog').open) $('personDialog').showModal();
-  (card ? f.first : f.card).focus();
+  (card ? f.last : f.card).focus();
 }
 $('personForm').onsubmit = (e) => {
   e.preventDefault();
@@ -596,6 +645,15 @@ function queue(cards) {
       pending.add(card);
   renderPending();
 }
+function focusIdentity(cards) {
+  const card = cards.find((value) => pending.has(value));
+  if (card && !$('pending').hidden) {
+    const form = $('identity');
+    form.elements.reader.value = card;
+    readDraft();
+    return form.elements.last;
+  }
+}
 function renderPending() {
   const f = $('identity').elements,
     selected = f.reader.value;
@@ -663,11 +721,26 @@ $('identity').onsubmit = (e) => {
   );
 };
 
-function search() {
-  const card = $('lookup').value.trim(),
+function search(selectedCard) {
+  const query = $('lookup').value.trim(),
     list = $('results');
   list.replaceChildren();
-  if (!card) return;
+  if (!query) return;
+  const matches = Object.values(people).filter((person) => matchesPerson(person, query));
+  const card = selectedCard || (people[query] ? query : matches.length === 1 ? matches[0].carte : '');
+  if (!card) {
+    for (const person of matches) {
+      const button = document.createElement('button');
+      button.textContent = cardLabel(person.carte);
+      button.onclick = () => {
+        $('lookup').value = person.carte;
+        search(person.carte);
+      };
+      list.append(button);
+    }
+    if (!matches.length) list.textContent = 'Aucun usager trouvé.';
+    return;
+  }
   const lines = [
     cardLabel(card),
     ...state.boards
@@ -689,6 +762,11 @@ function search() {
           `${labelDate(x.date)} · ${x.time} · ${x.title} · ${x.info || ''}`,
       ),
   ];
+  const person = document.createElement('button');
+  person.type = 'button';
+  person.textContent = 'Ouvrir la fiche';
+  person.onclick = () => openPerson(card);
+  list.append(person);
   for (const line of lines) {
     const p = document.createElement('p');
     p.textContent = line;
@@ -701,7 +779,13 @@ function search() {
     list.append(p);
   }
 }
-$('lookup').oninput = search;
+$('lookup').oninput = clampSearch;
+$('filterUsers').addEventListener('input', clampSearch, true);
+function clampSearch(event) {
+  const input = event.target;
+  if (!api.demo && /^\d{8,}$/.test(input.value)) input.value = input.value.slice(0, 7);
+  if (input === $('lookup')) search();
+}
 for (const b of document.querySelectorAll('[data-tab]'))
   b.onclick = () => {
     for (const x of document.querySelectorAll('[data-tab]')) {
@@ -718,17 +802,39 @@ $('sector').onchange = () => {
     localStorage.setItem('guichet-secteur', $('sector').value);
   } catch {}
   renderBoards();
+  renderBoxSuggestions();
+  calendar();
 };
+function renderBoxSuggestions(sector = $('editBoard')?.elements.sector.value || $('sector').value) {
+  $('boxSuggestions').innerHTML = Object.entries(state.settings.boxes || {})
+    .filter(([, box]) => box.sector === sector)
+    .map(([code, box]) => `<option value="${esc(code)}" label="${esc(box.title)}"></option>`)
+    .join('');
+}
+function boxCode(input, sector) {
+  const value = input.value.trim();
+  const boxes = state.settings.boxes || {};
+  input.setCustomValidity('');
+  if (Object.hasOwn(boxes, value)) return value;
+  const matches = Object.entries(boxes).filter(([, box]) =>
+    box.sector === sector && searchKey(box.title) === searchKey(value),
+  );
+  input.setCustomValidity(matches.length > 1 ? 'Plusieurs boîtes portent ce titre. Choisissez leur numéro.' : '');
+  return matches.length === 1 ? matches[0][0] : value;
+}
 $('board').elements.box.oninput = () => {
+  const code = boxCode($('board').elements.box, $('sector').value);
   $('board').elements.boxTitle.value =
-    state.settings.boxes?.[$('board').elements.box.value.trim()]?.title ||
+    state.settings.boxes?.[code]?.title ||
     'Boîte à compléter';
 };
 $('board').onsubmit = (e) => {
   e.preventDefault();
   const f = e.target.elements,
     card = f.card.value.trim(),
-    date = f.date.value;
+    date = f.date.value,
+    box = boxCode(f.box, $('sector').value);
+  if (!f.box.reportValidity()) return;
   submit(
     e.target,
     'notice',
@@ -737,16 +843,20 @@ $('board').onsubmit = (e) => {
       card,
       date,
       sector: $('sector').value,
-      box: f.box.value.trim(),
+      box,
       kids: +f.kids.value,
       adults: +f.adults.value,
     },
     () => {
       queue([card]);
       e.target.reset();
-      f.date.value = day();
+      if (date !== selectedDate) {
+        month = new Date(date.slice(0, 7) + '-01T12:00:00');
+        selectActivityDate(date);
+      }
+      f.date.value = selectedDate || day();
       notice('Consultation enregistrée.');
-      return f.card;
+      return focusIdentity([card]) || f.card;
     },
     (result) => inverseAdd('board', result),
   );
@@ -806,32 +916,45 @@ function table(container, items, kind, description, edit) {
   else $(container).textContent = 'Aucune saisie.';
 }
 function renderBoards() {
+  const allDates = !!tableFilters.boardAll;
+  $('boardDay').setAttribute('aria-pressed', String(!allDates));
+  $('boardAll').setAttribute('aria-pressed', String(allDates));
   table(
     'boards',
-    state.boards.filter((x) => x.sector === $('sector').value),
+    state.boards.filter((x) => x.sector === $('sector').value && (allDates || x.date === selectedDate)),
     'board',
     (x) =>
-      `${labelDate(x.date)} · ${cardLabel(x.card)} · ${state.settings.boxes?.[x.box]?.title || 'Boîte ' + x.box} · ${x.kids} enf. + ${x.adults} ad. = ${x.kids + x.adults}`,
+      `${labelDate(x.date)} · ${cardLabel(x.card)} · Boîte ${x.box}${state.settings.boxes?.[x.box]?.title ? ' · ' + state.settings.boxes[x.box].title : ''} · ${x.kids} enf. + ${x.adults} ad. = ${x.kids + x.adults}`,
     editBoard,
   );
+}
+for (const [id, allDates] of [['boardDay', false], ['boardAll', true]]) {
+  $(id).onclick = () => {
+    tableFilters.boardAll = allDates;
+    renderBoards();
+  };
 }
 function editBoard(item) {
   modal(
     'Corriger la consultation',
-    `<form id="editBoard"><div class="fields">${field('Carte', 'card', item.card, 'text', cardPattern)}${field('Boîte', 'box', item.box, 'text', 'required')}${field('Date', 'date', item.date, 'date', `required min="${day()}"`)}${select('Secteur', 'sector', ['Jeunesse', 'Pop Zone'], item.sector)}${field('Enfants', 'kids', item.kids, 'number', 'min="0" required')}${field('Adultes', 'adults', item.adults, 'number', 'min="0" required')}</div><p role="status" id="editMsg"></p><button>Enregistrer</button></form>`,
+    `<form id="editBoard"><div class="fields">${field('Carte', 'card', item.card, 'text', cardPattern)}${field('Numéro ou titre de boîte', 'box', item.box, 'text', 'required list="boxSuggestions"')}${field('Date', 'date', item.date, 'date', `required min="${day()}"`)}${select('Secteur', 'sector', ['Jeunesse', 'Pop Zone'], item.sector)}${field('Enfants', 'kids', item.kids, 'number', 'min="0" required')}${field('Adultes', 'adults', item.adults, 'number', 'min="0" required')}</div><p role="status" id="editMsg"></p><button>Enregistrer</button></form>`,
   );
+  renderBoxSuggestions(item.sector);
+  $('editBoard').elements.sector.onchange = (event) => renderBoxSuggestions(event.target.value);
+  $('editBoard').elements.box.oninput = (event) => event.target.setCustomValidity('');
   $('editBoard').onsubmit = (e) => {
     e.preventDefault();
     const f = e.target.elements,
       data = {
         ...item,
         card: f.card.value.trim(),
-        box: f.box.value.trim(),
+        box: boxCode(f.box, f.sector.value),
         date: f.date.value,
         sector: f.sector.value,
         kids: +f.kids.value,
         adults: +f.adults.value,
       };
+    if (!f.box.reportValidity()) return;
     submit(
       e.target,
       'editMsg',
@@ -862,24 +985,39 @@ function station(post, date) {
       }
     : null;
 }
+const stationUse = {
+  ZELDA: 'Exploration',
+  PEACH: 'Course',
+  MARIO: 'Multijoueur',
+  ELLIE: 'Aventure',
+  SACKBOY: 'Coopération',
+  SPYRO: 'Solo',
+};
+function stationLabel(post, settings = state.settings) {
+  const alias = settings.stations[post]?.alias ?? (Object.hasOwn(stationUse, post) ? stationUse[post] : '');
+  return [post, alias].filter(Boolean).join(' · ');
+}
+function stationOptions(selected) {
+  return Object.keys(state.settings.stations).map((post) =>
+    `<option value="${esc(post)}" ${post === selected ? 'selected' : ''}>${esc(stationLabel(post))}</option>`,
+  ).join('');
+}
 function playerRow(
   {
     card = '',
     age = '',
     ageUnit = 'ans',
     category = 'Enfant',
-    companionNames = [],
   } = {},
   ageFields = false,
-  unlimited = false,
 ) {
-  return `<div class="player fields">${field('Carte', 'card', card, 'text', cardPattern)}<output name="known">${esc(nameOf(card))}</output>${ageFields ? select('Participant', 'category', ['Enfant', 'Adulte'], category) + field('Âge facultatif', 'age', age, 'number', 'min="0" step="0.1"') + select('Unité', 'ageUnit', ['ans', 'mois'], ageUnit) : ''}${unlimited ? `<label>Noms des accompagnateurs sans carte (un par ligne)<textarea name="companionNames" rows="2">${esc(companionNames.join('\n'))}</textarea></label>` : ''}<button type="button" class="removePlayer">Retirer cette personne</button></div>`;
+  return `<div class="player fields">${field('Carte', 'card', card, 'text', cardPattern)}<output name="known">${esc(nameOf(card))}</output>${ageFields ? select('Participant', 'category', ['Enfant', 'Adulte'], category) + field('Âge', 'age', age, 'number', 'required min="0" step="0.1"') + select('Unité', 'ageUnit', ['ans', 'mois'], ageUnit) : ''}<button type="button" class="removePlayer">Retirer cette personne</button></div>`;
 }
-function bindPlayers(form, ageFields = false, unlimited = false) {
+function bindPlayers(form, ageFields = false) {
   form.querySelector('.addPlayer').onclick = () => {
     form
       .querySelector('.players')
-      .insertAdjacentHTML('beforeend', playerRow({}, ageFields, unlimited));
+      .insertAdjacentHTML('beforeend', playerRow({}, ageFields));
     bindRemovals(form);
   };
   bindRemovals(form);
@@ -893,16 +1031,9 @@ function bindRemovals(form) {
 }
 function players(form) {
   return [...form.querySelectorAll('.player')].map((row) => {
-    const names =
-      row
-        .querySelector('[name=companionNames]')
-        ?.value.split('\n')
-        .map((x) => x.trim())
-        .filter(Boolean) || [];
     return {
       card: row.querySelector('[name=card]').value.trim(),
-      companions: names.length,
-      companionNames: names,
+      companions: 0,
       ...(row.querySelector('[name=age]')
         ? {
             age: row.querySelector('[name=age]').value,
@@ -946,13 +1077,13 @@ function defaultSlot(slots, date) {
     : slots[0]?.slice(0, 5);
 }
 // Réutiliser le formulaire JV pour une inscription et pour un déplacement.
-function videoForm(moving = []) {
-  const initial = moving[0] || { ...lastVideo, date: day(), slot: '' },
+function videoForm(moving = [], picked = {}) {
+  const initial = moving[0] || { ...lastVideo, date: selectedDate >= day() ? selectedDate : day(), slot: '', ...picked },
     date = initial.date || day(),
     post = initial.post || Object.keys(state.settings.stations)[0];
   modal(
     moving.length ? 'Déplacer les joueurs' : 'Inscrire aux jeux vidéo',
-    `<form id="vf"><div class="fields">${field('Jour', 'date', date, 'date', `required min="${day()}"`)}${select('Poste', 'post', Object.keys(state.settings.stations), post)}<label>Créneau<select name="slot" required></select></label><label>Jeu<select name="game" required></select></label></div><p id="videoInstruction"></p><div class="players">${(moving.length ? moving : [{}]).map((p) => playerRow(p)).join('')}</div><button type="button" class="addPlayer">Ajouter un joueur</button><p id="vfmsg" role="status"></p><div id="alternatives"></div><button class="primary">${moving.length ? 'Déplacer' : 'Inscrire'}</button></form>`,
+    `<form id="vf"><div class="fields">${field('Jour', 'date', date, 'date', `required min="${day()}"`)}<label>Poste<select name="post" required>${stationOptions(post)}</select></label><label>Créneau<select name="slot" required></select></label><label>Jeu<select name="game" required></select></label></div><p id="videoInstruction"></p><div class="players">${(moving.length ? moving : [{}]).map((p) => playerRow(p)).join('')}</div><button type="button" class="addPlayer">Ajouter un joueur</button><p id="vfmsg" role="status"></p><div id="alternatives"></div><button class="primary">${moving.length ? 'Déplacer' : 'Inscrire'}</button></form>`,
   );
   const form = $('vf'),
     f = form.elements;
@@ -1046,6 +1177,12 @@ function videoForm(moving = []) {
         availability();
         $('vfmsg').textContent =
           'Inscription enregistrée. ' + $('vfmsg').textContent;
+        notice('Inscription aux jeux vidéo enregistrée.');
+        const identity = focusIdentity(group.map((player) => player.card));
+        if (identity && !api.demo) {
+          $('modal').close();
+          return identity;
+        }
         return form.querySelector('[name=card]');
       },
       (result) =>
@@ -1134,23 +1271,24 @@ function calendar() {
     n++
   ) {
     const date = iso(new Date(month.getFullYear(), month.getMonth(), n)),
-      events = state.events.filter((e) => e.date === date),
+      summaries = calendarSummaries(date),
       b = document.createElement('button');
     b.className =
-      'day' + (date === day() ? ' today' : '') + (events.length ? ' busy' : '');
+      'day' + (date === day() ? ' today' : '') + (summaries.length ? ' busy' : '');
     b.dataset.date = date;
-    if (beyondHorizon(date)) {
+    b.setAttribute('aria-pressed', String(date === selectedDate));
+    if (activeTab === 'ani' && beyondHorizon(date)) {
       b.classList.add('beyondHorizon');
       b.title = 'Au-delà de J+15 : confirmation nécessaire pour inscrire';
     }
     b.textContent = n;
-    b.setAttribute('aria-label', labelDate(date));
-    for (const ev of events) {
+    b.setAttribute('aria-label', [labelDate(date), ...summaries].join(' · '));
+    for (const summary of summaries) {
       const s = document.createElement('small');
-      s.textContent = ev.title;
+      s.textContent = summary;
       b.append(s);
     }
-    b.onclick = () => openDay(date);
+    b.onclick = () => selectActivityDate(date, true);
     b.onkeydown = (e) => {
       const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[
         e.key
@@ -1167,6 +1305,30 @@ function calendar() {
     grid.append(b);
   }
 }
+function calendarSummaries(date) {
+  if (activeTab === 'ani') return state.events.filter((event) => event.date === date).map((event) => event.title);
+  if (activeTab === 'soc') {
+    const count = state.boards.filter((board) => board.date === date && board.sector === $('sector').value).length;
+    return count ? [count + ' consultation(s)'] : [];
+  }
+  const count = state.videos.filter((video) => video.date === date).length;
+  if (count) return [count + ' réservation(s)'];
+  const open = Object.keys(state.settings.stations).some((post) =>
+    !state.settings.closedDates?.includes(date) && station(post, date).enabled !== false && station(post, date).slots.length,
+  );
+  return open ? ['Créneaux ouverts'] : [];
+}
+function selectActivityDate(date, open = false) {
+  selectedDate = date;
+  calendar();
+  if (open && activeTab === 'soc') tableFilters.boardAll = false;
+  renderBoards();
+  if (open && activeTab === 'vid') tableFilters.videoToday = true;
+  renderVideoPlanning();
+  $('board').elements.date.value = date >= day() ? date : day();
+  $('board').hidden = date < day();
+  if (open && activeTab === 'ani') openDay(date);
+}
 $('prev').onclick = () => {
   month.setMonth(month.getMonth() - 1);
   calendar();
@@ -1177,7 +1339,7 @@ $('next').onclick = () => {
 };
 $('now').onclick = () => {
   month = new Date(day().slice(0, 7) + '-01T12:00:00');
-  calendar();
+  selectActivityDate(day());
 };
 function openDay(date) {
   modal(
@@ -1205,13 +1367,12 @@ function editEvent(ev = {}, duplicate = false) {
         ? 'Modifier la séance'
         : 'Nouvelle animation',
     `<form id="af"><div class="fields">
- ${field('Titre', 'title', ev.title || '', 'text', 'required')}${select('Type d’animation (facultatif)', 'eventType', ['', ...(defaults.eventTypes || [])], ev.eventType || '')}${field('Jour', 'date', ev.date || day(), 'date', `required min="${day()}"`)}${field('Heure de début', 'time', ev.time || nowTime(), 'time', 'required')}${field('Heure de fin', 'endTime', ev.endTime || addHour(nowTime()), 'time', 'required')}${select('Salle obligatoire', 'room', ['', 'Créazone', 'Salle JV'], ev.room || '')}${field('Renseignements', 'info', ev.info || '')}${field('Intervenant ou référent', 'referent', ev.referent || '')}${field('Public', 'audience', ev.audience || '')}${field('Âge minimum (ans)', 'minAge', ev.minAge ?? '', 'number', 'min="0" step="0.1"')}${field('Âge maximum (ans)', 'maxAge', ev.maxAge ?? '', 'number', 'min="0" step="0.1"')}${select('Mode', 'mode', ['inscription', 'libre'], ev.mode || 'inscription')}${field('Plafond strict facultatif', 'cap', ev.cap ?? defaults.limit ?? '', 'number', 'min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement || '')}</textarea></label>${field('Lien vers un visuel facultatif', 'image', ev.image || '', 'url')}
+ ${field('Titre', 'title', ev.title || '', 'text', 'required')}${select('Type d’animation (facultatif)', 'eventType', ['', ...(defaults.eventTypes || [])], ev.eventType || '')}${field('Jour', 'date', ev.date || day(), 'date', `required min="${day()}"`)}${field('Heure de début', 'time', ev.time || nowTime(), 'time', 'required')}${field('Heure de fin', 'endTime', ev.endTime || addHour(nowTime()), 'time', 'required')}${select('Salle (facultative)', 'room', ['', 'Créazone', 'Salle JV'], ev.room || '')}${field('Renseignements', 'info', ev.info || '')}${field('Intervenant ou référent', 'referent', ev.referent || '')}${field('Public', 'audience', ev.audience || '')}${field('Âge minimum (ans)', 'minAge', ev.minAge ?? '', 'number', 'min="0" step="0.1"')}${field('Âge maximum (ans)', 'maxAge', ev.maxAge ?? '', 'number', 'min="0" step="0.1"')}${select('Mode', 'mode', ['inscription', 'libre'], ev.mode || 'inscription')}${field('Nombre maximal de participants (facultatif)', 'cap', ev.cap ?? defaults.limit ?? '', 'number', 'min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement || '')}</textarea></label>${field('Lien vers un visuel facultatif', 'image', ev.image || '', 'url')}
  ${ev.id && !duplicate ? select('Portée de la modification', 'scope', ['one', 'following', 'all'], 'one') : field('Nombre de séances (1 à 52)', 'repeat', 1, 'number', 'required min="1" max="52"') + select('Récurrence', 'frequency', ['week', 'month'], 'week') + field('Tous les', 'repeatEvery', 1, 'number', 'required min="1" max="12"')}
  <p id="seriesPreview"></p><p id="afmsg" role="status"></p><button class="primary">Enregistrer</button></form>`,
   );
   const form = $('af'),
     f = form.elements;
-  f.room.required = true;
   if (f.scope)
     f.scope.querySelector('[value=all]').textContent =
       'Cette séance et les séances à venir';
@@ -1323,16 +1484,9 @@ function quickRegistration() {
     choice = form.elements.eventId;
   bindPlayers(form, true);
   choice.onchange = () => {
-    const ev = state.events.find((e) => e.id === choice.value),
-      saved = players(form);
-    form.querySelector('.players').innerHTML = saved
-      .map((x) => playerRow(x, true, !!ev && !ev.cap))
-      .join('');
-    bindPlayers(form, true, !!ev && !ev.cap);
+    const ev = state.events.find((e) => e.id === choice.value);
     $('quickInfo').textContent = ev
-      ? (ev.cap
-          ? 'Une carte par personne.'
-          : 'Accompagnateurs sans carte autorisés : renseigner leurs noms.') +
+      ? 'Une carte et un âge par personne.' +
         (beyondHorizon(ev.date)
           ? ' Au-delà de J+15 : une confirmation sera demandée.'
           : '')
@@ -1357,6 +1511,7 @@ function quickRegistration() {
         queue(group.map((x) => x.card));
         $('modal').close();
         notice('Inscription à « ' + ev.title + ' » enregistrée.');
+        return focusIdentity(group.map((player) => player.card));
       },
       (result) => inverseAdd('guest', result),
     );
@@ -1367,7 +1522,7 @@ function quickRegistration() {
 function occupied(ev) {
   return ev.mode === 'libre'
     ? ev.counts.reduce((n, c) => n + c.kids + c.adults, 0)
-    : ev.guests.reduce((n, g) => n + 1 + (ev.count ? g.companions : 0), 0);
+    : ev.guests.length;
 }
 function detailEvent(id) {
   const ev = state.events.find((x) => x.id === id);
@@ -1378,8 +1533,8 @@ function detailEvent(id) {
   selectedEvent = id;
   modal(
     ev.title,
-    `<p>${esc(labelDate(ev.date) + ' · ' + ev.time + (ev.endTime ? '–' + ev.endTime : '') + ' · ' + (ev.room || '') + ' · ' + (ev.info || ''))}</p><p>${esc([ev.referent, ev.audience, ev.minAge != null ? 'À partir de ' + ev.minAge + ' ans' : '', ev.maxAge != null ? 'Jusqu’à ' + ev.maxAge + ' ans' : ''].filter(Boolean).join(' · '))}</p><p>${esc(ev.announcement || '')}</p>${safeLink(ev.image) ? `<p><a href="${esc(safeLink(ev.image))}" target="_blank" rel="noopener noreferrer">Voir le visuel ↗</a></p>` : ''}<p id="eventPlaces">${occupied(ev)}${ev.cap ? ' / ' + ev.cap : ''} personne(s)${!ev.cap ? ' · accompagnateurs nommés sans carte autorisés' : ' · une carte par personne'}</p><div id="guests"></div>
- ${ev.mode === 'libre' ? `<form id="freeCount"><div class="fields">${field('Enfants', 'kids', 0, 'number', 'min="0" required')}${field('Adultes', 'adults', 0, 'number', 'min="0" required')}</div><p id="guestmsg" role="status"></p><button>Ajouter le comptage</button></form>` : `<form id="guest"><div class="players">${playerRow({}, true, !ev.cap)}</div><button type="button" class="addPlayer">Ajouter une personne</button><p id="guestmsg" role="status"></p><button class="primary">Inscrire le groupe</button></form>`}
+    `<p>${esc(labelDate(ev.date) + ' · ' + ev.time + (ev.endTime ? '–' + ev.endTime : '') + ' · ' + (ev.room || '') + ' · ' + (ev.info || ''))}</p><p>${esc([ev.referent, ev.audience, ev.minAge != null ? 'À partir de ' + ev.minAge + ' ans' : '', ev.maxAge != null ? 'Jusqu’à ' + ev.maxAge + ' ans' : ''].filter(Boolean).join(' · '))}</p><p>${esc(ev.announcement || '')}</p>${safeLink(ev.image) ? `<p><a href="${esc(safeLink(ev.image))}" target="_blank" rel="noopener noreferrer">Voir le visuel ↗</a></p>` : ''}<p id="eventPlaces">${occupied(ev)}${ev.cap ? ' / ' + ev.cap : ''} personne(s) · une carte par personne</p><div id="guests"></div>
+ ${ev.mode === 'libre' ? `<form id="freeCount"><div class="fields">${field('Enfants', 'kids', 0, 'number', 'min="0" required')}${field('Adultes', 'adults', 0, 'number', 'min="0" required')}</div><p id="guestmsg" role="status"></p><button>Ajouter le comptage</button></form>` : `<form id="guest"><div class="players">${playerRow({}, true)}</div><button type="button" class="addPlayer">Ajouter une personne</button><p id="guestmsg" role="status"></p><button class="primary">Inscrire le groupe</button></form>`}
  <div class="actions"><button id="change">Modifier</button><button id="duplicate">Dupliquer</button><button id="remove">Supprimer la séance</button></div>`,
   );
   renderGuests(ev);
@@ -1413,18 +1568,10 @@ function detailEvent(id) {
     return;
   }
   const form = $('guest');
-  bindPlayers(form, true, !ev.cap);
+  bindPlayers(form, true);
   if (beyondHorizon(ev.date))
     $('guestmsg').textContent =
       'Au-delà de J+15 : une confirmation sera demandée.';
-  if (
-    state.settings.askAge === false &&
-    ev.minAge == null &&
-    ev.maxAge == null
-  ) {
-    for (const input of form.querySelectorAll('[name=age],[name=ageUnit]'))
-      input.closest('label').hidden = true;
-  }
   form.onsubmit = (e) => {
     e.preventDefault();
     const group = players(form);
@@ -1436,8 +1583,11 @@ function detailEvent(id) {
       { eventId: id, players: group, confirmEarly: beyondHorizon(ev.date) },
       () => {
         queue(group.map((p) => p.card));
-        detailEvent(id);
+        const identity = focusIdentity(group.map((player) => player.card));
+        if (identity && !api.demo) $('modal').close();
+        else detailEvent(id);
         notice('Personne inscrite.');
+        if (!api.demo) return identity;
       },
       (result) => inverseAdd('guest', result),
     );
@@ -1453,10 +1603,7 @@ function renderGuests(ev) {
         ? `${g.kids} enfants + ${g.adults} adultes`
         : cardLabel(g.card) +
           (g.category ? ' · ' + g.category : '') +
-          (g.age ? ` · ${g.age} ${g.ageUnit || 'ans'}` : '') +
-          (g.companionNames?.length
-            ? ' · Accompagnateurs : ' + g.companionNames.join(', ')
-            : ''),
+          (Number.isFinite(+g.age) && g.age !== '' && g.age != null ? ` · ${g.age} ${g.ageUnit || 'ans'}` : ''),
     ev.mode === 'libre' ? null : moveGuest,
   );
 }
@@ -1499,7 +1646,7 @@ function moveGuest(item) {
 // Administration partagée, avec contrôle de révision et protection des réservations.
 function configList(post) {
   $('editPost').innerHTML =
-    opts(Object.keys(state.settings.stations), post) +
+    stationOptions(post) +
     '<option value="">Ajouter un poste</option>';
   readConfig();
 }
@@ -1520,7 +1667,13 @@ function readConfig() {
   form.dataset.postKey = key;
   delete form.dataset.operation;
   delete form.dataset.dirty;
+  delete form.dataset.exceptionDirty;
+  delete form.dataset.exceptionRemove;
+  delete form.dataset.editDate;
+  delete form.dataset.editWeekday;
+  delete form.dataset.gridDirty;
   f.postName.value = key;
+  f.postAlias.value = p?.alias ?? (Object.hasOwn(stationUse, key) ? stationUse[key] : '');
   f.postName.readOnly = false;
   f.postName.maxLength = 50;
   f.capacity.value = p?.capacity || 1;
@@ -1529,7 +1682,6 @@ function readConfig() {
   f.games.value = p?.games.join('\n') || '';
   f.slots.value = p?.slots.join('\n') || '';
   f.limit.value = cfg.limit ?? '';
-  f.count.value = cfg.count || 'oui';
   f.manageEvents.checked = !!cfg.manageEvents;
   f.enabled.checked = p?.enabled !== false;
   f.instruction.value = p?.instruction || '';
@@ -1538,31 +1690,49 @@ function readConfig() {
   f.exceptionSlots.value = '';
   f.exceptionGames.value = '';
   f.closedDates.value = (cfg.closedDates || []).join('\n');
-  for (const k of ['edit', 'cancel', 'bulk', 'export', 'templates'])
+  for (const k of ['edit', 'cancel', 'templates'])
     f['permission-' + k].checked =
       cfg.permissions?.[k] ?? ['edit', 'cancel'].includes(k);
-  for (const k of ['catalogue', 'vsmart']) f[k].value = cfg.links?.[k] || '';
   $('configMsg').textContent = '';
   f.eventTypes.value = (cfg.eventTypes || []).join('\n');
-  f.askAge.checked = cfg.askAge !== false;
   f.boxCode.value = '';
   f.boxTitle.value = '';
   f.boxSector.value = 'Jeunesse';
   f.weekday.onchange = () => {
+    const before = form.dataset.editWeekday || 'default';
+    if (form.dataset.gridDirty && !confirm('Abandonner les modifications de cette grille ?')) {
+      f.weekday.value = before;
+      return;
+    }
+    form.dataset.editWeekday = f.weekday.value;
+    delete form.dataset.gridDirty;
     const grid = { ...p, ...p?.weekdays?.[f.weekday.value] };
     f.capacity.value = grid.capacity;
     f.games.value = grid.games.join('\n');
     f.slots.value = grid.slots.join('\n');
     f.enabled.checked = grid.enabled !== false;
     f.instruction.value = grid.instruction || '';
+    refreshAdminEditors();
   };
   f.exceptionDate.onchange = () => {
+    if (form.dataset.exceptionDirty && !confirm('Abandonner les modifications de cette date ?')) {
+      f.exceptionDate.value = form.dataset.editDate || '';
+      return;
+    }
+    form.dataset.editDate = f.exceptionDate.value;
+    delete form.dataset.exceptionDirty;
+    delete form.dataset.exceptionRemove;
     const ex = p?.exceptions?.[f.exceptionDate.value] || {};
-    f.exceptionClosed.checked = ex.enabled === false;
+    const effective = station(key, f.exceptionDate.value);
+    f.exceptionClosed.checked = effective?.enabled === false;
     f.exceptionSlots.value = ex.slots?.join('\n') || '';
     f.exceptionGames.value = ex.games?.join('\n') || '';
+    if (f.exceptionDate.value) adminWeek = mondayOf(f.exceptionDate.value);
+    $('removeDateException').hidden = !p?.exceptions?.[f.exceptionDate.value];
+    refreshAdminEditors();
   };
   if ($('adminTabs')) {
+    refreshAdminEditors();
     readBoxList();
     applyAdminPanel();
   }
@@ -1631,9 +1801,10 @@ $('config').onsubmit = (e) => {
         },
       };
     }
-    if (f.exceptionDate.value) {
+    if (f.exceptionDate.value && form.dataset.exceptionDirty) {
       p.exceptions = { ...p.exceptions };
-      p.exceptions[f.exceptionDate.value] = {
+      if (form.dataset.exceptionRemove) delete p.exceptions[f.exceptionDate.value];
+      else p.exceptions[f.exceptionDate.value] = {
         enabled: !f.exceptionClosed.checked,
         ...(f.exceptionSlots.value.trim()
           ? {
@@ -1651,12 +1822,13 @@ $('config').onsubmit = (e) => {
       renamePost = { source, target: key };
       delete cfg.stations[source];
     }
+    const alias = f.postAlias.value.trim();
+    if (p.alias !== undefined || alias !== (stationUse[key] || '')) p.alias = alias;
     cfg.stations[key] = p;
     cfg.closedDates = lines(f.closedDates.value);
   } else if (adminSection === 'animations') {
     cfg.limit = f.limit.value === '' ? null : +f.limit.value;
     cfg.eventTypes = lines(f.eventTypes.value);
-    cfg.askAge = f.askAge.checked;
   } else if (adminSection === 'acces') {
     cfg.manageEvents = f.manageEvents.checked;
     cfg.permissions = {
@@ -1667,10 +1839,6 @@ $('config').onsubmit = (e) => {
       export: false,
       templates: f['permission-templates'].checked,
     };
-  } else if (adminSection === 'liens') {
-    cfg.links = Object.fromEntries(
-      ['catalogue', 'vsmart'].map((k) => [k, f[k].value.trim()]),
-    );
   } else if (adminSection === 'societe') {
     const code = f.boxCode.value.trim();
     if (!code || !f.boxTitle.value.trim()) {
@@ -1738,37 +1906,6 @@ $('config').onsubmit = (e) => {
   );
 };
 
-$('manageRoles').onclick = async () => {
-  try {
-    const accounts = await api.accounts();
-    modal(
-      'Habilitations du guichet',
-      `<form id="roles"><label>Compte attribué<select name="account">${accounts.map((a) => `<option value="${esc(a.id)}">${esc(a.email)} · ${esc(a.profil || 'sans accès')}</option>`).join('')}</select></label>${select('Profil', 'profile', ['agent', 'administrateur', 'sans accès'], 'agent')}<p>Une révocation prend effet côté serveur sans attendre le renouvellement du jeton. Le dernier administrateur est protégé.</p><p id="roleMsg" role="status"></p><button>Appliquer</button></form>`,
-    );
-    $('roles').onsubmit = (e) => {
-      e.preventDefault();
-      const f = e.target.elements;
-      if (!confirm('Appliquer cette habilitation au compte sélectionné ?'))
-        return;
-      submit(
-        e.target,
-        'roleMsg',
-        () =>
-          api.setRole(
-            f.account.value,
-            f.profile.value === 'sans accès' ? null : f.profile.value,
-          ),
-        null,
-        () => {
-          $('modal').close();
-          notice('Habilitation appliquée.');
-        },
-      );
-    };
-  } catch (error) {
-    notice(error.message);
-  }
-};
 $('mergeUser').onclick = () => {
   const source = $('personForm').elements.card.value;
   modal(
@@ -1875,31 +2012,9 @@ function safeLink(url) {
     return null;
   }
 }
-function renderLinks() {
-  const header = document.querySelector('header');
-  let links = $('serviceLinks');
-  if (!links) {
-    links = document.createElement('div');
-    links.id = 'serviceLinks';
-    header.append(links);
-  }
-  links.replaceChildren();
-  for (const [key, label] of [['vsmart', 'V-smart ↗']]) {
-    const url = safeLink(state.settings.links?.[key]);
-    if (url) {
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = label;
-      links.append(a);
-    }
-  }
-  const catalogue = safeLink(state.settings.links?.catalogue);
-  if (catalogue) header.querySelector('a').href = catalogue;
-}
 function render() {
   userList();
+  renderBoxSuggestions();
   renderBoards();
   renderVideoPlanning();
   table(
@@ -1915,7 +2030,6 @@ function render() {
   renderTrash();
   renderPending();
   search();
-  renderLinks();
   $('openAdmin').hidden = !may('templates');
   $('openStats').hidden = !admin();
   if (
@@ -2088,8 +2202,12 @@ function activateTab(tab) {
   if (activeTab === 'settings' && tab !== 'settings' && !discardAdminDraft())
     return;
   activeTab = tab;
+  $('lookup').closest('label').hidden = tab === 'users';
+  $('results').hidden = tab === 'users';
   for (const id of ['soc', 'vid', 'ani', 'users', 'settings', 'stats', 'trash'])
     $(id).hidden = id !== tab;
+  $('activityCalendar').hidden = !['soc', 'vid', 'ani'].includes(tab);
+  if (!$('activityCalendar').hidden) calendar();
   for (const b of document.querySelectorAll('[data-tab]'))
     b.setAttribute('aria-current', String(b.dataset.tab === tab));
   $('pending').hidden =
@@ -2106,6 +2224,11 @@ function activateTab(tab) {
 function setupWorkspace() {
   const main = document.querySelector('main'),
     nav = document.querySelector('nav');
+  const activityCalendar = document.createElement('section');
+  activityCalendar.id = 'activityCalendar';
+  activityCalendar.setAttribute('aria-label', 'Calendrier des activités');
+  activityCalendar.append($('ani').querySelector('.bar'), $('calendar'));
+  $('soc').before(activityCalendar);
   const aside = document.createElement('aside');
   aside.id = 'sidebar';
   aside.setAttribute('aria-label', 'Menu du guichet');
@@ -2216,7 +2339,7 @@ function setupWorkspace() {
   const bar = document.createElement('div');
   bar.className = 'bar';
   bar.innerHTML =
-    '<h3>Aujourd’hui</h3><button id="videoToday">Aujourd’hui</button><button id="videoAll">Toutes les réservations</button>';
+    '<button id="videoToday">Jour sélectionné</button><button id="videoAll">Toutes les réservations</button>';
   $('videos').before(bar);
   const planning = document.createElement('div');
   planning.id = 'videoPlanning';
@@ -2234,9 +2357,6 @@ function setupWorkspace() {
   const total = $('totals');
   total.previousElementSibling.remove();
   total.hidden = true;
-  for (const k of ['bulk', 'export'])
-    $('config').elements['permission-' + k].closest('label').hidden = true;
-  $('config').elements.count.closest('label').hidden = true;
   setupAdministration();
   $('exportStats').onclick = exportStats;
   $('statsFilter').onsubmit = (e) => {
@@ -2294,20 +2414,21 @@ function renderVideoPlanning() {
   const container = $('videoPlanning');
   container.replaceChildren();
   if (!today) return;
+  const date = selectedDate || day();
   const posts = Object.keys(state.settings.stations),
     ranges = [
-      ...new Set(posts.flatMap((p) => station(p, day())?.slots || [])),
+      ...new Set(posts.flatMap((p) => station(p, date)?.slots || [])),
     ].sort();
   const t = document.createElement('table');
   t.className = 'planningGrid';
   const caption = document.createElement('caption');
-  caption.textContent = 'Planning JV du ' + labelDate(day());
+  caption.textContent = 'Planning JV du ' + labelDate(date);
   t.append(caption);
   const head = document.createElement('thead'),
     hr = document.createElement('tr');
   for (const label of ['Horaire', ...posts]) {
     const th = document.createElement('th');
-    th.textContent = label;
+    th.textContent = label === 'Horaire' ? label : stationLabel(label);
     hr.append(th);
   }
   head.append(hr);
@@ -2316,7 +2437,7 @@ function renderVideoPlanning() {
   t.append(body);
   for (const range of ranges) {
     const tr = document.createElement('tr');
-    if (range.slice(0, 5) <= nowTime() && range.slice(-5) > nowTime())
+    if (date === day() && range.slice(0, 5) <= nowTime() && range.slice(-5) > nowTime())
       tr.className = 'currentSlot';
     const time = document.createElement('th');
     time.scope = 'row';
@@ -2324,7 +2445,7 @@ function renderVideoPlanning() {
     tr.append(time);
     for (const post of posts) {
       const td = document.createElement('td'),
-        cfg = station(post, day());
+        cfg = station(post, date);
       if (!cfg.slots.includes(range)) {
         td.textContent = 'Hors grille';
         td.className = 'unavailable';
@@ -2333,10 +2454,10 @@ function renderVideoPlanning() {
       }
       const list = state.videos.filter(
           (x) =>
-            x.date === day() && x.post === post && x.slot === range.slice(0, 5),
+            x.date === date && x.post === post && x.slot === range.slice(0, 5),
         ),
         closed =
-          cfg.enabled === false || state.settings.closedDates?.includes(day());
+          cfg.enabled === false || state.settings.closedDates?.includes(date);
       const title = document.createElement('strong');
       title.textContent =
         list[0]?.game || (closed ? 'Poste fermé' : 'Jeu à choisir');
@@ -2369,11 +2490,19 @@ function renderVideoPlanning() {
         ? 'Fermé'
         : Math.max(0, cfg.capacity - list.length) + ' place(s) libre(s)';
       td.append(space);
+      if (!closed && date >= day() && list.length < cfg.capacity) {
+        const booking = document.createElement('button');
+        booking.textContent = 'Inscrire';
+        booking.setAttribute('aria-label', 'Inscrire · ' + post + ' · ' + range);
+        booking.onclick = () => videoForm([], { date, post, slot: range.slice(0, 5) });
+        td.append(booking);
+      }
       tr.append(td);
     }
     body.append(tr);
   }
-  container.append(t);
+  if (ranges.length) container.append(t);
+  else container.textContent = 'Aucun créneau le ' + labelDate(date) + '.';
 }
 async function loadStats() {
   if (!admin()) return;
@@ -2510,7 +2639,6 @@ const adminLabels = {
   animations: 'Animations',
   societe: 'Jeux de société',
   acces: 'Accès des agents',
-  liens: 'Liens du service',
 };
 // Demander confirmation avant d’abandonner des réglages non enregistrés.
 function discardAdminDraft() {
@@ -2571,14 +2699,119 @@ function loadBox(code) {
   f.boxSector.value = box?.sector || 'Jeunesse';
   delete $('config').dataset.dirty;
 }
+const adminEditors = [];
+function adminCollection(input, type, singular) {
+  const wrapper = input.closest('label');
+  const editor = document.createElement('fieldset');
+  editor.className = 'collectionEditor';
+  editor.dataset.collection = input.name;
+  const legend = document.createElement('legend');
+  legend.textContent = wrapper.firstChild.textContent.trim().replace(/ \(.*\)$/, '');
+  const list = document.createElement('div');
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.textContent = 'Ajouter ' + singular;
+  const sync = () => {
+    const rows = [...list.children].map((row) => [...row.querySelectorAll('input')]);
+    if (type !== 'range') {
+      input.value = rows.map(([field]) => field.value).join('\n');
+      return;
+    }
+    rows.sort(([a], [b]) => a.value.localeCompare(b.value));
+    let previousEnd = '';
+    input.value = rows.map(([start, end]) => {
+      let error = '';
+      if (start.value && end.value) {
+        if (start.value >= end.value) error = 'La fin doit suivre le début.';
+        else if (start.value < previousEnd) error = 'Ce créneau chevauche le précédent.';
+        if (end.value > previousEnd) previousEnd = end.value;
+      }
+      end.setCustomValidity(error);
+      return start.value + '–' + end.value;
+    }).join('\n');
+  };
+  const append = (value = '') => {
+    const row = document.createElement('div');
+    row.className = 'collectionRow';
+    const [start, end] = value.split('–');
+    row.innerHTML = (type === 'range'
+      ? field('Début', '', start, 'time', 'required') + field('Fin', '', end, 'time', 'required')
+      : field(type === 'date' ? 'Date' : 'Intitulé', '', value, type, 'required maxlength="100"')) +
+      '<button type="button" aria-label="Retirer ' + singular + '">Retirer</button>';
+    list.append(row);
+    row.querySelector('button').onclick = () => {
+      row.remove();
+      sync();
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      add.focus();
+    };
+    return row;
+  };
+  list.oninput = sync;
+  add.onclick = () => {
+    append().querySelector('input').focus();
+    sync();
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  input.required = false;
+  wrapper.hidden = true;
+  editor.append(legend, list, add);
+  wrapper.after(editor);
+  adminEditors.push(() => {
+    list.replaceChildren();
+    for (const value of lines(input.value)) append(value);
+    sync();
+  });
+}
+function refreshAdminEditors() {
+  for (const refresh of adminEditors) refresh();
+  const editor = $('dateExceptionFields');
+  if (editor) {
+    const date = $('config').elements.exceptionDate.value;
+    editor.hidden = !date;
+    const current = station($('editPost').value, date);
+    $('dateExceptionSummary').textContent = current && current.enabled !== false &&
+      !state.settings.closedDates?.includes(date)
+      ? current.slots.join(' · ') || 'Aucun créneau'
+      : 'Fermé';
+  }
+  renderAdminWeek();
+}
+let adminWeek;
+const mondayOf = (date) => plusDays(date, -((new Date(date + 'T12:00:00').getDay() + 6) % 7));
+function renderAdminWeek() {
+  const grid = $('adminWeek');
+  if (!grid) return;
+  const f = $('config').elements;
+  const monday = adminWeek || mondayOf(day());
+  grid.replaceChildren();
+  for (let i = 0; i < 7; i++) {
+    const date = plusDays(monday, i);
+    const config = station($('editPost').value, date);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'day';
+    button.setAttribute('aria-pressed', String(date === f.exceptionDate.value));
+    button.textContent = new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+    const summary = document.createElement('small');
+    summary.textContent = !config || config.enabled === false || state.settings.closedDates?.includes(date)
+      ? 'Fermé' : config.slots.length + ' créneau(x)';
+    button.append(summary);
+    button.onclick = () => {
+      f.exceptionDate.value = date;
+      f.exceptionDate.onchange();
+      [...grid.children][i]?.focus();
+    };
+    grid.append(button);
+  }
+}
 // Séparer les rubriques d’administration et leurs enregistrements.
 function setupAdministration() {
   const form = $('config'),
     f = form.elements,
     settings = $('settings'),
     actions = form.querySelector('.actions'),
-    msg = $('configMsg'),
-    roles = $('manageRoles');
+    msg = $('configMsg');
   const tabs = document.createElement('div');
   tabs.id = 'adminTabs';
   tabs.className = 'adminTabs';
@@ -2664,45 +2897,72 @@ function setupAdministration() {
   panels.postes.firstElementChild.append(newPost);
   group(
     panels.postes,
-    'Identité et disponibilité',
-    ['postName', 'capacity', 'enabled', 'instruction'],
+    'Identification de la console',
+    ['postName', 'postAlias'],
     'Le nom peut être modifié. Les réservations et les réglages propres au poste suivent son nouveau nom.',
   );
-  group(
+  const schedule = group(
     panels.postes,
-    'Jeux et horaires',
-    ['weekday', 'games', 'slots'],
-    'La grille du jour de semaine remplace la grille habituelle. Un jeu ou un créneau par ligne.',
+    'Disponibilités et créneaux',
+    ['weekday', 'enabled', 'capacity', 'slots'],
+    'Modifier la grille habituelle, un jour récurrent ou une date dans le calendrier du poste.',
   );
   const exceptions = group(
     panels.postes,
     'Exception à une date',
     ['exceptionDate', 'exceptionClosed', 'exceptionSlots', 'exceptionGames'],
-    'Une exception datée prime sur la grille. Sans jeu ou créneau exceptionnel, la grille du jour reste utilisée.',
+    'Une modification à cette date prime sur la grille récurrente. Des créneaux et jeux vides reprennent la grille habituelle du jour.',
   );
   const details = document.createElement('details');
   details.id = 'adminExceptions';
+  details.open = true;
   const summary = document.createElement('summary');
-  summary.textContent = 'Exceptions par date et fermetures';
+  summary.textContent = 'Réglages à une date précise';
   details.append(summary, exceptions);
-  panels.postes.append(details);
+  schedule.append(details);
+  exceptions.insertAdjacentHTML('afterbegin',
+    '<div class="actions"><button type="button" id="adminWeekPrev">Semaine précédente</button><button type="button" id="adminWeekNext">Semaine suivante</button></div><div id="adminWeek" class="week" aria-label="Disponibilités de la console"></div>');
+  exceptions.insertAdjacentHTML('beforeend', '<button id="removeDateException" type="button" hidden>Revenir aux horaires habituels</button>');
+  const exceptionFields = document.createElement('div');
+  exceptionFields.id = 'dateExceptionFields';
+  exceptionFields.className = 'adminFields';
+  exceptionFields.hidden = true;
+  exceptionFields.innerHTML = '<p id="dateExceptionSummary" aria-live="polite"></p>';
+  for (const name of ['exceptionClosed', 'exceptionSlots', 'exceptionGames'])
+    exceptionFields.append(exceptions.querySelector('[name=' + name + ']').closest('label'));
+  exceptionFields.append(exceptions.querySelector('#removeDateException'));
+  exceptions.append(exceptionFields);
+  exceptions.querySelector('#removeDateException').onclick = () => {
+    form.dataset.exceptionDirty = '1';
+    form.dataset.exceptionRemove = '1';
+    form.dataset.dirty = '1';
+    $('configMsg').textContent = 'Enregistrer pour rétablir les horaires habituels à cette date.';
+  };
+  for (const [id, step] of [['adminWeekPrev', -7], ['adminWeekNext', 7]]) {
+    exceptions.querySelector('#' + id).onclick = () => {
+      const base = adminWeek || mondayOf(day());
+      adminWeek = plusDays(base, step);
+      renderAdminWeek();
+    };
+  }
   group(
-    details,
-    'Journées fermées',
+    schedule,
+    'Fermetures de toutes les consoles',
     ['closedDates'],
-    'Dates au format AAAA-MM-JJ, une par ligne. Fermer un poste réservé nécessite une confirmation.',
+    'Une fermeture avec des réservations nécessite une confirmation.',
   );
+  group(panels.postes, 'Jeux', ['games'], 'Liste des jeux pour la grille sélectionnée.');
+  group(panels.postes, 'Consigne', ['instruction']);
   group(
     panels.animations,
     'Valeurs proposées à la création',
-    ['limit', 'askAge', 'eventTypes'],
-    'Ces valeurs concernent les nouvelles séances. Les types servent à classer les séances dans les statistiques.',
+    ['limit', 'eventTypes'],
+    'Le nombre maximal proposé s’applique aux nouvelles séances. Laisser vide pour ne proposer aucune limite.',
   );
-  group(panels.animations, 'Réglage conservé', ['count']);
   const rules = document.createElement('p');
   rules.className = 'adminHelp';
   rules.textContent =
-    'Les salles Créazone et Salle JV, les cartes individuelles et la confirmation au-delà de J+15 suivent les règles communes du service.';
+    'Une carte et un âge sont requis par participant inscrit. Une confirmation est demandée aux agents au-delà de J+15.';
   panels.animations.append(rules);
   const models = document.createElement('fieldset');
   models.id = 'templateManager';
@@ -2731,29 +2991,22 @@ function setupAdministration() {
       'permission-edit',
       'permission-cancel',
       'permission-templates',
-      'permission-bulk',
-      'permission-export',
     ],
-    'Ces droits s’appliquent aux agents réguliers. La gestion des modèles est indépendante de celle des séances. Les statistiques, autres paramètres et suppressions de fiches restent réservés à l’administration.',
-  );
-  const accountGroup = document.createElement('fieldset');
-  accountGroup.className = 'adminGroup';
-  accountGroup.innerHTML =
-    '<legend>Comptes du personnel</legend><p class="muted">Créer les comptes dans l’administration Auth du service, puis leur attribuer une habilitation. L’inscription publique est désactivée.</p>';
-  roles.type = 'button';
-  accountGroup.append(roles);
-  panels.acces.append(accountGroup);
-  group(
-    panels.liens,
-    'Raccourcis du service',
-    ['catalogue', 'vsmart'],
-    'Adresses complètes commençant par https:// ou http://. V-smart est facultatif.',
+    'Ces autorisations s’appliquent à toutes les sessions Agent. La gestion des modèles est indépendante de celle des séances. Les statistiques, autres paramètres et suppressions de fiches restent réservés à l’administration.',
   );
   actions.classList.add('adminActions');
   actions.querySelector('button').id = 'adminSave';
   msg.className = 'adminFeedback';
   actions.append(msg);
   form.replaceChildren(...Object.values(panels), actions);
+  for (const [name, type, singular] of [
+    ['slots', 'range', 'un créneau'],
+    ['exceptionSlots', 'range', 'un créneau exceptionnel'],
+    ['games', 'text', 'un jeu'],
+    ['exceptionGames', 'text', 'un jeu exceptionnel'],
+    ['closedDates', 'date', 'une fermeture'],
+    ['eventTypes', 'text', 'un type'],
+  ]) adminCollection(f[name], type, singular);
   // Les éléments ont été déplacés : retirer les anciens textes d’introduction.
   for (const child of [...settings.children])
     if (
@@ -2762,16 +3015,20 @@ function setupAdministration() {
       )
     )
       child.remove();
-  for (const name of ['count', 'permission-bulk', 'permission-export'])
-    f[name].closest('label').hidden = true;
-  f.count.closest('fieldset').hidden = true;
   form.addEventListener('input', (e) => {
-    if (['editPost', 'editBox'].includes(e.target.id)) return;
+    if (['editPost', 'editBox'].includes(e.target.id) || ['weekday', 'exceptionDate'].includes(e.target.name)) return;
+    if (e.target.closest('#adminExceptions')) {
+      form.dataset.exceptionDirty = '1';
+      delete form.dataset.exceptionRemove;
+    }
+    if (['enabled', 'capacity', 'slots', 'games', 'instruction'].includes(e.target.name) ||
+        e.target.closest('[data-collection="slots"], [data-collection="games"]'))
+      form.dataset.gridDirty = '1';
     form.dataset.dirty = '1';
     $('configMsg').textContent = 'Modifications non enregistrées.';
   });
   form.addEventListener('change', (e) => {
-    if (e.target.id !== 'editPost' && e.target.id !== 'editBox')
+    if (e.target.id !== 'editPost' && e.target.id !== 'editBox' && !['weekday', 'exceptionDate'].includes(e.target.name))
       form.dataset.dirty = '1';
   });
   $('editPost').onchange = () => {
@@ -2881,11 +3138,10 @@ function editTemplate(name = '') {
     name ? 'Modifier un modèle' : 'Créer un modèle',
     `<form id="templateForm"><p>Ces paramètres seront proposés pour une nouvelle séance ; aucune séance n’est créée ici.</p><div class="fields">
  ${field('Nom du modèle', 'name', name, 'text', 'required maxlength="100"')}${field('Titre de la séance', 'title', m.title || '', 'text', 'required maxlength="200"')}${select('Type d’animation (facultatif)', 'eventType', ['', ...(state.settings.eventTypes || []), ...(m.eventType && !(state.settings.eventTypes || []).includes(m.eventType) ? [m.eventType] : [])], m.eventType || '')}
- ${field('Heure de début', 'time', m.time || '14:00', 'time', 'required')}${field('Heure de fin', 'endTime', m.endTime || '15:00', 'time', 'required')}${select('Salle obligatoire', 'room', ['', 'Créazone', 'Salle JV'], m.room || '')}
- ${field('Renseignements', 'info', m.info || '')}${field('Intervenant ou référent', 'referent', m.referent || '')}${field('Public', 'audience', m.audience || '')}${field('Âge minimum (ans)', 'minAge', m.minAge ?? '', 'number', 'min="0" step="0.1"')}${field('Âge maximum (ans)', 'maxAge', m.maxAge ?? '', 'number', 'min="0" step="0.1"')}${select('Mode', 'mode', ['inscription', 'libre'], m.mode || 'inscription')}${field('Plafond strict facultatif', 'cap', m.cap ?? '', 'number', 'min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(m.announcement || '')}</textarea></label>${field('Lien vers un visuel facultatif', 'image', m.image || '', 'url')}<p id="templateMsg" role="status"></p><button class="primary">Enregistrer le modèle</button></form>`,
+ ${field('Heure de début', 'time', m.time || '14:00', 'time', 'required')}${field('Heure de fin', 'endTime', m.endTime || '15:00', 'time', 'required')}${select('Salle (facultative)', 'room', ['', 'Créazone', 'Salle JV'], m.room || '')}
+ ${field('Renseignements', 'info', m.info || '')}${field('Intervenant ou référent', 'referent', m.referent || '')}${field('Public', 'audience', m.audience || '')}${field('Âge minimum (ans)', 'minAge', m.minAge ?? '', 'number', 'min="0" step="0.1"')}${field('Âge maximum (ans)', 'maxAge', m.maxAge ?? '', 'number', 'min="0" step="0.1"')}${select('Mode', 'mode', ['inscription', 'libre'], m.mode || 'inscription')}${field('Nombre maximal de participants (facultatif)', 'cap', m.cap ?? '', 'number', 'min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(m.announcement || '')}</textarea></label>${field('Lien vers un visuel facultatif', 'image', m.image || '', 'url')}<p id="templateMsg" role="status"></p><button class="primary">Enregistrer le modèle</button></form>`,
   );
   const form = $('templateForm');
-  form.elements.room.required = true;
   form.onsubmit = (e) => {
     e.preventDefault();
     const values = Object.fromEntries(new FormData(form));

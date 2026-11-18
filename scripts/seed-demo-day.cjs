@@ -109,7 +109,6 @@ const command = (action, donnees, key) =>
       !s.videos.some((x) => x.card === data.players[0].card && x.date === day)
     )
       await command('video.book', data, day + ':video:' + data.players[0].card);
-  let skipped = 0;
   for (const item of plan.events) {
     s = await state();
     let ev = s.events.find(
@@ -117,18 +116,6 @@ const command = (action, donnees, key) =>
     );
     const { players, counts, ...metadata } = item;
     if (!ev) {
-      if (
-        s.events.some(
-          (x) =>
-            x.date === item.date &&
-            x.room === item.room &&
-            x.time < item.endTime &&
-            item.time < x.endTime,
-        )
-      ) {
-        skipped++;
-        continue;
-      }
       const result = await command(
         'event.save',
         metadata,
@@ -169,7 +156,6 @@ const command = (action, donnees, key) =>
       .filter((x) => x.sampleKey)
       .reduce((n, x) => n + x.guests.length, 0),
     modeles: Object.keys(plan.templates).length,
-    seancesIgnoreesPourConflit: skipped,
   };
   fs.mkdirSync(path.join(root, 'test-results'), { recursive: true });
   fs.writeFileSync(

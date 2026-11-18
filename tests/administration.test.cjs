@@ -13,7 +13,7 @@ const {
   row,
   plus,
   cleanup,
-  accounts,
+  enter: connect,
 } = require('./helpers.cjs');
 let server, origin;
 before(async () => {
@@ -38,13 +38,8 @@ async function text(p, selector, value) {
     { timeout: 15000 },
   );
 }
-async function enter(p, role) {
-  await p.goto(origin + '/dev/index.html');
-  await p.locator('#login [name=email]').fill(accounts[role].email);
-  await p.locator('#login [name=password]').fill(accounts[role].password);
-  await p.locator('#login button').click();
-  await p.locator('main').waitFor({ state: 'visible' });
-}
+const enter = (page, role) => connect(page, origin, role);
+
 test(
   'Administration organisée et renommage transactionnel des postes JV',
   { timeout: 180000 },
@@ -115,11 +110,11 @@ test(
       for (const p of [a, b]) p.on('pageerror', (e) => errors.push(e.message));
       await Promise.all([enter(a, 'administrateur'), enter(b, 'agent')]);
       await a.locator('#openAdmin').click();
-      assert.equal(await a.locator('[data-admin-tab]').count(), 5);
+      assert.equal(await a.locator('[data-admin-tab]').count(), 4);
       assert.equal(await a.locator('[data-admin-panel]:visible').count(), 1);
       assert.equal(
         await a.locator('#adminExceptions').getAttribute('open'),
-        null,
+        '',
       );
       await a.locator('#editPost').selectOption(old);
       assert.equal(
@@ -222,26 +217,14 @@ test(
         (await state(token)).settings.boxes['BOITE-ADMIN-FICTIVE'].title,
         'Titre fictif',
       );
-      await a.locator('[data-admin-tab=liens]').click();
-      await a
-        .locator('#config [name=vsmart]')
-        .fill('https://example.com/fictif');
+      await a.locator('#config [name=boxTitle]').fill('Brouillon fictif');
       a.once('dialog', (d) => d.dismiss());
       await a.locator('[data-admin-tab=postes]').click();
-      assert.equal(
-        await a.locator('[data-admin-tab=liens]').getAttribute('aria-selected'),
-        'true',
-      );
-      assert.equal(
-        await a.locator('#config [name=vsmart]').inputValue(),
-        'https://example.com/fictif',
-      );
+      assert.equal(await a.locator('[data-admin-tab=societe]').getAttribute('aria-selected'), 'true');
+      assert.equal(await a.locator('#config [name=boxTitle]').inputValue(), 'Brouillon fictif');
       a.once('dialog', (d) => d.accept());
       await a.locator('[data-admin-tab=postes]').click();
-      assert.equal(
-        (await state(token)).settings.links?.vsmart,
-        original.links?.vsmart,
-      );
+      assert.equal((await state(token)).settings.boxes['BOITE-ADMIN-FICTIVE'].title, 'Titre fictif');
       console.log(
         'OK : sauvegardes par rubrique sans validation parasite, catalogue de boîtes et avertissement sur brouillon',
       );
@@ -259,7 +242,7 @@ test(
         true,
       );
       await m.locator('[data-admin-tab=acces]').click();
-      assert.equal(await m.locator('#manageRoles').isVisible(), true);
+      assert.equal(await m.locator('#manageRoles').count(), 0);
       assert.equal(
         await m.locator('#config [name=postName]').isDisabled(),
         true,

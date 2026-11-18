@@ -20,13 +20,24 @@ async function api(path, token, body, method = 'POST') {
   return { status: r.status, data: text ? JSON.parse(text) : null };
 }
 async function login(role) {
-  const r = await api(
-    '/auth/v1/token?grant_type=password',
-    null,
-    accounts[role],
-  );
-  assert.equal(r.status, 200);
+  const r = role === 'agent'
+    ? await api('/auth/v1/signup', null, {})
+    : await api('/functions/v1/connexion-administration', null, {
+        password: accounts.administrateur.password,
+      });
+  assert.equal(r.status, 200, r.data?.message);
   return r.data.access_token;
+}
+async function enter(page, origin, role) {
+  await page.goto(origin + '/dev/index.html');
+  if (role === 'agent') {
+    await page.locator('#login [name=agentLogin]').click();
+  } else {
+    await page.locator('#login [name=adminLogin]').click();
+    await page.locator('#login [name=password]').fill(accounts.administrateur.password);
+    await page.locator('#login [name=submit]').click();
+  }
+  await page.locator('main').waitFor({ state: 'visible' });
 }
 async function state(token) {
   const r = await api('/rest/v1/rpc/etat_guichet', token, {});
@@ -133,6 +144,6 @@ module.exports = {
   plus,
   cleanup,
   fixture,
-  accounts,
+  enter,
   config,
 };

@@ -5,7 +5,9 @@ globalThis.guichetDirectory = (() => {
   const configUrl = new URL('config.json', document.currentScript.src).href;
   let base = '';
   let token = '',
-    apiKey = '';
+    apiKey = '',
+    lastProfile = '',
+    agentRefreshToken = '';
   const directory = { profile: '', onReady: null };
   // Uniformiser les en-têtes, le délai maximal et les erreurs du service.
   async function request(path, { method = 'GET', body, prefer } = {}) {
@@ -22,8 +24,9 @@ globalThis.guichetDirectory = (() => {
     });
     const data = await response.text();
     if (!response.ok) {
-      if (response.status === 401) {
+      if (response.status === 401 && token) {
         document.getElementById('login').hidden = false;
+        directory.enableLogin();
         throw new Error(
           'Session expirée. Reconnectez-vous en haut de page ; votre saisie reste affichée.',
         );
@@ -38,7 +41,7 @@ globalThis.guichetDirectory = (() => {
         problem?.message ||
           'Le serveur a refusé la saisie (' + response.status + ').',
       );
-      error.code = problem?.code;
+      error.code = problem?.code || problem?.error_code;
       error.details = problem?.details;
       error.status = response.status;
       throw error;
@@ -153,77 +156,90 @@ globalThis.guichetDirectory = (() => {
       method: 'POST',
       body: { source, cible, operation, annuler },
     });
-  directory.accounts = () =>
-    request('/rest/v1/rpc/comptes_guichet', { method: 'POST', body: {} });
-  // Le compte est identifié par son UUID Auth, jamais par son adresse électronique.
-  directory.setRole = (compte, profil) =>
-    request('/rest/v1/rpc/attribuer_profil', {
-      method: 'POST',
-      body: { compte, profil },
-    });
   directory.currentProfile = () =>
     request('/rest/v1/rpc/mon_profil', { method: 'POST', body: {} });
   directory.enableLogin = () => {
     const form = document.getElementById('login');
-    if (
-      form &&
-      typeof form.onsubmit === 'function' &&
-      typeof directory.onReady === 'function'
-    )
-      form.elements.submit.disabled = false;
+    if (!form?.onsubmit || typeof directory.onReady !== 'function') return;
+    for (const name of ['agentLogin', 'adminLogin', 'submit'])
+      form.elements[name].disabled = false;
+    form.elements.agentLogin.disabled = lastProfile === 'administrateur';
+    form.elements.adminLogin.disabled = lastProfile === 'agent';
   };
-  // Garder le jeton en mémoire ; un rechargement impose une nouvelle connexion.
+  // Les jetons restent en mémoire et disparaissent quand la page est rechargée.
   function initializeLogin() {
-    document.getElementById('login').onsubmit = async (event) => {
-      event.preventDefault();
-      const form = event.target,
-        f = form.elements,
-        msg = document.getElementById('loginMsg');
-      f.submit.disabled = true;
+    const form = document.getElementById('login'),
+      f = form.elements,
+      adminFields = document.getElementById('adminLoginFields'),
+      msg = document.getElementById('loginMsg');
+    async function signIn(profile) {
+      for (const name of ['agentLogin', 'adminLogin', 'submit']) f[name].disabled = true;
+      msg.textContent = 'Connexion en cours…';
       try {
-        const config = await fetch(configUrl).then((r) => {
-          if (!r.ok) throw new Error('Configuration absente.');
-          return r.json();
+        const config = await fetch(configUrl).then((response) => {
+          if (!response.ok) throw new Error('Configuration absente.');
+          return response.json();
         });
         apiKey = config.anonKey;
         base = config.url;
         token = '';
-        const session = await request('/auth/v1/token?grant_type=password', {
-          method: 'POST',
-          body: { email: f.email.value.trim(), password: f.password.value },
-        });
+        const session = profile === 'agent'
+          ? await (agentRefreshToken
+              ? request('/auth/v1/token?grant_type=refresh_token', {
+                  method: 'POST',
+                  body: { refresh_token: agentRefreshToken },
+                }).catch((error) => {
+                  if (error.status >= 400 && error.status < 500 && error.status !== 429)
+                    agentRefreshToken = '';
+                  throw error;
+                })
+              : request('/auth/v1/signup', { method: 'POST', body: {} }))
+          : await request('/functions/v1/connexion-administration', {
+              method: 'POST',
+              body: { password: f.password.value },
+            });
         token = session.access_token;
-        // Une connexion Auth réussie ne suffit pas : une habilitation applicative est requise.
-        directory.profile = await request('/rest/v1/rpc/mon_profil', {
-          method: 'POST',
-          body: {},
-        });
-        if (!['agent', 'administrateur'].includes(directory.profile))
-          throw new Error('Compte sans habilitation.');
+        if (!token || (await directory.currentProfile()) !== profile)
+          throw new Error('Profil indisponible.');
+        directory.profile = profile;
         await directory.onReady();
-        for (const message of document.querySelectorAll(
-          '#personMsg,#notice,#vfmsg,#guestmsg',
-        )) {
-          if (message.textContent.includes('Session expirée'))
-            message.textContent =
-              'Session rétablie. Saisie conservée, à enregistrer.';
+        lastProfile = profile;
+        if (profile === 'agent') {
+          agentRefreshToken = session.refresh_token || '';
+          adminFields.hidden = true;
+          f.adminLogin.setAttribute('aria-expanded', 'false');
         }
         f.password.value = '';
+        msg.textContent = '';
         form.hidden = true;
         document.querySelector('main').hidden = false;
-        document.getElementById('sessionProfile').textContent =
-          'Session : ' +
-          directory.profile +
-          ' · recharger la page pour se déconnecter';
-        document.getElementById('sessionProfile').hidden = false;
+        const status = document.getElementById('sessionProfile');
+        status.textContent = profile === 'agent' ? 'Session agent' : 'Session administrateur';
+        status.hidden = false;
+        document.getElementById('logout').hidden = false;
       } catch (error) {
         token = '';
         directory.profile = '';
-        msg.textContent = 'Connexion impossible. ' + error.message;
+        msg.textContent = profile === 'agent' &&
+          ['anonymous_provider_disabled', 'signup_disabled'].includes(error.code)
+          ? 'L’accès Agent n’est pas encore activé sur ce guichet partagé.'
+          : 'Connexion impossible. ' + error.message;
       } finally {
-        f.submit.disabled = false;
+        f.password.value = '';
+        directory.enableLogin();
       }
+    }
+    f.agentLogin.onclick = () => signIn('agent');
+    f.adminLogin.onclick = () => {
+      adminFields.hidden = !adminFields.hidden;
+      f.adminLogin.setAttribute('aria-expanded', String(!adminFields.hidden));
+      if (!adminFields.hidden) f.password.focus();
     };
+    form.onsubmit = (event) => {
+      event.preventDefault();
+      if (!adminFields.hidden) signIn('administrateur');
+    };
+    document.getElementById('logout').onclick = () => window.location.reload();
     directory.enableLogin();
   }
   if (document.readyState === 'loading')

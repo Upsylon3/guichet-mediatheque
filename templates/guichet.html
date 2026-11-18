@@ -183,11 +183,11 @@
     }
   </style>
   <main><header><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · données usagers
-          effacées au rechargement</p></div><a
+          effacées au rechargement</p></div><div class="serviceLinks"><a
         href="https://mediatheques.montpellier3m.fr/accueil-general.aspx"
         target="_blank"
-        rel="noopener">Catalogue du réseau ↗</a></header>
-    <div class="bar"><label>Recherche par carte<input
+        rel="noopener">Catalogue du réseau ↗</a><a href="https://sin-averell.ville-montpellier.org/vsair/Vsmart.Start.cls#1789803745335" target="_blank" rel="noopener">V-smart ↗</a></div></header>
+    <div class="bar"><label>Rechercher un usager par carte ou par nom<input
           id="lookup"
           placeholder="ESSAI-01"
           autocomplete="off" /></label><label>Profil de démonstration<select id="role"><option>Agent</option><option>Administrateur</option></select></label></div><div id="results" role="status"></div>
@@ -195,7 +195,8 @@
     <section id="users" hidden><div class="bar"><h2>Usagers</h2><button id="createUser">Ajouter un usager</button></div>
       <label>Rechercher par carte ou par nom<input
           id="filterUsers"
-          autocomplete="off" /></label><div id="userList"></div>
+          autocomplete="off" /></label><div id="userList" class="tableWrap"></div>
+      <div id="userPagination" class="actions" hidden><button id="userPrev" type="button">Précédent</button><span id="userRange" role="status"></span><button id="userNext" type="button">Suivant</button></div>
     </section>
     <!-- Fiche et création utilisent le même dialogue, au-dessus de l’annuaire. -->
     <dialog id="personDialog" aria-labelledby="personTitle">
@@ -209,9 +210,9 @@
               required
               pattern="ESSAI-[0-9]{1,4}"
               placeholder="ESSAI-01"/></label>
-          <label>Prénom<input name="first" /></label><label>Nom<input name="last" /></label><label>Date de naissance<input type="date" name="birth" /></label></div>
+          <label>Nom<input name="last" /></label><label>Prénom<input name="first" /></label><label>Date de naissance<input type="date" name="birth" /></label></div>
         <details id="noteDetails"><summary>Note interne</summary><label>Note sur la fiche<input maxlength="500" name="note" /></label></details>
-        <div class="actions"><button>Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
+        <div class="actions"><button type="submit">Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
     </dialog>
     <section id="settings" hidden><h2>Administration</h2><form id="config"><h3>Postes de jeux vidéo</h3>
         <label>Poste à régler<select id="editPost"></select></label><div class="fields">
@@ -233,9 +234,8 @@
               name="slots"
               rows="6"
               required></textarea></label></div>
-        <h3>Valeurs par défaut des animations</h3><div class="fields"><label>Plafond facultatif<input name="limit" type="number" min="1"/></label>
-          <label>Accompagnateurs<select name="count"><option value="oui">Inclus dans la jauge</option><option value="non">Hors jauge</option></select></label></div>
-        <h3>Droits des agents</h3><label><span><input name="manageEvents" type="checkbox" /> Gérer les séances
+        <h3>Valeurs par défaut des animations</h3><div class="fields"><label>Nombre maximal de participants proposé<input name="limit" type="number" min="1"/></label></div>
+        <h3>Droits des agents</h3><label><span><input name="manageEvents" type="checkbox" /> Créer, modifier ou supprimer les séances
             d’animation</span></label>
         <div class="actions"><button>Enregistrer les réglages</button></div><p id="configMsg" role="status"></p></form>
       <h3>Totaux des jours précédents</h3><div id="totals"></div></section>
@@ -244,7 +244,7 @@
       <form autocomplete="off" id="board"><div class="fields"><label>Carte fictive<input
               name="card"
               required
-              placeholder="ESSAI-01" /></label><output name="known"></output><label>Numéro de boîte<input name="box" required /></label><label>Enfants<input
+              placeholder="ESSAI-01" /></label><output name="known"></output><label>Numéro ou titre de boîte<input name="box" required list="boxSuggestions" /></label><label>Enfants<input
               name="kids"
               type="number"
               min="0"
@@ -254,13 +254,13 @@
               type="number"
               min="0"
               value="0"
-              required /></label></div><div class="actions"><button class="primary">Enregistrer</button></div></form><h3>Consultations du secteur</h3><div id="boards"></div></section>
+              required /></label></div><div class="actions"><button class="primary">Enregistrer</button></div></form><h3>Consultations du secteur</h3><div id="boards"></div></section><datalist id="boxSuggestions"></datalist>
     <section id="vid" hidden><div class="bar"><h2>Créneaux de jeux vidéo</h2><button id="addvideo" class="primary">Inscrire</button></div><div id="videos"></div></section>
     <section id="ani" hidden><div class="bar"><h2 id="month"></h2><div><button id="prev" aria-label="Mois précédent">‹</button>
           <button id="now">Aujourd’hui</button>
           <button id="next" aria-label="Mois suivant">›</button></div></div><div class="week" id="calendar"></div></section>
     <p id="notice" role="status"></p><section id="pending" hidden><h2>Fiches à compléter</h2>
-      <form id="identity" autocomplete="off"><div class="fields"><label>Carte<select name="reader"></select></label><label>Prénom facultatif<input name="first" /></label><label>Nom facultatif<input name="last" /></label><label>Date de naissance facultative<input
+      <form id="identity" autocomplete="off"><div class="fields"><label>Carte<select name="reader"></select></label><label>Nom facultatif<input name="last" /></label><label>Prénom facultatif<input name="first" /></label><label>Date de naissance facultative<input
               name="birth"
               type="date" /></label></div><div class="actions"><button>Enregistrer la fiche</button></div></form></section></main>
   <dialog id="modal" aria-labelledby="heading"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>

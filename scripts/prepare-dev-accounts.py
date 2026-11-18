@@ -1,4 +1,4 @@
-"""Préparer deux comptes fictifs pour une base de développement vide.
+"""Préparer l’identité administrateur fictive d’une base de développement vide.
 
 Le SQL généré est réservé à l'éditeur SQL privilégié du projet d'essai.
 Il ne doit jamais être exécuté depuis le navigateur ou une base de service.
@@ -14,11 +14,13 @@ accounts = root / ".env.accounts.json"
 sql_file = root / ".env.provision.sql"
 if accounts.exists() or sql_file.exists():
     raise SystemExit(
-        "Les comptes sont déjà préparés. Réutiliser les fichiers locaux existants."
+        "L’identité administrateur est déjà préparée. Réutiliser les fichiers locaux existants."
     )
 data = {
-    role: {"email": role + "@guichet.example", "password": secrets.token_urlsafe(24)}
-    for role in ("agent", "administrateur")
+    "administrateur": {
+        "email": "administrateur@guichet.example",
+        "password": secrets.token_urlsafe(24),
+    }
 }
 accounts.write_text(json.dumps(data, indent=2), encoding="utf-8")
 sql = ["begin;"]
@@ -44,4 +46,4 @@ insert into guichet_prive.habilitations(compte,profil) select id,'{role}' from n
 """)
 sql.append("commit;")
 sql_file.write_text("\n".join(sql), encoding="utf-8")
-print("Comptes préparés dans .env.accounts.json ; SQL privé dans .env.provision.sql.")
+print("Identité administrateur préparée dans .env.accounts.json. SQL privé dans .env.provision.sql.")
