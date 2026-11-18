@@ -28,7 +28,8 @@ def dev_page(url):
 
     # Une nouvelle source reçoit une nouvelle URL : le cache ne mélange pas les versions.
     def asset(name):
-        digest = hashlib.sha256((ROOT / "dev" / name).read_bytes()).hexdigest()[:16]
+        source = (ROOT / "dev" / name).read_text(encoding="utf-8")
+        digest = hashlib.sha256(source.encode("utf-8")).hexdigest()[:16]
         return f"/dev/{name}?v={digest}"
 
     # Conserver les empreintes des scripts/styles de la page autonome.
