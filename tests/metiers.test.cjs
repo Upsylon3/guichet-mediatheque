@@ -15,7 +15,7 @@ const {
   fixture,
 } = require('./helpers.cjs');
 test(
-  'Règles du guichet : individus, quota quotidien, salles, horizon, droits et transactions',
+  'Règles du guichet : individus, quota quotidien, âge, horizon, droits et transactions',
   { timeout: 180000 },
   async () => {
     const admin = await login('administrateur'),
@@ -188,9 +188,9 @@ test(
         repeat: 1,
         ...extra,
       });
-      await cmd(admin, 'event.save', { ...ev(date, prefix), room: '' }, 400);
+      await cmd(admin, 'event.save', { ...ev(date, prefix + ' sans salle'), room: '' });
       const e1 = (await cmd(admin, 'event.save', ev(date, prefix))).ids[0];
-      await cmd(admin, 'event.save', ev(date, prefix + ' conflit'), 409);
+      await cmd(admin, 'event.save', ev(date, prefix + ' même salle'));
       const e2 = (
         await cmd(
           admin,
@@ -231,7 +231,7 @@ test(
       );
       await cmd(agent, 'guest.book', {
         eventId: e1,
-        players: [{ card: p1, companions: 0, category: 'Enfant' }],
+        players: [{ card: p1, companions: 0, category: 'Enfant', age: 10 }],
       });
       await cmd(
         agent,
@@ -242,14 +242,14 @@ test(
       const races = await Promise.all([
         api('/rest/v1/rpc/commande_guichet', agent, {
           action: 'guest.book',
-          donnees: { eventId: e1, players: [{ card: p2, companions: 0 }] },
+          donnees: { eventId: e1, players: [{ card: p2, companions: 0, age: 10 }] },
           operation: crypto.randomUUID(),
         }),
         api('/rest/v1/rpc/commande_guichet', agent, {
           action: 'guest.book',
           donnees: {
             eventId: e1,
-            players: [{ card: await card(admin), companions: 0 }],
+            players: [{ card: await card(admin), companions: 0, age: 10 }],
           },
           operation: crypto.randomUUID(),
         }),
@@ -257,7 +257,7 @@ test(
       assert.equal(races.filter((r) => r.status === 200).length, 1);
       fixture.ids.push(...races.find((r) => r.status === 200).data.ids);
       console.log(
-        'OK : salle obligatoire, conflits simultanés bloqués, séances adjacentes permises, cartes uniques et dernière place atomique',
+        'OK : salle facultative, séances simultanées ou adjacentes permises, cartes uniques et dernière place atomique',
       );
       const series = (
         await cmd(
@@ -294,22 +294,22 @@ test(
         { eventId: unlimited, players: [{ card: named, companions: 1 }] },
         400,
       );
+      await cmd(
+        agent,
+        'guest.book',
+        { eventId: unlimited, players: [{ card: named, companions: 0 }] },
+        400,
+      );
       await cmd(agent, 'guest.book', {
         eventId: unlimited,
-        players: [
-          { card: named, companions: 1, companionNames: ['Dominique Fictif'] },
-        ],
+        players: [{ card: named, companions: 0, age: 33 }],
       });
       s = await state(admin);
-      assert.deepEqual(
-        s.events.find((x) => x.id === unlimited).guests[0].companionNames,
-        ['Dominique Fictif'],
-      );
+      assert.equal(s.events.find((x) => x.id === unlimited).guests[0].companions, 0);
       await cmd(
         admin,
         'event.save',
         { ...s.events.find((x) => x.id === unlimited), cap: 3, scope: 'one' },
-        400,
       );
       const early = (
         await cmd(admin, 'event.save', ev(far, prefix + ' anticipé'))
@@ -318,14 +318,14 @@ test(
       await cmd(
         agent,
         'guest.book',
-        { eventId: early, players: [{ card: pc, companions: 0 }] },
+        { eventId: early, players: [{ card: pc, companions: 0, age: 10 }] },
         409,
       );
       const guest = (
         await cmd(agent, 'guest.book', {
           eventId: early,
           confirmEarly: true,
-          players: [{ card: pc, companions: 0 }],
+          players: [{ card: pc, companions: 0, age: 10 }],
         })
       ).ids[0];
       s = await state(admin);
@@ -344,7 +344,7 @@ test(
         confirmEarly: true,
       });
       console.log(
-        'OK : seuls les accompagnateurs nommés sans carte sont acceptés sans jauge ; J+15 contrôlé en inscription et restauration',
+        'OK : âge obligatoire et accompagnateurs ignorés dans les formulaires ; J+15 contrôlé en inscription et restauration',
       );
       const boundary = (
         await cmd(
@@ -355,7 +355,7 @@ test(
       ).ids[0];
       await cmd(agent, 'guest.book', {
         eventId: boundary,
-        players: [{ card: await card(admin), companions: 0 }],
+        players: [{ card: await card(admin), companions: 0, age: 10 }],
       });
       const atomicCard = await card(admin);
       await cmd(

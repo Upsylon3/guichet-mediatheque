@@ -1,14 +1,14 @@
 # Recette du guichet médiathèque
 
-Recette du 14 novembre 2026, données fictives et projet distant de développement.
+Recette du 14 novembre 2026 sur le projet distant fictif, complétée par les vérifications locales de la refonte du 18 novembre.
 
 ## Contrôles métier dans la base
 
-`tests/metiers.test.cjs` vérifie les refus d’import, export et statistiques aux agents malgré des délégations anciennes ; l’interdiction d’accompagnateur JV ; la place individuelle ; le quota quotidien ; les déplacements, annulations et reprises idempotentes ; le remplacement de carte conservant UUID et quota ; les salles obligatoires, conflits et horaires adjacents ; les cartes uniques par animation ; la concurrence sur la dernière place ; les accompagnateurs nommés uniquement sans jauge ; la confirmation après J+15 en inscription et restauration ; la fermeture forcée et les indicateurs anonymes.
+`tests/metiers.test.cjs` couvre les habilitations, le quota quotidien JV, les déplacements, l’idempotence et le changement de carte. Les scénarios de la refonte couvrent aussi la salle facultative, les séances simultanées, la carte et l’âge par participant, la dernière place et la confirmation après J+15.
 
 ## Deux sessions isolées et interface
 
-`tests/interface.test.cjs` ouvre deux contextes séparés : administrateur sur bureau et agent à 360 px. Une fiche créée par l’agent apparaît dans l’autre session. La recherche par nom la retrouve, l’agent ne peut pas la supprimer et la suppression administrative se propage. Tests du menu, masquage des outils administratifs, planning synchronisé, Ctrl+Z, mode sombre, calendrier grisé et confirmation après J+15, salle et fin obligatoires, CSV statistique et fermeture forcée avec refus puis accord.
+`tests/interface.test.cjs` ouvre deux contextes séparés : administrateur sur bureau et agent à 360 px. Une fiche créée par l’agent apparaît dans l’autre session. La recherche par nom la retrouve, l’agent ne peut pas la supprimer et la suppression administrative se propage. Le scénario couvre aussi le planning, Ctrl+Z, le mode sombre, la confirmation après J+15, l’heure de fin obligatoire, le CSV statistique et la fermeture forcée.
 
 ## Démonstration publique
 
@@ -25,7 +25,7 @@ Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du
 
 ## Administration organisée et renommage
 
-`tests/administration.test.cjs` vérifie les cinq rubriques, les sauvegardes indépendantes, les champs cachés non bloquants, la sélection et l’ajout de boîtes, l’avertissement de brouillon, l’écran 360 px en mode sombre et le renommage depuis le champ Nom du poste. Une seconde session reçoit le nouveau nom. La réservation, sa corbeille, les grilles et exceptions ainsi que le quota sont préservés. Doublon de nom, agent, révision obsolète et réglage incompatible sont refusés ; ce dernier cas prouve le retour arrière complet du renommage.
+`tests/administration.test.cjs` couvre les quatre rubriques, les sauvegardes indépendantes, le catalogue de boîtes, l’avertissement de brouillon, le mode sombre à 360 px et le renommage transactionnel. Une seconde session reçoit le nouveau nom. Réservations, corbeille, grilles, exceptions et quota suivent le poste.
 
 
 ## Dernières finitions
@@ -34,8 +34,15 @@ Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du
 
 `tests/modeles.test.cjs` vérifie le refus serveur par défaut, la délégation et sa révocation depuis Accès des agents, la visibilité limitée à la gestion des modèles dans une seconde session à 360 px, la création, la modification et la suppression propagées, les conflits de révision et les paramètres invalides. Les autres réglages, les séances existantes et le refus de statistiques aux agents sont vérifiés.
 
-`tests/finitions.test.cjs` vérifie aussi l’inscription rapide chronologique, les séances complètes grisées, les accompagnateurs nommés seulement sans jauge et le refus puis l’accord explicite après J+15.
+`tests/finitions.test.cjs` vérifie aussi l’inscription rapide chronologique, les séances complètes grisées, l’âge obligatoire en l’absence de jauge et le refus puis l’accord explicite après J+15.
 
 Le refus du quota quotidien JV est vérifié dans `tests/metiers.test.cjs` (carte, date, horaire, poste et mise à jour après déplacement et remplacement de carte) et `tests/finitions.test.cjs` (message affiché, brouillon préservé et absence de nouvelle réservation). `supabase/tests/cloture.sql` vérifie que le détail de la réservation reste disponible après minuit pendant sa période de conservation.
 
 La recette SQL contrôle aussi les corrections de dimensions et d’effectifs, l’annulation et la restauration après agrégation, le départ de la dernière ligne d’une journée, les archives antérieures à la migration et le rejeu après suppression physique. Les tests sont entièrement annulés avec ROLLBACK.
+
+## Refonte du 18 novembre 2026
+
+- Construction et CSP vérifiées sous Node 22. Neuf scénarios navigateur et trois tests Python passent. Les scénarios incluent la navigation entre calendriers, la troncature des cartes à sept chiffres, le passage au nom dans une nouvelle fiche et les accès Agent et Administrateur avec des réponses simulées.
+- Sur Chromium, un créneau exceptionnel saisi au moyen des champs horaires est apparu dans le calendrier et a été proposé à l’inscription. Contrôle visuel sur bureau et à 360 px.
+- Toutes les migrations et les cinq recettes SQL passent dans PostgreSQL embarqué avec Auth et Cron simulés. `supabase/tests/simplification_guichet.sql` vérifie le profil Agent des sessions anonymes, le refus des statistiques, les séances simultanées, le modèle sans salle, l’âge obligatoire et le rejet des accompagnateurs.
+- La migration de refonte a été appliquée au projet fictif et `simplification_guichet.sql` y passe dans une transaction annulée. La fonction de connexion administrateur déployée renvoie 401 pour un mot de passe incorrect. L’ouverture de session avec le mot de passe privé et la recette à deux sessions restent à confirmer. Supabase Auth désactive encore les sessions anonymes.

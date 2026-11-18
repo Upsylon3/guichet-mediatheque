@@ -31,7 +31,7 @@ async function text(p, selector, value) {
     { selector, value },
   );
 }
-test('Journée fictive cohérente avec cartes individuelles et salles sans chevauchement', () => {
+test('Journée fictive cohérente avec cartes et âges individuels', () => {
   const settings = {
       stations: {
         MARIO: {
@@ -54,8 +54,8 @@ test('Journée fictive cohérente avec cartes individuelles et salles sans cheva
     assert.equal(new Set(e.players.map((x) => x.card)).size, e.players.length);
     for (const g of e.players) {
       assert.ok(p.people.some((x) => x.carte === g.card));
-      assert.equal(g.companions, g.companionNames.length);
-      if (e.cap) assert.equal(g.companions, 0);
+      assert.equal(g.companions, 0);
+      assert.ok(Number.isFinite(g.age));
     }
     assert.ok(
       !p.events.some(
@@ -154,7 +154,7 @@ test(
 );
 
 test(
-  'Inscription rapide : chronologie, jauge, accompagnateurs et confirmation J+15',
+  'Inscription rapide : chronologie, âge obligatoire, jauge et confirmation J+15',
   { timeout: 60000 },
   async () => {
     const browser = await chromium.launch({
@@ -195,7 +195,10 @@ test(
         await p.locator('#quickGuest [name=card]').inputValue(),
         'ESSAI-9997',
       );
-      await p.locator('#quickGuest [name=companionNames]').fill('Alex Fictif');
+      assert.equal(await p.locator('#quickGuest [name=companionNames]').count(), 0);
+      await p.locator('#quickGuest button.primary').click();
+      assert.equal(await p.locator('#quickGuest [name=age]').evaluate((input) => input.validity.valueMissing), true);
+      await p.locator('#quickGuest [name=age]').fill('10');
       await p.locator('#quickGuest button.primary').click();
       await text(p, '#notice', 'enregistrée.');
       await p.locator('#calendar .today').click();
@@ -203,7 +206,7 @@ test(
         .locator('#agenda button')
         .filter({ hasText: 'Rencontre autour du jeu' })
         .click();
-      await text(p, '#guests', 'Alex Fictif');
+      await text(p, '#guests', 'ESSAI-9997');
       await p.locator('#close').click();
       await p.locator('#quickRegister').click();
       const far = p.locator('#quickGuest [name=eventId] option').last();
@@ -211,6 +214,7 @@ test(
         .locator('#quickGuest [name=eventId]')
         .selectOption(await far.getAttribute('value'));
       await p.locator('#quickGuest [name=card]').fill('ESSAI-9998');
+      await p.locator('#quickGuest [name=age]').fill('10');
       assert.equal(
         await p.locator('#quickGuest [name=companionNames]').count(),
         0,
@@ -314,7 +318,7 @@ test(
       );
       await p.locator('#close').click();
       await p.locator('#openAdmin').click();
-      await p.locator('[data-admin-tab=liens]').click();
+      assert.equal(await p.locator('[data-admin-tab=liens]').count(), 0);
       assert.equal(await p.locator('#config [name=selections]').count(), 0);
       await p.locator('#openStats').click();
       await text(p, '#statsMsg', 'actualisées');
@@ -335,7 +339,7 @@ test(
 );
 
 test('Corbeille : confirmation, accès administrateur et suppression définitive', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE });
   try {
     const page = await browser.newPage();
     await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
@@ -404,7 +408,7 @@ test('Corbeille : confirmation, accès administrateur et suppression définitive
 });
 
 test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE });
   try {
     for (const viewport of [
       { width: 1440, height: 900 },
@@ -420,7 +424,7 @@ test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () 
       await page.locator('#openUsers').click();
       const last = page.locator('#userList button').last();
       await last.scrollIntoViewIfNeeded();
-      const label = await last.textContent();
+      const card = await last.getAttribute('data-person');
       await last.click();
       await page.locator('#personDialog').waitFor({ state: 'visible' });
       assert.equal(
@@ -429,7 +433,7 @@ test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () 
       );
       assert.equal(
         await page
-          .locator('#personForm [name=first]')
+          .locator('#personForm [name=last]')
           .evaluate((node) => node === document.activeElement),
         true,
       );
@@ -450,8 +454,7 @@ test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () 
       await page.locator('#personForm button').first().click();
       await page.locator('#personDialog').waitFor({ state: 'hidden' });
       await page
-        .locator('#userList button')
-        .filter({ hasText: label.split(' · ')[0] })
+        .locator('#userList button[data-person="' + card + '"]')
         .click();
       assert.equal(
         await page.locator('#personForm [name=first]').inputValue(),
@@ -478,7 +481,7 @@ test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () 
       await page.locator('#personDialog').waitFor({ state: 'hidden' });
       await page.locator('#createUser').click();
       // Une erreur de création conserve la saisie dans le dialogue ouvert.
-      await page.locator('#personForm [name=card]').fill(label.split(' · ')[0]);
+      await page.locator('#personForm [name=card]').fill(card);
       await page.locator('#personForm [name=first]').fill('Création fictive');
       await page.locator('#personForm button').first().click();
       await text(page, '#personMsg', 'Carte déjà utilisée');
@@ -524,7 +527,7 @@ test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () 
 });
 
 test('Horaires JV du classeur : mercredi, samedi, dates supplémentaires et exceptions', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE });
   try {
     const page = await browser.newPage();
     await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));

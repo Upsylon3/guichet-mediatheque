@@ -10,8 +10,14 @@ major_version = 15
 [auth]
 enabled = true
 site_url = "http://localhost:8000"
-enable_signup = false
+enable_signup = true
+enable_anonymous_sign_ins = true
 [auth.email]
 enable_signup = false
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/guichet_prive/autoriser_session_anonyme"
+[functions.connexion-administration]
+verify_jwt = false
 [db.seed]
 enabled = false

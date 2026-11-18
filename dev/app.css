@@ -24,11 +24,6 @@ td:last-child button {
   padding: 12px 0;
   margin: 12px 0;
 }
-#serviceLinks {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
 .conflict {
   border: 2px solid #a56a18;
   padding: 12px;
@@ -38,9 +33,34 @@ td:last-child button {
   margin-bottom: 12px;
 }
 #userList {
-  display: flex;
-  gap: 5px;
+  margin-top: 1rem;
+}
+#userList th {
+  background: var(--active);
+}
+#userList td {
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+#userList td:nth-child(3) {
+  font-variant-numeric: tabular-nums;
+}
+#userList td:last-child {
+  width: 1%;
+}
+#users > label {
+  max-width: 32rem;
+}
+#personDialog .bar {
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--border);
+}
+#personForm .actions {
   flex-wrap: wrap;
+}
+#personForm button[type="submit"] {
+  background-color: var(--accent);
+  color: var(--surface);
 }
 @media (max-width: 530px) {
   td,
@@ -97,6 +117,11 @@ main header {
   margin-bottom: 18px;
   border-bottom: 1px solid var(--border);
 }
+.serviceLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.25rem;
+}
 h1,
 h2 {
   font-family: inherit;
@@ -133,6 +158,74 @@ body:has(main:not([hidden])) > section:first-of-type {
 body:has(main:not([hidden])) > section:first-of-type > h1,
 body:has(main:not([hidden])) > section:first-of-type > p:first-of-type {
   display: none;
+}
+#access:has(#login:not([hidden])) {
+  max-width: min(36rem, calc(100% - 2rem));
+}
+#access:has(#login:not([hidden])) .sessionTools {
+  display: none;
+}
+.loginOptions,
+.sessionTools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+}
+.sessionTools p {
+  margin: 0;
+}
+#adminLoginFields {
+  margin-top: 1rem;
+  max-width: 23rem;
+}
+#adminLoginFields button {
+  margin-top: .75rem;
+}
+#results > button {
+  margin: 0 .35rem .35rem 0;
+}
+#activityCalendar .day {
+  height: 4.5rem;
+  overflow: hidden;
+  text-align: left;
+  align-content: start;
+}
+#activityCalendar .day small {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#activityCalendar .day[aria-pressed="true"],
+#adminWeek .day[aria-pressed="true"] {
+  border: 2px solid var(--accent);
+  background: var(--active);
+  color: var(--ink);
+}
+#activityCalendar #month {
+  text-transform: capitalize;
+}
+.collectionEditor {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: .25rem 0;
+  padding: .5rem .75rem .75rem;
+  border: 1px solid var(--border);
+}
+.collectionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: end;
+  margin-bottom: .5rem;
+}
+.collectionRow label {
+  flex: 1 1 6rem;
+  min-width: 0;
+}
+.collectionRow button {
+  flex: 0 0 auto;
 }
 /* Navigation latérale du guichet et adaptation aux petits écrans. */
 #sidebar {
@@ -272,15 +365,14 @@ dialog {
     padding: 14px;
   }
   .brand {
-    font-size: 21px;
-    padding: 0 0 12px;
+    display: none;
   }
   #sidebar nav {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   #sidebar button {
-    padding: 9px;
+    padding: 7px 9px;
   }
   .sidebarTools {
     display: flex;

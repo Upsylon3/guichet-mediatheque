@@ -60,6 +60,12 @@ test('Démonstration publique autonome et entrée connectée séparée', async (
     demo.on('pageerror', (e) => errors.push(e.message));
     await demo.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await demo.goto(origin + '/');
+    await demo.locator('#calendar [data-date="2026-11-18"]').click();
+    await waitText(demo, '#videoPlanning caption', '18/11/2026');
+    await demo.locator('[data-tab=soc]').click();
+    assert.equal(await demo.locator('#calendar [aria-pressed=true]').getAttribute('data-date'), '2026-11-18');
+    assert.equal(await demo.locator('#board [name=date]').inputValue(), '2026-11-18');
+    await demo.locator('#now').click();
     await board(demo, 'ESSAI-01');
     await waitText(demo, '#notice', 'Consultation enregistrée.');
     await demo.locator('#identity [name=first]').fill('Démo');
@@ -83,6 +89,7 @@ test('Démonstration publique autonome et entrée connectée séparée', async (
     await demo.locator('#af [name=endTime]').fill('19:00');
     await demo.locator('#af button.primary').click();
     await demo.locator('#guest [name=card]').fill('ESSAI-01');
+    await demo.locator('#guest [name=age]').fill('10');
     await demo.locator('#guest button.primary').click();
     await waitText(demo, '#guests', 'Démo');
     await demo.locator('#close').click();
@@ -115,19 +122,20 @@ test('Démonstration publique autonome et entrée connectée séparée', async (
     await connected.goto(origin + '/dev/index.html');
     assert.equal(await connected.locator('#login').isVisible(), true);
     assert.equal(await connected.locator('main').isVisible(), false);
-    assert.equal(await connected.locator('#login button').isEnabled(), true);
+    assert.equal(await connected.locator('#login [name=agentLogin]').isEnabled(), true);
+    assert.equal(await connected.locator('#login [name=password]').isVisible(), false);
     assert.deepEqual(errors, []);
     const noScript = await browser.newPage({ javaScriptEnabled: false });
     await noScript.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await noScript.goto(origin + '/dev/index.html');
-    assert.equal(await noScript.locator('#login button').isDisabled(), true);
+    assert.equal(await noScript.locator('#login [name=agentLogin]').isDisabled(), true);
   } finally {
     await browser.close();
   }
 });
 
 test('Page connectée : contourner les anciens scripts en cache pour ouvrir les fiches', async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE });
   try {
     const page = await browser.newPage();
     const errors = [];
@@ -154,10 +162,13 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
         nom: 'Fictif',
         revision: 1,
       };
-      const data = url.includes('/auth/v1/token')
-        ? { access_token: 'session-fictive' }
+      const agent = route.request().headers().authorization === 'Bearer agent-fictif';
+      const data = url.includes('/functions/v1/connexion-administration')
+        ? { access_token: 'administration-fictive' }
+        : url.includes('/auth/v1/signup')
+          ? { access_token: 'agent-fictif' }
         : url.includes('/mon_profil')
-          ? 'administrateur'
+          ? (agent ? 'agent' : 'administrateur')
           : url.includes('/etat_guichet')
             ? {
                 day: '2026-11-14',
@@ -175,11 +186,9 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
     await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await page.goto(origin + '/dev/index.html');
     assert.equal(staleScriptRequested, false);
-    await page
-      .locator('#login [name=email]')
-      .fill('administrateur@guichet.example');
+    await page.locator('#login [name=adminLogin]').click();
     await page.locator('#login [name=password]').fill('mot-de-passe-fictif');
-    await page.locator('#login button').click();
+    await page.locator('#login [name=submit]').click();
     await page.locator('main').waitFor({ state: 'visible' });
     await page.locator('#openUsers').click();
     await page.locator('#createUser').click();
@@ -188,13 +197,28 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
       await page.locator('#personTitle').textContent(),
       'Nouvel usager',
     );
+    const carte = page.locator('#personForm [name=card]');
+    await carte.fill('00000012');
+    assert.equal(await carte.inputValue(), '0000001');
+    assert.equal(await page.locator('#personForm [name=last]').evaluate((input) => input === document.activeElement), true);
     await page.locator('#closePerson').click();
+    await page.locator('[data-tab=vid]').click();
+    await page.locator('#lookup').fill('Fictif Camille');
+    await waitText(page, '#results', '0000001 · Camille Fictif');
+    await page.locator('#lookup').fill('00000012');
+    assert.equal(await page.locator('#lookup').inputValue(), '0000001');
+    await page.locator('#openUsers').click();
     await page.locator('#userList button').click();
     await page.locator('#personDialog').waitFor({ state: 'visible' });
     assert.equal(
       await page.locator('#personForm [name=first]').inputValue(),
       'Camille',
     );
+    await page.reload();
+    await page.locator('#login [name=agentLogin]').click();
+    await page.locator('main').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#sessionProfile').innerText(), 'Session agent');
+    assert.equal(await page.locator('#openAdmin').isVisible(), false);
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();

@@ -2,9 +2,16 @@
 
 ## Accès
 
-Ouvrir le guichet partagé publié depuis le README et se connecter avec un compte attribué par le service. Les mots de passe d’exemple figurent uniquement dans le document d’accès privé. L’inscription publique est désactivée. Les deux versions sont publiées sur GitHub Pages : la démonstration à la racine et le guichet partagé sous `/dev/`.
+Le nouvel écran du guichet partagé propose Agent en un clic et Administrateur par mot de passe. Supabase crée une identité de session anonyme pour Agent. L’administration conserve une identité technique, dont le mot de passe se vérifie sur le serveur. Les deux versions sont publiées sur GitHub Pages : la démonstration à la racine et le guichet partagé sous `/dev/`.
 
-Lancement local : `python scripts/serve-dev.py --config dev/config.json`, puis `http://127.0.0.1:8000/dev.html`. Le serveur écoute seulement sur 127.0.0.1 et ne sert aucun fichier privé. Python 3.10+ suffit pour l’interface. Les comptes et réglages de test se trouvent dans `.env.accounts.json` et `.env.local.json`, ignorés par Git. La configuration publiée contient seulement une URL et une clé publique publishable, sans secret d’administration.
+Lancement local : `python scripts/serve-dev.py --config dev/config.json`, puis `http://127.0.0.1:8000/dev.html`. Le serveur écoute seulement sur 127.0.0.1 et ne sert aucun fichier privé. Python 3.10+ suffit pour l’interface. Le mot de passe administrateur fictif et la configuration de test se trouvent dans `.env.accounts.json` et `.env.local.json`, ignorés par Git. La configuration publiée contient seulement une URL et une clé publique publishable, sans secret d’administration.
+
+### Préparer la mise en ligne du nouvel accès
+
+1. Vérifier la cible Supabase de développement fictif et l’UUID de l’identité administrateur existante dans `guichet_prive.habilitations`. Sur une base d’essai neuve, `python scripts/prepare-dev-accounts.py` prépare un identifiant technique et son SQL privé.
+2. Appliquer `20261118172658_simplification_guichet.sql`. Déployer la fonction Edge `connexion-administration` avec `verify_jwt=false`. La fonction utilise l’identité technique créée par le script de préparation. Pour une autre adresse, définir `GUICHET_ADMIN_EMAIL` dans les secrets du projet. Le mot de passe est celui d’Authentication.
+3. Configurer le hook Auth « Before User Created » sur `guichet_prive.autoriser_session_anonyme`. Activer ensuite l’ouverture des inscriptions et les connexions anonymes. Le hook autorise seulement les sessions anonymes. Une session Agent sans mot de passe donne accès en lecture et en écriture aux données fictives selon les droits d’agent. Pour une version de service, réserver l’accès à un environnement contrôlé avant d’y saisir des données réelles.
+4. Exécuter la recette SQL puis `npm test` avec le mot de passe administrateur fictif dans `.env.accounts.json`. Vérifier les refus d’un mot de passe erroné, de création de compte nominatif et d’accès aux opérations administratives pour Agent. Publier les pages après ces contrôles. Pour couper l’accès Agent sans mot de passe, désactiver les connexions anonymes et retirer la branche anonyme de `guichet_prive.profil()` pour invalider aussi les jetons déjà émis.
 
 ## Prise de poste
 
@@ -14,9 +21,9 @@ Vérifier le profil et le message de synchronisation. Le menu latéral ouvre les
 
 Jeux de société : choisir le secteur, scanner carte et boîte, saisir enfants/adultes et enregistrer. La date du jour est proposée. Le secteur reste mémorisé. Une consultation peut comprendre les personnes avec lesquelles le titulaire partage le jeu.
 
-Jeux vidéo : consulter le planning Aujourd’hui, puis Inscrire. Choisir poste, date, créneau et jeu. Chaque personne dispose de sa carte, sans accompagnateur. Ajouter un joueur pour une autre carte. Une même fiche ne réserve qu’une fois par jour. Une annulation libère son quota. Un déplacement conserve sa réservation. Le premier inscrit choisit le jeu, les suivants le rejoignent. Le formulaire propose le créneau actuel ou le prochain. Le planning expose jeu, noms/cartes et places par poste et horaire.
+Le calendrier mensuel est la vue principale de Jeux vidéo, Jeux de société et Animations. Le jour sélectionné est commun aux trois onglets. En Jeux vidéo, sélectionner une date puis Inscrire depuis le planning ou un créneau disponible. Choisir poste, date, créneau et jeu. Chaque personne dispose de sa carte, sans accompagnateur. Ajouter un joueur pour une autre carte. Une même fiche ne réserve qu’une fois par jour. Une annulation libère son quota. Un déplacement conserve sa réservation. Le premier inscrit choisit le jeu, les suivants le rejoignent. Le formulaire propose le créneau actuel ou le prochain. Le planning expose jeu, noms/cartes et places par poste et horaire.
 
-Animations : cliquer sur Inscrire pour choisir une séance dans la liste chronologique (date, heure, salle et places disponibles), puis saisir les cartes et informations des participants. Les séances complètes sont grisées. Le calendrier permet aussi d’ouvrir une date puis une séance ; les séances en entrée libre s’y gèrent par comptage. Pour créer une séance, renseigner titre, salle Créazone ou Salle JV, date et deux horaires. Une salle ne reçoit jamais deux séances simultanées. Chaque participant a sa carte. Pour une séance sans jauge uniquement, renseigner les noms des accompagnateurs sans carte, un par ligne. Les jauges imposent une carte à chaque personne. Au-delà des quinze prochains jours (J+15 reste inclus dans le délai normal), les agents doivent confirmer l’avertissement avant une inscription anticipée. Les jours après J+15 sont grisés et annoncent la confirmation nécessaire. Aucun champ séparé d’ouverture des inscriptions.
+Animations : cliquer sur Inscrire pour choisir une séance dans la liste chronologique (date, heure, salle et places disponibles), puis saisir les cartes et informations des participants. Les séances complètes sont grisées. Le calendrier permet aussi d’ouvrir une date puis une séance ; les séances en entrée libre s’y gèrent par comptage. Pour créer une séance, renseigner titre, date et deux horaires. On peut indiquer Créazone ou Salle JV pour l’annonce. Les créneaux qui se chevauchent sont acceptés. Chaque participant inscrit fournit sa carte et son âge. Seuls les participants munis d’une carte sont enregistrés. Au-delà des quinze prochains jours (J+15 reste inclus dans le délai normal), les agents doivent confirmer l’avertissement avant une inscription anticipée. Les jours après J+15 sont grisés et annoncent la confirmation nécessaire. Aucun champ séparé d’ouverture des inscriptions.
 
 Usagers : rechercher par carte ou nom. Ouvrir la bonne fiche, vérifier l’identité et choisir Changer le numéro de carte en cas de perte. La nouvelle carte conserve la même fiche et toutes ses inscriptions. Un numéro déjà utilisé demande une fusion administrative. Les agents ne suppriment jamais une fiche. Les administrateurs ne peuvent pas supprimer une fiche encore liée aux activités ou à la corbeille.
 
@@ -32,7 +39,7 @@ Les grilles suivent la priorité habituelle, jour de semaine, exception datée. 
 Statistiques : période, regroupement par jour/semaine/mois et filtres d’activité, secteur, poste, jeu, boîte, salle, type et catégorie. Les indicateurs sont anonymes. Les anciens totaux ont moins de détail. Les effectifs représentent des déclarations ou inscriptions, pas une présence contrôlée.
 
 
-Pour créer un compte du personnel, créer d’abord le compte dans Authentication du projet, puis utiliser Administration → Accès des agents → Gérer les habilitations. Un compte Auth sans habilitation ne donne aucun accès. Le dernier administrateur est protégé. Les droits ne proviennent jamais d’un sélecteur client ou de métadonnées modifiables par le titulaire.
+Administration → Accès des agents règle les actions que toutes les sessions Agent peuvent effectuer. La gestion des modèles reste indépendante de la gestion des séances.
 
 ## Construction et tests
 
@@ -49,7 +56,7 @@ La démonstration autonome ne contacte aucun service et ses données de passage 
 
 ## Administration organisée
 
-Les réglages se répartissent en cinq rubriques : Postes JV, Animations, Jeux de société, Accès des agents et Liens du service. Une seule rubrique apparaît à la fois et son bouton enregistre uniquement ses paramètres. Les exceptions datées et les fermetures restent repliées par défaut. Les brouillons non enregistrés déclenchent un avertissement avant un changement de rubrique ou de poste. Le catalogue de boîtes permet de choisir une boîte existante ou d’en ajouter une.
+Quatre rubriques organisent les réglages : Postes JV, Animations, Jeux de société et Accès des agents. Chaque rubrique s’enregistre séparément. Dans Postes JV, sélectionner une console, puis choisir la grille habituelle, un jour récurrent ou une date dans le calendrier de la console. Les disponibilités et les créneaux se règlent ensemble avec des dates et des heures. Jeux et consigne ont leurs propres sections. L’usage ou nom secondaire s’affiche à côté du nom de la console. Le catalogue des boîtes permet d’ajouter ou de corriger une référence. Un changement de rubrique ou de poste avertit si un brouillon reste ouvert.
 
 Pour renommer un poste : Administration / Postes JV, sélectionner le poste, modifier Nom du poste puis enregistrer. Les réglages habituels, variantes hebdomadaires, exceptions et réservations actives ou en corbeille suivent le nouveau nom dans une transaction unique. Un nom déjà utilisé, une révision obsolète ou une modification incompatible est refusé sans renommage partiel. Les statistiques des journées encore conservées suivent les corrections des lignes ; les archives au-delà de 30 jours restent figées.
 
@@ -60,17 +67,17 @@ L’interface ne propose ni import par collage ni export nominatif, ni raccourci
 
 Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. La création, la modification, le renommage et la suppression des modèles se trouvent dans Administration → Animations. Ces actions sont administratives par défaut. Dans Accès des agents, le droit Gérer les modèles d’animations peut être délégué aux agents réguliers, indépendamment de la gestion des séances. Cette délégation ouvre uniquement la gestion des modèles, sans les autres paramètres ni les statistiques. Comme les autres délégations actuelles, elle s’applique au groupe des agents. Modifier ou supprimer un modèle ne modifie pas les séances existantes. Date, récurrence et inscrits ne sont pas copiés dans le modèle. Le type est un classement facultatif pour les listes et statistiques.
 
-La démonstration autonome se recharge avec une journée fictive déjà remplie. Ses modifications de passage restent en mémoire. Pour préparer aussi la base partagée, lancer `npm run seed:demo` avec le compte administrateur fictif local configuré. Ce script est limité au projet de développement connu et conserve les données existantes. Il fournit 120 fiches fictives, des consultations, des réservations JV, des animations du jour et à J+7/J+16 ainsi que trois modèles. Une seconde exécution le même jour évite les doublons. En cas de conflit de salle, la séance fictive concernée est ignorée. Les données fictives sont repérables par Démo ou DÉMO.
+La démonstration autonome se recharge avec une journée fictive déjà remplie. Ses modifications de passage restent en mémoire. Pour préparer aussi la base partagée, lancer `npm run seed:demo` avec le compte administrateur fictif local configuré. Ce script est limité au projet de développement connu et conserve les données existantes. Il fournit 120 fiches fictives, des consultations, des réservations JV, des animations du jour et à J+7/J+16 ainsi que trois modèles. Une seconde exécution le même jour évite les doublons. Les données fictives sont repérables par Démo ou DÉMO.
 
 ## Inscription rapide et extraction statistique
 
-Dans Animations, le bouton Inscrire ouvre un formulaire avec une liste de séances sur inscription classées par date et heure. La liste indique titre, salle et places restantes ; les séances complètes sont grisées. Les séances en entrée libre restent accessibles par le calendrier pour leur comptage. La saisie des cartes, catégories et âges, les accompagnateurs nommés sans jauge, la confirmation après J+15, la validation transactionnelle et Ctrl+Z suivent les mêmes règles que l’inscription depuis une séance. Les cartes saisies sont conservées lors d’un changement de séance. Une identité nouvelle se complète après l’inscription.
+Dans Animations, le bouton Inscrire ouvre un formulaire avec une liste de séances sur inscription classées par date et heure. La liste indique titre, salle et places restantes ; les séances complètes sont grisées. Les séances en entrée libre restent accessibles par le calendrier pour leur comptage. La saisie des cartes, catégories et âges, la confirmation après J+15, la validation transactionnelle et Ctrl+Z suivent les mêmes règles que l’inscription depuis une séance. Les cartes saisies sont conservées lors d’un changement de séance. Une identité nouvelle se complète après l’inscription.
 
 Dans Statistiques, Extraire les statistiques (CSV) télécharge les agrégats de la période, des filtres et du regroupement choisis. Le fichier est séparé par des points-virgules, encodé en UTF-8 pour les tableurs et ne contient ni carte ni identité. Les agents, même autorisés à gérer les modèles, ne peuvent pas accéder aux statistiques.
 
 ## Documentation et liens de l’interface
 
-Le guichet ne comporte aucun lien vers le dépôt GitHub ou la documentation du projet. Consulter les documents depuis le dépôt ou les fichiers remis au service. Les raccourcis métier Catalogue et V-smart se règlent dans Administration → Liens du service.
+Le guichet ne comporte aucun lien vers le dépôt GitHub ou la documentation du projet. Consulter les documents depuis le dépôt ou les fichiers remis au service. Les raccourcis Catalogue du réseau et V-smart pointent vers les adresses institutionnelles dans l’en-tête.
 
 ## Publication sur GitHub Pages
 
@@ -96,7 +103,7 @@ Les fermetures et changements de capacité des postes contrôlent les réservati
 
 Les commentaires décrivent les intentions et les contraintes métier. Les fichiers `index.html` et `dev/index.html` sont générés : modifier les sources, puis lancer `npm run build`.
 
-Les habilitations de `guichet_prive.habilitations` suivent l’UUID du compte Auth. Supprimer un compte supprime son habilitation ; recréer son adresse ne restaure pas ses droits. Pour changer un mot de passe, modifier le compte existant. Si tous les administrateurs ont été supprimés, la restauration d’une habilitation exige l’éditeur SQL privilégié du projet (rôle `postgres`), puis les comptes suivants se gèrent depuis Administration → Accès des agents.
+L’habilitation administrateur reste liée à l’UUID de l’identité Auth technique. La rotation du mot de passe s’effectue dans Authentication. Le guichet attribue uniquement le profil Agent aux sessions anonymes.
 
 ## Vider la corbeille
 

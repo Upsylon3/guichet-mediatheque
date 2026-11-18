@@ -14,7 +14,7 @@ const {
   row,
   plus,
   cleanup,
-  accounts,
+  enter: connect,
   fixture,
 } = require('./helpers.cjs');
 let server, origin;
@@ -40,13 +40,8 @@ async function waitText(p, selector, text) {
     { timeout: 15000 },
   );
 }
-async function enter(p, role) {
-  await p.goto(origin + '/dev/index.html');
-  await p.locator('#login [name=email]').fill(accounts[role].email);
-  await p.locator('#login [name=password]').fill(accounts[role].password);
-  await p.locator('#login button').click();
-  await p.locator('main').waitFor({ state: 'visible' });
-}
+const enter = (page, role) => connect(page, origin, role);
+
 test(
   'Parcours réels à deux sessions : navigation, droits, annuaire, planning, J+15 et thème',
   { timeout: 180000 },
@@ -109,7 +104,7 @@ test(
       await a.locator('#openUsers').click();
       await waitText(a, '#userList', c);
       await a.locator('#filterUsers').fill('Camille');
-      await a.locator('#userList button').filter({ hasText: c }).click();
+      await a.locator('#userList button[data-person="' + c + '"]').click();
       await a.locator('#deleteUser').waitFor({ state: 'visible' });
       assert.equal(await b.locator('#deleteUser').isVisible(), false);
       const agentToken = await login('agent');
@@ -190,6 +185,7 @@ test(
         .click();
       const gc = await card(token);
       await b.locator('#guest [name=card]').fill(gc);
+      await b.locator('#guest [name=age]').fill('10');
       assert.equal(await b.locator('#guest [name=companions]').count(), 0);
       assert.equal(await b.locator('#guest [name=companionNames]').count(), 0);
       b.once('dialog', (d) => {
@@ -203,8 +199,8 @@ test(
       );
       b.once('dialog', (d) => d.accept());
       await b.locator('#guest button.primary').click();
-      await waitText(b, '#guests', gc);
-      await b.locator('#close').click();
+      await waitText(b, '#notice', 'Personne inscrite');
+      assert.ok((await state(token)).events.find((x) => x.id === ev).guests.some((guest) => guest.card === gc));
       console.log(
         'OK : calendrier grisé après J+15, refus de la confirmation sans écriture, accord explicite accepté',
       );
@@ -214,7 +210,7 @@ test(
       assert.equal(await a.locator('#af [name=openDate]').count(), 0);
       assert.equal(
         await a.locator('#af [name=room]').getAttribute('required'),
-        '',
+        null,
       );
       assert.equal(
         await a.locator('#af [name=endTime]').getAttribute('required'),
@@ -263,20 +259,20 @@ test(
         assert.match(d.message(), /réservation/);
         return d.dismiss();
       });
-      await a.locator('#config .actions button').click();
+      await a.locator('#adminSave').click();
       assert.equal(
         (await state(token)).videos.some((x) => x.card === vc),
         true,
       );
       a.once('dialog', (d) => d.accept());
-      await a.locator('#config .actions button').click();
+      await a.locator('#adminSave').click();
       await waitText(a, '#configMsg', 'Postes JV');
       assert.equal(
         (await state(token)).videos.some((x) => x.card === vc),
         false,
       );
       console.log(
-        'OK : salle et fin obligatoires, statistiques administratives, fermeture forcée après confirmation',
+        'OK : salle facultative et fin obligatoire, statistiques administratives, fermeture forcée après confirmation',
       );
       await a.locator('[data-tab=vid]').click();
       await a.locator('#theme').click();
@@ -290,10 +286,9 @@ test(
     }
   },
 );
-test('Inscription publique désactivée', async () => {
-  assert.equal(
-    (await api('/auth/v1/settings', null, undefined, 'GET')).data
-      .disable_signup,
-    true,
-  );
+test('Accès Agent sans identifiant ni mot de passe', async () => {
+  const session = await api('/auth/v1/signup', null, {});
+  assert.equal(session.status, 200);
+  assert.equal(session.data.user.is_anonymous, true);
+  assert.equal((await api('/rest/v1/rpc/mon_profil', session.data.access_token, {})).data, 'agent');
 });

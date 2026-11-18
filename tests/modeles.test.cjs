@@ -3,7 +3,7 @@ const { test, before, after } = require('node:test'),
   assert = require('node:assert/strict'),
   { spawn } = require('node:child_process'),
   { chromium } = require('playwright');
-const { login, state, cmd, cleanup, accounts, api } = require('./helpers.cjs');
+const { login, state, cmd, cleanup, enter: connect, api } = require('./helpers.cjs');
 let server, origin;
 before(async () => {
   server = spawn('python', ['scripts/serve-dev.py', '--port', '0']);
@@ -24,13 +24,8 @@ async function text(p, selector, value) {
     { selector, value },
   );
 }
-async function enter(p, role) {
-  await p.goto(origin + '/dev/index.html');
-  await p.locator('#login [name=email]').fill(accounts[role].email);
-  await p.locator('#login [name=password]').fill(accounts[role].password);
-  await p.locator('#login button').click();
-  await p.locator('main').waitFor({ state: 'visible' });
-}
+const enter = (page, role) => connect(page, origin, role);
+
 test(
   'Délégation des modèles : refus par défaut, gestion limitée et synchronisée, révocation',
   { timeout: 120000 },

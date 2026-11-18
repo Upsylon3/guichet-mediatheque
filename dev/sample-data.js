@@ -120,9 +120,7 @@ function sampleDayPlan(day, settings, existingVideos = [], demo = false) {
     ...extra,
     players: Array.from({ length: n }, (_, i) => ({
       card: card(participant++),
-      companions: extra.cap === null && i === 0 ? 2 : 0,
-      companionNames:
-        extra.cap === null && i === 0 ? ['Dominique Démo', 'Sam Démo'] : [],
+      companions: 0,
       age: i % 2 ? 32 : 10,
       ageUnit: 'ans',
       category: i % 2 ? 'Adulte' : 'Enfant',
