@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-NxumbW3GqHvfRdnAUDwvh33LrAIHjPcXa6NL61pyGEc='; style-src 'sha256-Voe0oJrUKcPONes2B8MxSq8Cn+vVbas1ExAhCyUpETY='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-VB2BUUgj74Cd5wSg8Pz+nl86+a5P0LHmAbD+pm3T+s8='; style-src 'sha256-cyC154j4lU/RyzeT/3xF9GKb120u2Er/b5MSx5ppbFU='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -305,6 +305,40 @@ main header {
   flex-wrap: wrap;
   gap: .5rem 1.25rem;
 }
+.workspaceBrand {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+.libraryMark {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 3rem;
+  aspect-ratio: 1;
+  border-radius: 27%;
+  background: #f2ca7c;
+  color: #173653;
+}
+.libraryMark::before,
+.libraryMark::after {
+  content: '';
+  position: absolute;
+  top: 27%;
+  width: 27%;
+  height: 46%;
+  background: currentColor;
+  border-radius: 8% 25% 7% 7%;
+}
+.libraryMark::before {
+  left: 21%;
+  transform: skewY(13deg);
+}
+.libraryMark::after {
+  right: 21%;
+  border-radius: 25% 8% 7% 7%;
+  transform: skewY(-13deg);
+}
 h1,
 h2 {
   font-family: inherit;
@@ -325,30 +359,131 @@ dialog {
   border-color: var(--border);
   border-radius: 6px;
 }
-body > section:first-of-type {
-  max-width: 760px;
-  margin: 8vh auto;
-  padding: 30px;
+body:has(#login:not([hidden])) {
+  min-height: 100svh;
+  background: radial-gradient(ellipse at 18% 20%, #e8dfd0, #f5f2eb 58%);
 }
-body:has(main:not([hidden])) > section:first-of-type {
-  margin: 0 0 0 238px;
-  max-width: none;
-  padding: 8px 28px;
+#access {
+  background: transparent;
   border: 0;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
-}
-body:has(main:not([hidden])) > section:first-of-type > h1,
-body:has(main:not([hidden])) > section:first-of-type > p:first-of-type {
-  display: none;
 }
 #access:has(#login:not([hidden])) {
-  max-width: min(36rem, calc(100% - 2rem));
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+#access:has(#login[hidden]) {
+  margin: 0 0 0 238px;
+  padding: 8px 28px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
 }
 #access:has(#login:not([hidden])) .sessionTools {
   display: none;
 }
-.loginOptions,
+#login {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  width: min(100%, 59rem);
+  overflow: hidden;
+  border: 1px solid #d9d0c2;
+  border-radius: 1.15rem;
+  background: #fffdf8;
+  color: #172b40;
+  box-shadow: 0 1.3rem 4rem #252d3922;
+  color-scheme: light;
+}
+.entryIntro,
+.entryControls {
+  min-width: 0;
+  padding: clamp(1.5rem, 5vw, 3.7rem);
+}
+.entryIntro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 28rem;
+  background:
+    radial-gradient(ellipse at 104% 10%, #41648466 0 28%, transparent 29%),
+    radial-gradient(ellipse at 105% 10%, #395d8055 0 40%, transparent 41%),
+    #172e48;
+  color: #fff9ee;
+}
+.entryIntro .libraryMark {
+  width: 4.25rem;
+  margin-bottom: 1.5rem;
+}
+.entryIntro h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(2.35rem, 5vw, 4.35rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+.entryIntro p {
+  margin: 1rem 0 0;
+  color: #e0e8f0;
+}
+.entryControls {
+  align-self: center;
+}
+.entryControls h2 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+.entryNote,
+#loginMsg {
+  color: #516377;
+}
+.loginOptions {
+  display: grid;
+  gap: .6rem;
+  margin-top: 1.4rem;
+}
+#login button {
+  min-height: 2.8rem;
+  border-color: #9ca9b5;
+  background: #fffdf8;
+  color: #172b40;
+}
+#login .primary {
+  border-color: #173653;
+  background: #173653;
+  color: #fffdf8;
+}
+#login button:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+#login button:disabled {
+  opacity: .65;
+}
+.loginOptions button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+  text-align: left;
+}
+.loginOptions [aria-expanded='true'] > span {
+  transform: rotate(45deg);
+}
+#adminLoginFields input {
+  width: 100%;
+  border-color: #9ca9b5;
+  background: white;
+  color: #172b40;
+}
+#loginMsg:empty {
+  display: none;
+}
+.entryDemo {
+  display: inline-block;
+  margin-top: 1.3rem;
+  color: #254f75;
+}
 .sessionTools {
   display: flex;
   flex-wrap: wrap;
@@ -567,18 +702,26 @@ dialog {
     margin: 0;
     padding: 14px;
   }
-  body:has(main:not([hidden])) > section:first-of-type {
+  #access:has(#login[hidden]) {
     margin: 0;
     padding: 8px 14px;
+  }
+  #login {
+    max-width: 29rem;
+    grid-template-columns: 1fr;
+  }
+  .entryIntro {
+    min-height: auto;
+  }
+  .entryIntro .libraryMark {
+    width: 3.15rem;
+    margin-bottom: .75rem;
   }
   main header {
     margin-top: 20px;
   }
   main h1 {
     font-size: 25px;
-  }
-  body > section:first-of-type {
-    margin: 20px 12px;
   }
   #statsFilter .fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -778,8 +921,8 @@ dialog {
 }
 
 </style>
-  <main><header><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · données usagers
-          effacées au rechargement</p></div><div class="serviceLinks"><a
+  <main><header><div class="workspaceBrand"><span class="libraryMark" aria-hidden="true"></span><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · données usagers
+          effacées au rechargement</p></div></div><div class="serviceLinks"><a
         href="https://mediatheques.montpellier3m.fr/accueil-general.aspx"
         target="_blank"
         rel="noopener">Catalogue du réseau ↗</a><a href="https://sin-averell.ville-montpellier.org/vsair/Vsmart.Start.cls#1789803745335" target="_blank" rel="noopener">V-smart ↗</a></div></header>
@@ -830,7 +973,6 @@ dialog {
               name="slots"
               rows="6"
               required></textarea></label></div>
-        <h3>Valeurs par défaut des animations</h3><div class="fields"><label>Nombre maximal de participants proposé<input name="limit" type="number" min="1"/></label></div>
         <h3>Droits des agents</h3><label><span><input name="manageEvents" type="checkbox" /> Créer, modifier ou supprimer les séances
             d’animation</span></label>
         <div class="actions"><button>Enregistrer les réglages</button></div><p id="configMsg" role="status"></p></form>
@@ -3124,7 +3266,7 @@ function editEvent(ev = {}, duplicate = false) {
         ? 'Modifier la séance'
         : 'Nouvelle animation',
     `<form id="af"><div class="fields">
- ${field('Titre', 'title', ev.title || '', 'text', 'required')}${select('Type d’animation (facultatif)', 'eventType', ['', ...(defaults.eventTypes || [])], ev.eventType || '')}${field('Jour', 'date', ev.date || day(), 'date', `required min="${day()}"`)}${field('Heure de début', 'time', ev.time || nowTime(), 'time', 'required')}${field('Heure de fin', 'endTime', ev.endTime || addHour(nowTime()), 'time', 'required')}${select('Salle (facultative)', 'room', ['', 'Créazone', 'Salle JV'], ev.room || '')}${field('Renseignements', 'info', ev.info || '')}${field('Intervenant ou référent', 'referent', ev.referent || '')}${field('Public', 'audience', ev.audience || '')}${field('Âge minimum (ans)', 'minAge', ev.minAge ?? '', 'number', 'min="0" step="0.1"')}${field('Âge maximum (ans)', 'maxAge', ev.maxAge ?? '', 'number', 'min="0" step="0.1"')}${select('Mode', 'mode', ['inscription', 'libre'], ev.mode || 'inscription')}${field('Nombre maximal de participants (facultatif)', 'cap', ev.cap ?? defaults.limit ?? '', 'number', 'min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement || '')}</textarea></label>${field('Lien vers un visuel facultatif', 'image', ev.image || '', 'url')}
+ ${field('Titre', 'title', ev.title || '', 'text', 'required')}${select('Type d’animation (facultatif)', 'eventType', ['', ...(defaults.eventTypes || [])], ev.eventType || '')}${field('Jour', 'date', ev.date || day(), 'date', `required min="${day()}"`)}${field('Heure de début', 'time', ev.time || nowTime(), 'time', 'required')}${field('Heure de fin', 'endTime', ev.endTime || addHour(nowTime()), 'time', 'required')}${select('Salle (facultative)', 'room', ['', 'Créazone', 'Salle JV'], ev.room || '')}${field('Renseignements', 'info', ev.info || '')}${field('Intervenant ou référent', 'referent', ev.referent || '')}${field('Public', 'audience', ev.audience || '')}${field('Âge minimum (ans)', 'minAge', ev.minAge ?? '', 'number', 'min="0" step="0.1"')}${field('Âge maximum (ans)', 'maxAge', ev.maxAge ?? '', 'number', 'min="0" step="0.1"')}${select('Mode', 'mode', ['inscription', 'libre'], ev.mode || 'inscription')}${field('Nombre maximal de participants (facultatif)', 'cap', ev.cap ?? '', 'number', 'min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement || '')}</textarea></label>${field('Lien vers un visuel facultatif', 'image', ev.image || '', 'url')}
  ${ev.id && !duplicate ? select('Portée de la modification', 'scope', ['one', 'following', 'all'], 'one') : field('Nombre de séances (1 à 52)', 'repeat', 1, 'number', 'required min="1" max="52"') + select('Récurrence', 'frequency', ['week', 'month'], 'week') + field('Tous les', 'repeatEvery', 1, 'number', 'required min="1" max="12"')}
  <p id="seriesPreview"></p><p id="afmsg" role="status"></p><button class="primary">Enregistrer</button></form>`,
   );
@@ -3438,7 +3580,6 @@ function readConfig() {
   f.weekday.disabled = !p;
   f.games.value = p?.games.join('\n') || '';
   f.slots.value = p?.slots.join('\n') || '';
-  f.limit.value = cfg.limit ?? '';
   f.manageEvents.checked = !!cfg.manageEvents;
   f.enabled.checked = p?.enabled !== false;
   f.instruction.value = p?.instruction || '';
@@ -3584,7 +3725,6 @@ $('config').onsubmit = (e) => {
     cfg.stations[key] = p;
     cfg.closedDates = lines(f.closedDates.value);
   } else if (adminSection === 'animations') {
-    cfg.limit = f.limit.value === '' ? null : +f.limit.value;
     cfg.eventTypes = lines(f.eventTypes.value);
   } else if (adminSection === 'acces') {
     cfg.manageEvents = f.manageEvents.checked;
@@ -4712,9 +4852,9 @@ function setupAdministration() {
   group(panels.postes, 'Consigne', ['instruction']);
   group(
     panels.animations,
-    'Valeurs proposées à la création',
-    ['limit', 'eventTypes'],
-    'Le nombre maximal proposé s’applique aux nouvelles séances. Laisser vide pour ne proposer aucune limite.',
+    'Types d’animation',
+    ['eventTypes'],
+    'Utilisés pour classer les séances et filtrer les statistiques.',
   );
   const rules = document.createElement('p');
   rules.className = 'adminHelp';

@@ -283,6 +283,7 @@ test(
       await p.locator('#calendar .today').click();
       await p.locator('#new').click();
       assert.equal(await p.locator('#af [name=template] option').count(), 4);
+      assert.equal(await p.locator('#af [name=cap]').inputValue(), '');
       await p
         .locator('#af [name=template]')
         .selectOption('DÉMO · Atelier créatif (8 places)');
@@ -296,6 +297,7 @@ test(
       await p.locator('#close').click();
       await p.locator('#openAdmin').click();
       await p.locator('[data-admin-tab=animations]').click();
+      assert.equal(await p.locator('#config [name=limit]').count(), 0);
       await p.locator('#newTemplate').click();
       await p.locator('#templateForm [name=name]').fill('Mon modèle fictif');
       await p

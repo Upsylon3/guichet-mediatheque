@@ -192,11 +192,14 @@ test(
         await a.locator('#config [name=postName]').isDisabled(),
         true,
       );
-      await a.locator('#config [name=limit]').fill('7');
+      assert.equal(await a.locator('#config [name=limit]').count(), 0);
+      const types = a.locator('[data-collection=eventTypes]');
+      await types.getByRole('button', { name: 'Ajouter un type' }).click();
+      await types.locator('input').last().fill('Type de recette fictif');
       await a.locator('#adminSave').click();
       await text(a, '#configMsg', 'Animations');
       s = await state(token);
-      assert.equal(s.settings.limit, 7);
+      assert.ok(s.settings.eventTypes.includes('Type de recette fictif'));
       assert.deepEqual(s.settings.stations[renamed], cfg.stations[old]);
       await cmd(
         token,

@@ -31,7 +31,7 @@ Une fermeture incompatible avec des réservations nécessite une confirmation ex
 
 Chaque séance possède un titre, une date et deux horaires obligatoires. Créazone et Salle JV sont des mentions facultatives pour l’annonce. Des séances peuvent se tenir simultanément. Les inscriptions suivent la séance lors d’un déplacement.
 
-Autres champs : type, référent, public, âges minimum/maximum facultatifs, annonce et visuel facultatif, mode sur inscription ou entrée libre, jauge facultative. L’heure actuelle est proposée. Aucun champ d’ouverture des inscriptions : la règle commune couvre les quinze jours suivants.
+Autres champs : type, référent, public, âges minimum/maximum facultatifs, annonce et visuel facultatif, mode sur inscription ou entrée libre, jauge facultative. La jauge se renseigne sur la séance ou provient du modèle choisi. L’heure actuelle est proposée. Aucun champ d’ouverture des inscriptions : la règle commune couvre les quinze jours suivants.
 
 Une carte correspond à une personne. Une carte ne se répète ni dans le groupe ni dans les inscrits de la séance. Aucune carte familiale. L’âge est obligatoire à la nouvelle inscription, en ans ou en mois. La catégorie distingue enfant et adulte. Le formulaire enregistre les seuls participants munis d’une carte. L’entrée libre permet aussi un comptage non nominatif.
 
