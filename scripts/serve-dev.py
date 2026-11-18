@@ -9,15 +9,25 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LOGIN = """<section id="access"><form id="login">
-<h1>Guichet médiathèque</h1><p>Données fictives uniquement.</p>
-<div class="loginOptions">
-<button name="agentLogin" type="button" class="primary" disabled>Entrer en tant qu’agent</button>
-<button name="adminLogin" type="button" aria-expanded="false" aria-controls="adminLoginFields" disabled>Entrer en tant qu’administrateur</button>
+LOGIN = """<section id="access"><form id="login" aria-labelledby="entryTitle">
+<div class="entryIntro">
+  <span class="libraryMark" aria-hidden="true"></span>
+  <h1 id="entryTitle">Guichet<br>médiathèque</h1>
+  <p>Jeux vidéo, jeux de société et animations</p>
 </div>
-<div id="adminLoginFields" hidden><label>Mot de passe administrateur<input name="password" type="password" autocomplete="current-password" required></label>
-<button name="submit" class="primary" disabled>Se connecter</button></div>
-<p id="loginMsg" role="status"></p></form>
+<div class="entryControls">
+  <h2>Ouvrir une session</h2>
+  <p class="entryNote">Espace de test · données fictives</p>
+  <div class="loginOptions">
+    <button name="agentLogin" type="button" class="primary" disabled>Entrer en tant qu’agent <span aria-hidden="true">→</span></button>
+    <button name="adminLogin" type="button" aria-expanded="false" aria-controls="adminLoginFields" disabled>Accès administrateur <span aria-hidden="true">+</span></button>
+  </div>
+  <div id="adminLoginFields" hidden><label>Mot de passe administrateur<input name="password" type="password" autocomplete="current-password" required></label>
+    <button name="submit" class="primary" disabled>Se connecter</button>
+  </div>
+  <p id="loginMsg" role="status"></p>
+  <a class="entryDemo" href="../">Ouvrir la démonstration ↗</a>
+</div></form>
 <div class="sessionTools"><p id="sessionProfile" hidden></p><p id="syncStatus" role="status"></p><button id="logout" type="button" hidden>Se déconnecter</button></div>
 </section>"""
 

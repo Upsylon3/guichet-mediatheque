@@ -121,9 +121,12 @@ test('Démonstration publique autonome et entrée connectée séparée', async (
     await connected.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await connected.goto(origin + '/dev/index.html');
     assert.equal(await connected.locator('#login').isVisible(), true);
+    assert.equal(await connected.locator('#login .libraryMark').isVisible(), true);
     assert.equal(await connected.locator('main').isVisible(), false);
     assert.equal(await connected.locator('#login [name=agentLogin]').isEnabled(), true);
     assert.equal(await connected.locator('#login [name=password]').isVisible(), false);
+    await connected.locator('#login [name=adminLogin]').click();
+    assert.equal(await connected.locator('#login [name=password]').isVisible(), true);
     assert.deepEqual(errors, []);
     const noScript = await browser.newPage({ javaScriptEnabled: false });
     await noScript.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));

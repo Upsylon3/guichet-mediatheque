@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-NxumbW3GqHvfRdnAUDwvh33LrAIHjPcXa6NL61pyGEc=' 'self'; style-src 'sha256-Voe0oJrUKcPONes2B8MxSq8Cn+vVbas1ExAhCyUpETY=' 'self'; connect-src 'self' https://tmsmjerslmogjhyzkfrn.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-VB2BUUgj74Cd5wSg8Pz+nl86+a5P0LHmAbD+pm3T+s8=' 'self'; style-src 'sha256-cyC154j4lU/RyzeT/3xF9GKb120u2Er/b5MSx5ppbFU=' 'self'; connect-src 'self' https://tmsmjerslmogjhyzkfrn.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -305,6 +305,40 @@ main header {
   flex-wrap: wrap;
   gap: .5rem 1.25rem;
 }
+.workspaceBrand {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+.libraryMark {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 3rem;
+  aspect-ratio: 1;
+  border-radius: 27%;
+  background: #f2ca7c;
+  color: #173653;
+}
+.libraryMark::before,
+.libraryMark::after {
+  content: '';
+  position: absolute;
+  top: 27%;
+  width: 27%;
+  height: 46%;
+  background: currentColor;
+  border-radius: 8% 25% 7% 7%;
+}
+.libraryMark::before {
+  left: 21%;
+  transform: skewY(13deg);
+}
+.libraryMark::after {
+  right: 21%;
+  border-radius: 25% 8% 7% 7%;
+  transform: skewY(-13deg);
+}
 h1,
 h2 {
   font-family: inherit;
@@ -325,30 +359,131 @@ dialog {
   border-color: var(--border);
   border-radius: 6px;
 }
-body > section:first-of-type {
-  max-width: 760px;
-  margin: 8vh auto;
-  padding: 30px;
+body:has(#login:not([hidden])) {
+  min-height: 100svh;
+  background: radial-gradient(ellipse at 18% 20%, #e8dfd0, #f5f2eb 58%);
 }
-body:has(main:not([hidden])) > section:first-of-type {
-  margin: 0 0 0 238px;
-  max-width: none;
-  padding: 8px 28px;
+#access {
+  background: transparent;
   border: 0;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
-}
-body:has(main:not([hidden])) > section:first-of-type > h1,
-body:has(main:not([hidden])) > section:first-of-type > p:first-of-type {
-  display: none;
 }
 #access:has(#login:not([hidden])) {
-  max-width: min(36rem, calc(100% - 2rem));
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+#access:has(#login[hidden]) {
+  margin: 0 0 0 238px;
+  padding: 8px 28px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--surface);
 }
 #access:has(#login:not([hidden])) .sessionTools {
   display: none;
 }
-.loginOptions,
+#login {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  width: min(100%, 59rem);
+  overflow: hidden;
+  border: 1px solid #d9d0c2;
+  border-radius: 1.15rem;
+  background: #fffdf8;
+  color: #172b40;
+  box-shadow: 0 1.3rem 4rem #252d3922;
+  color-scheme: light;
+}
+.entryIntro,
+.entryControls {
+  min-width: 0;
+  padding: clamp(1.5rem, 5vw, 3.7rem);
+}
+.entryIntro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 28rem;
+  background:
+    radial-gradient(ellipse at 104% 10%, #41648466 0 28%, transparent 29%),
+    radial-gradient(ellipse at 105% 10%, #395d8055 0 40%, transparent 41%),
+    #172e48;
+  color: #fff9ee;
+}
+.entryIntro .libraryMark {
+  width: 4.25rem;
+  margin-bottom: 1.5rem;
+}
+.entryIntro h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(2.35rem, 5vw, 4.35rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+.entryIntro p {
+  margin: 1rem 0 0;
+  color: #e0e8f0;
+}
+.entryControls {
+  align-self: center;
+}
+.entryControls h2 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+.entryNote,
+#loginMsg {
+  color: #516377;
+}
+.loginOptions {
+  display: grid;
+  gap: .6rem;
+  margin-top: 1.4rem;
+}
+#login button {
+  min-height: 2.8rem;
+  border-color: #9ca9b5;
+  background: #fffdf8;
+  color: #172b40;
+}
+#login .primary {
+  border-color: #173653;
+  background: #173653;
+  color: #fffdf8;
+}
+#login button:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+#login button:disabled {
+  opacity: .65;
+}
+.loginOptions button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+  text-align: left;
+}
+.loginOptions [aria-expanded='true'] > span {
+  transform: rotate(45deg);
+}
+#adminLoginFields input {
+  width: 100%;
+  border-color: #9ca9b5;
+  background: white;
+  color: #172b40;
+}
+#loginMsg:empty {
+  display: none;
+}
+.entryDemo {
+  display: inline-block;
+  margin-top: 1.3rem;
+  color: #254f75;
+}
 .sessionTools {
   display: flex;
   flex-wrap: wrap;
@@ -567,18 +702,26 @@ dialog {
     margin: 0;
     padding: 14px;
   }
-  body:has(main:not([hidden])) > section:first-of-type {
+  #access:has(#login[hidden]) {
     margin: 0;
     padding: 8px 14px;
+  }
+  #login {
+    max-width: 29rem;
+    grid-template-columns: 1fr;
+  }
+  .entryIntro {
+    min-height: auto;
+  }
+  .entryIntro .libraryMark {
+    width: 3.15rem;
+    margin-bottom: .75rem;
   }
   main header {
     margin-top: 20px;
   }
   main h1 {
     font-size: 25px;
-  }
-  body > section:first-of-type {
-    margin: 20px 12px;
   }
   #statsFilter .fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -777,19 +920,29 @@ dialog {
   overflow-wrap: anywhere;
 }
 
-</style><link rel="stylesheet" href="./app.css?v=82ce326f8b1184f4">
-  <section id="access"><form id="login">
-<h1>Guichet médiathèque</h1><p>Données fictives uniquement.</p>
-<div class="loginOptions">
-<button name="agentLogin" type="button" class="primary" disabled>Entrer en tant qu’agent</button>
-<button name="adminLogin" type="button" aria-expanded="false" aria-controls="adminLoginFields" disabled>Entrer en tant qu’administrateur</button>
+</style><link rel="stylesheet" href="./app.css?v=3c670283007ef343">
+  <section id="access"><form id="login" aria-labelledby="entryTitle">
+<div class="entryIntro">
+  <span class="libraryMark" aria-hidden="true"></span>
+  <h1 id="entryTitle">Guichet<br>médiathèque</h1>
+  <p>Jeux vidéo, jeux de société et animations</p>
 </div>
-<div id="adminLoginFields" hidden><label>Mot de passe administrateur<input name="password" type="password" autocomplete="current-password" required></label>
-<button name="submit" class="primary" disabled>Se connecter</button></div>
-<p id="loginMsg" role="status"></p></form>
+<div class="entryControls">
+  <h2>Ouvrir une session</h2>
+  <p class="entryNote">Espace de test · données fictives</p>
+  <div class="loginOptions">
+    <button name="agentLogin" type="button" class="primary" disabled>Entrer en tant qu’agent <span aria-hidden="true">→</span></button>
+    <button name="adminLogin" type="button" aria-expanded="false" aria-controls="adminLoginFields" disabled>Accès administrateur <span aria-hidden="true">+</span></button>
+  </div>
+  <div id="adminLoginFields" hidden><label>Mot de passe administrateur<input name="password" type="password" autocomplete="current-password" required></label>
+    <button name="submit" class="primary" disabled>Se connecter</button>
+  </div>
+  <p id="loginMsg" role="status"></p>
+  <a class="entryDemo" href="../">Ouvrir la démonstration ↗</a>
+</div></form>
 <div class="sessionTools"><p id="sessionProfile" hidden></p><p id="syncStatus" role="status"></p><button id="logout" type="button" hidden>Se déconnecter</button></div>
-</section><main hidden><header><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · données usagers
-          effacées au rechargement</p></div><div class="serviceLinks"><a
+</section><main hidden><header><div class="workspaceBrand"><span class="libraryMark" aria-hidden="true"></span><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · données usagers
+          effacées au rechargement</p></div></div><div class="serviceLinks"><a
         href="https://mediatheques.montpellier3m.fr/accueil-general.aspx"
         target="_blank"
         rel="noopener">Catalogue du réseau ↗</a><a href="https://sin-averell.ville-montpellier.org/vsair/Vsmart.Start.cls#1789803745335" target="_blank" rel="noopener">V-smart ↗</a></div></header>
@@ -840,7 +993,6 @@ dialog {
               name="slots"
               rows="6"
               required></textarea></label></div>
-        <h3>Valeurs par défaut des animations</h3><div class="fields"><label>Nombre maximal de participants proposé<input name="limit" type="number" min="1"/></label></div>
         <h3>Droits des agents</h3><label><span><input name="manageEvents" type="checkbox" /> Créer, modifier ou supprimer les séances
             d’animation</span></label>
         <div class="actions"><button>Enregistrer les réglages</button></div><p id="configMsg" role="status"></p></form>
@@ -870,4 +1022,4 @@ dialog {
               name="birth"
               type="date" /></label></div><div class="actions"><button>Enregistrer la fiche</button></div></form></section></main>
   <dialog id="modal" aria-labelledby="heading"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>
-  <script src="./directory.js?v=edfbd86cf450757a"></script><script src="./app.js?v=cb7f7de00561d2bf"></script></html>
+  <script src="./directory.js?v=edfbd86cf450757a"></script><script src="./app.js?v=3e623e12dda38882"></script></html>

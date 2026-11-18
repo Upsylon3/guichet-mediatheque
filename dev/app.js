@@ -1367,7 +1367,7 @@ function editEvent(ev = {}, duplicate = false) {
         ? 'Modifier la séance'
         : 'Nouvelle animation',
     `<form id="af"><div class="fields">
- ${field('Titre', 'title', ev.title || '', 'text', 'required')}${select('Type d’animation (facultatif)', 'eventType', ['', ...(defaults.eventTypes || [])], ev.eventType || '')}${field('Jour', 'date', ev.date || day(), 'date', `required min="${day()}"`)}${field('Heure de début', 'time', ev.time || nowTime(), 'time', 'required')}${field('Heure de fin', 'endTime', ev.endTime || addHour(nowTime()), 'time', 'required')}${select('Salle (facultative)', 'room', ['', 'Créazone', 'Salle JV'], ev.room || '')}${field('Renseignements', 'info', ev.info || '')}${field('Intervenant ou référent', 'referent', ev.referent || '')}${field('Public', 'audience', ev.audience || '')}${field('Âge minimum (ans)', 'minAge', ev.minAge ?? '', 'number', 'min="0" step="0.1"')}${field('Âge maximum (ans)', 'maxAge', ev.maxAge ?? '', 'number', 'min="0" step="0.1"')}${select('Mode', 'mode', ['inscription', 'libre'], ev.mode || 'inscription')}${field('Nombre maximal de participants (facultatif)', 'cap', ev.cap ?? defaults.limit ?? '', 'number', 'min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement || '')}</textarea></label>${field('Lien vers un visuel facultatif', 'image', ev.image || '', 'url')}
+ ${field('Titre', 'title', ev.title || '', 'text', 'required')}${select('Type d’animation (facultatif)', 'eventType', ['', ...(defaults.eventTypes || [])], ev.eventType || '')}${field('Jour', 'date', ev.date || day(), 'date', `required min="${day()}"`)}${field('Heure de début', 'time', ev.time || nowTime(), 'time', 'required')}${field('Heure de fin', 'endTime', ev.endTime || addHour(nowTime()), 'time', 'required')}${select('Salle (facultative)', 'room', ['', 'Créazone', 'Salle JV'], ev.room || '')}${field('Renseignements', 'info', ev.info || '')}${field('Intervenant ou référent', 'referent', ev.referent || '')}${field('Public', 'audience', ev.audience || '')}${field('Âge minimum (ans)', 'minAge', ev.minAge ?? '', 'number', 'min="0" step="0.1"')}${field('Âge maximum (ans)', 'maxAge', ev.maxAge ?? '', 'number', 'min="0" step="0.1"')}${select('Mode', 'mode', ['inscription', 'libre'], ev.mode || 'inscription')}${field('Nombre maximal de participants (facultatif)', 'cap', ev.cap ?? '', 'number', 'min="1"')}</div><label>Texte d’annonce<textarea name="announcement" rows="3">${esc(ev.announcement || '')}</textarea></label>${field('Lien vers un visuel facultatif', 'image', ev.image || '', 'url')}
  ${ev.id && !duplicate ? select('Portée de la modification', 'scope', ['one', 'following', 'all'], 'one') : field('Nombre de séances (1 à 52)', 'repeat', 1, 'number', 'required min="1" max="52"') + select('Récurrence', 'frequency', ['week', 'month'], 'week') + field('Tous les', 'repeatEvery', 1, 'number', 'required min="1" max="12"')}
  <p id="seriesPreview"></p><p id="afmsg" role="status"></p><button class="primary">Enregistrer</button></form>`,
   );
@@ -1681,7 +1681,6 @@ function readConfig() {
   f.weekday.disabled = !p;
   f.games.value = p?.games.join('\n') || '';
   f.slots.value = p?.slots.join('\n') || '';
-  f.limit.value = cfg.limit ?? '';
   f.manageEvents.checked = !!cfg.manageEvents;
   f.enabled.checked = p?.enabled !== false;
   f.instruction.value = p?.instruction || '';
@@ -1827,7 +1826,6 @@ $('config').onsubmit = (e) => {
     cfg.stations[key] = p;
     cfg.closedDates = lines(f.closedDates.value);
   } else if (adminSection === 'animations') {
-    cfg.limit = f.limit.value === '' ? null : +f.limit.value;
     cfg.eventTypes = lines(f.eventTypes.value);
   } else if (adminSection === 'acces') {
     cfg.manageEvents = f.manageEvents.checked;
@@ -2955,9 +2953,9 @@ function setupAdministration() {
   group(panels.postes, 'Consigne', ['instruction']);
   group(
     panels.animations,
-    'Valeurs proposées à la création',
-    ['limit', 'eventTypes'],
-    'Le nombre maximal proposé s’applique aux nouvelles séances. Laisser vide pour ne proposer aucune limite.',
+    'Types d’animation',
+    ['eventTypes'],
+    'Utilisés pour classer les séances et filtrer les statistiques.',
   );
   const rules = document.createElement('p');
   rules.className = 'adminHelp';
