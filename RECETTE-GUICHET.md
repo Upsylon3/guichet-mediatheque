@@ -59,3 +59,7 @@ Les 120 fiches et les 100 activités d’essai ont été archivées dans `guiche
 - L’audit Supabase confirme la sécurité par ligne sur les tables métier et l’absence de lecture directe par les rôles clients sur le schéma privé. Les avertissements concernant les sessions anonymes couvrent aussi les sessions Agent autorisées, lues après validation du poste.
 - Les cinq recettes SQL passent sur PostgreSQL embarqué. Une base fictive a été sauvegardée et restaurée dans une instance isolée, avec vérification d’une fiche et des droits. La restauration sur l’hébergement du service reste à effectuer. La liste de sauvegardes physiques Supabase est vide.
 - Les alertes de dépendances et le canal de signalement privé sont activés sur GitHub. `npm audit` signale zéro vulnérabilité au moment du contrôle.
+
+## Sauvegarde des inscriptions et événements
+
+Le 19 novembre 2026, le compte de sauvegarde a créé une copie chiffrée depuis Supabase via TLS vérifié. La base active était vide. La tâche quotidienne du Planificateur Windows a terminé avec le code `0`. Dans PostgreSQL embarqué, le rôle de sauvegarde a reçu un refus de lecture des notes et d’écriture des activités. La copie chiffrée d’un jeu fictif a exclu une séance hors période. Après déchiffrement et restauration sur le schéma migré dans une instance isolée, l’inscription est de nouveau reliée à sa séance et à sa carte. [Procédure de restauration](EXPLOITATION.md#contrôler-et-restaurer-une-sauvegarde)

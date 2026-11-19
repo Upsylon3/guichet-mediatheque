@@ -34,7 +34,7 @@ La démonstration `index.html` s’ouvre aussi directement depuis le disque. Ell
 
 `npm ci`, `npx playwright install chromium`, `npm run build`, puis `npm test`. Les essais connectés utilisent une configuration et le mot de passe administrateur fictif dans des fichiers ignorés par Git. Le workflow public vérifie la démonstration sans secrets. `supabase/tests/cloture.sql` vérifie clôture, statistiques et quota dans une transaction annulée.
 
-Avant d’utiliser de vraies données, compléter le [dossier d’exploitation](EXPLOITATION.md), tester les sauvegardes et faire la recette sur le matériel du guichet.
+Avant d’utiliser de vraies données, suivre la [checklist de mise en service](MISE-EN-SERVICE.md).
 
 
 ## Essais et modèles
