@@ -1,8 +1,12 @@
 # Droits, licences et composants
 
+**Copyright © 2026 Upsylon3 — Ludion. Droits réservés.**
+
 **Titulaire des droits du projet Ludion.** Upsylon3, développeur et mainteneur indépendant, déclare en être le titulaire. La diffusion et les autorisations de réutilisation du logiciel relèvent de son choix.
 
 Le dépôt est public. Les droits sur le code et la documentation de Ludion sont réservés, sous réserve des exceptions légales et des conditions de GitHub qui permettent notamment de consulter et de forker un dépôt public. Aucune licence open source n’est accordée pour Ludion. [Licences des dépôts GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)
+
+Pour réutiliser, modifier, redistribuer ou déployer une copie du logiciel en dehors des droits applicables, obtenir l’autorisation d’Upsylon3.
 
 | Élément | Composants présents ou décision à prendre |
 |---|---|

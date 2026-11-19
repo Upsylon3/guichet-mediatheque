@@ -1,5 +1,7 @@
 # Ludion
 
+**Copyright © 2026 Upsylon3. Droits réservés.** [Autorisations de réutilisation](DROITS.md)
+
 Application d’accueil pour les jeux de société, les jeux vidéo, les animations et un annuaire partagé.
 
 [Ouvrir Ludion](https://upsylon3.github.io/guichet-mediatheque/)
