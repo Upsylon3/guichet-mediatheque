@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-R/2Hi4+82OpI6qqiQH2RezGO85OgS9JroXWjrsURq6c='; style-src 'sha256-Z9BPewwEAjG7gsicXyhivrYD9DWv7Xl1x2hA4LcFC0s='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Ludion · Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-5SEuWiTm7CdNlRTyRKvVfpBhTpt4qzMrp/X2wb4RSpk='; style-src 'sha256-Z9BPewwEAjG7gsicXyhivrYD9DWv7Xl1x2hA4LcFC0s='; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Ludion · Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -2189,7 +2189,9 @@ api.onReady = async () => {
   }
   $('board').elements.date.min = day();
   render();
-  poll = setInterval(() => refresh().catch(() => {}), 2000);
+  poll = setInterval(() => {
+    if (api.profile) refresh().catch(() => {});
+  }, 2000);
 };
 function updateKnown(input) {
   const output =

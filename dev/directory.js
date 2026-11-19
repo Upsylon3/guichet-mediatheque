@@ -33,6 +33,7 @@ globalThis.guichetDirectory = (() => {
       if (response.status === 403) {
         if (directory.profile === 'agent' && path === '/rest/v1/rpc/etat_guichet') {
           directory.profile = '';
+          lastProfile = '';
           token = '';
           document.querySelector('main').hidden = true;
           for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();

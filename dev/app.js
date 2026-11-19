@@ -235,7 +235,9 @@ api.onReady = async () => {
   }
   $('board').elements.date.min = day();
   render();
-  poll = setInterval(() => refresh().catch(() => {}), 2000);
+  poll = setInterval(() => {
+    if (api.profile) refresh().catch(() => {});
+  }, 2000);
 };
 function updateKnown(input) {
   const output =
