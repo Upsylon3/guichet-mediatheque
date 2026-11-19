@@ -12,7 +12,7 @@ La grille provient des nouveaux modèles JV du classeur « INSCRIPTION AUX ANIMA
 
 Les lundis et dimanches sont fermés. Les jours fériés métropolitains restent fermés, y compris pendant les vacances. Une exception datée administrative peut modifier une ouverture ou ses horaires. Les dates de fermeture générale du service restent prioritaires.
 
-La mention « 3 créneaux uniquement » pour SPYRO contredit les quatre en-têtes horaires présents dans le modèle et les feuilles datées. La grille suit ces quatre en-têtes explicites, dont le dernier créneau d’une heure.
+Les quatre créneaux du samedi pour SPYRO sont confirmés. La grille reprend les quatre en-têtes horaires du classeur, dont le dernier créneau d’une heure.
 
 ## Corrélation avec la Zone C
 
