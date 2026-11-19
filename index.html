@@ -1004,8 +1004,8 @@ dialog {
               required
               pattern="[0-9]{7}"
               placeholder="0000001"/></label>
-          <label>Nom<input name="last" /></label><label>Prénom<input name="first" /></label><label>Date de naissance<input type="date" name="birth" /></label></div>
-        <details id="noteDetails"><summary>Note interne</summary><label>Note sur la fiche<input maxlength="500" name="note" /></label></details>
+          <label>Nom<input name="last" /></label><label>Prénom<input name="first" /></label><label>Date de naissance facultative<input type="date" name="birth" /></label></div>
+        <details id="noteDetails"><summary>Note interne</summary><p class="muted" id="noteHelp">Saisir uniquement ce qui est nécessaire à l’accueil. Les informations médicales et familiales sont à traiter par les circuits prévus par le service.</p><label>Note sur la fiche<input maxlength="500" name="note" aria-describedby="noteHelp" /></label></details>
         <div class="actions"><button type="submit">Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
     </dialog>
     <section id="settings" hidden><h2>Administration</h2><form id="config"><h3>Postes de jeux vidéo</h3>

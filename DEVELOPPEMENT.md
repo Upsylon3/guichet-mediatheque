@@ -15,6 +15,8 @@ Lancement local : `python scripts/serve-dev.py --config dev/config.json`, puis `
 
 Supabase Auth conserve le hook `guichet_prive.autoriser_session_anonyme`. Le hook refuse les inscriptions permanentes et seules les identités inscrites dans `guichet_prive.postes_agents` obtiennent le rôle Agent. Le mot de passe de l’identité technique administrateur se vérifie dans la fonction Edge existante.
 
+Ludion masque le guichet après 15 minutes d’inactivité, à l’expiration de la session ou si le serveur retire l’accès. Une session Agent peut être rouverte en un clic sur un profil de navigateur activé. Verrouiller Windows en quittant le poste. **Se déconnecter** recharge la page et les brouillons en cours peuvent être perdus.
+
 ## Prise de poste
 
 Vérifier le profil et le message de synchronisation. Le menu latéral ouvre les activités et Usagers. Statistiques reste réservée aux administrateurs. Administration présente tous les réglages aux administrateurs ; un agent disposant du droit Gérer les modèles d’animations y accède uniquement à la gestion des modèles. Le bouton Mode sombre mémorise le choix de ce navigateur. Les données confirmées restent dans la base commune, les brouillons restent dans la page. Recharger déconnecte et peut perdre un brouillon.

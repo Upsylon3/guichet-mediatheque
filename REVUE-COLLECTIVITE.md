@@ -1,5 +1,16 @@
 # Revue du projet par la collectivité
-**État au 14 novembre 2026 · document préparatoire pour la direction, la DSI, le DPD et les archives.**
+**État au 19 novembre 2026 · document préparatoire pour la direction, la DSI, le DPD et les archives.**
+
+### Mise en service avec des données réelles
+
+| Responsable | Décision ou preuve à consigner |
+|---|---|
+| Direction et juridique | Valider le responsable du traitement et les finalités, autoriser l’hébergement et la diffusion du logiciel, identifier le titulaire des droits. |
+| DSI | Choisir un hébergement adapté à la connexion administrateur et valider Supabase, les accès, les sous-traitants et les transferts. GitHub déconseille l’utilisation de Pages pour des opérations sensibles telles que la transmission d’un mot de passe. [Conditions d’usage de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits) · [Accord de traitement Supabase](https://supabase.com/legal/customer-resources/data-processing-addendum) |
+| DPD et archives | Compléter le registre, arrêter les champs nécessaires, les durées des fiches, des traces et des sauvegardes, les procédures de droits et le besoin d’une AIPD. Valider la notice avant collecte. [Guide CNIL pour les collectivités](https://www.cnil.fr/fr/collectivites-territoriales/les-principes-cles-de-la-protection-des-donnees) |
+| DSI et référent accessibilité | Exécuter une restauration sur l’infrastructure autorisée, puis la recette sur deux postes physiques avec douchette, clavier, zoom, lecteur d’écran et thème sombre. Établir la déclaration selon le périmètre applicable et les résultats de l’audit. [Déclaration d’accessibilité RGAA](https://accessibilite.numerique.gouv.fr/obligations/declaration-accessibilite/) |
+
+Le contrôle du 19 novembre a trouvé zéro fiche et zéro activité dans la base active. La liste de sauvegardes physiques du projet était vide et la restauration à un instant donné était désactivée. La restauration réussie avec PostgreSQL embarqué utilise des données fictives. La DSI doit confirmer le stockage chiffré hors projet, la fréquence, la conservation et les objectifs de reprise, puis restaurer une sauvegarde sur une instance isolée et vérifier les droits, les compteurs et les purges. [Sauvegardes Supabase](https://supabase.com/docs/guides/platform/backups)
 
 ### Pilotage par une seule personne
 
@@ -9,9 +20,9 @@ Un seul porteur de projet peut développer, documenter, exécuter les essais suc
 
 | Situation | Données et destination |
 |---|---|
-| Ouverture de la démonstration publique | L’hébergeur de la page reçoit la requête web et ses métadonnées techniques. L’essai autonome est réservé à l’ouverture locale. GitHub Pages distribue le guichet connecté. |
+| Ouverture du guichet | GitHub Pages distribue l’interface et reçoit les métadonnées de chargement. Les appels de connexion et de données vont directement à Supabase. L’essai autonome reste local. |
 | Saisie fictive | La page accepte les cartes au format ESSAI- suivi de 1 à 4 chiffres. Les formulaires travaillent en mémoire. Le rechargement efface les données de session. Les paramètres de démonstration seuls sont conservés sur ce navigateur (libellés fictifs uniquement). Les noms et les champs libres restent des zones de saisie manuelle réservées aux exemples inventés. |
-| Ressources | Une page HTML autonome, polices système, aucun script distant, aucune mesure d’audience intégrée. Une politique de sécurité restreint scripts et styles à leurs empreintes et bloque les connexions applicatives et les envois de formulaires. |
+| Ressources et navigateur | Le guichet utilise ses scripts et styles locaux et réserve les connexions applicatives à Supabase. Il ne comporte pas de mesure d’audience intégrée. Le navigateur conserve le thème, le secteur et, sur un profil activé, le jeton nécessaire à l’accès Agent. |
 | Raccourcis métier | Catalogue et V-smart ouvrent le site choisi par un clic explicite. Aucun lien vers GitHub ou les documents du projet n’est affiché dans le guichet. Les données du formulaire restent dans la page. La politique de référent masque l’adresse d’origine. |
 | Dépôt public | Les sources et les documents de conception contiennent les structures utiles à la recette. Les classeurs sources, exports, cartes et coordonnées réels sont exclus de la publication. Les tickets, captures d’écran et journaux de diagnostic doivent suivre la même règle. |
 
@@ -32,6 +43,12 @@ Un seul porteur de projet peut développer, documenter, exécuter les essais suc
 
 **Information au guichet.** Avant la première collecte, préparer une notice courte et une version complète accessibles aux familles. Renseigner l’identité et les contacts du responsable et du DPD, les finalités, base légale, destinataires, durées ou critères, champs obligatoires et facultatifs, effets du refus et réclamation auprès de la CNIL. Expliquer simplement les droits applicables et le circuit de demande. Le démarrage se fait sans reprise nominative.
 
+**Projet de notice courte à compléter et à faire valider.**
+
+> [Responsable de traitement] utilise Ludion pour gérer les consultations et les inscriptions aux activités de la médiathèque, et établir des statistiques agrégées. Le personnel habilité accède aux informations utiles à l’accueil. Les participations nominatives sont conservées 30 jours après l’activité. Pour connaître les autres durées, les informations nécessaires à votre activité et les modalités d’exercice de vos droits, consultez [notice complète] ou contactez [contact officiel du DPD].
+
+[Modèles d’information de la CNIL](https://www.cnil.fr/fr/passer-laction/rgpd-exemples-de-mentions-dinformation)
+
 **Exercice des droits.** Prévoir une demande au guichet ou via le canal officiel de la collectivité. Vérifier l’identité de façon proportionnée. Rechercher la carte dans les trois activités, distinguer les participants d’une même famille, corriger les données ou en limiter l’usage, instruire opposition ou effacement selon le fondement applicable. Répondre en principe sous un mois et documenter toute prolongation selon l’article 12. Tester le parcours avec deux cartes fictives homonymes.
 
 ### Conditions techniques de la version de service
@@ -45,6 +62,12 @@ Un seul porteur de projet peut développer, documenter, exécuter les essais suc
 | Gestion des incidents | En cas d’incident, contenir, conserver les éléments nécessaires et consigner la violation. Si elle présente un risque pour les personnes, notifier la CNIL si possible sous 72 h après en avoir pris connaissance. En cas de risque élevé, examiner l’information des personnes dans les conditions de l’article 34. |
 | Accessibilité | Déterminer le périmètre RGAA du service interne. Auditer clavier et lecteur d’écran, focus des fenêtres, annonces des erreurs et places, calendrier, contrastes, zoom et petits écrans. Documenter les écarts, le contact accessible, la déclaration applicable et le plan de correction avant diffusion institutionnelle. |
 | Droits et publication | Valider le titulaire des droits, le mode de diffusion, les mentions d’éditeur, directeur de publication et hébergeur du futur service selon le support. Vérifier les droits sur les contenus et visuels ajoutés. Voir [Droits et composants](DROITS.md). |
+
+### Incident au guichet
+
+1. Consigner la date, l’heure, le poste et le symptôme. En cas de poste compromis ou perdu, révoquer son accès depuis **Administration → Accès des agents → Gérer les postes agents**.
+2. Alerter le responsable de service, la DSI et le DPD via leur canal interne. Conserver les éléments nécessaires dans un espace privé approuvé. Les signalements GitHub sont réservés aux défauts du logiciel et aux exemples fictifs.
+3. Laisser le responsable de traitement qualifier le risque et décider des notifications avec le DPD. Pour une violation présentant un risque pour les personnes, le délai de notification à la CNIL est de 72 heures si possible. Vérifier les accès et les fonctions métier avant reprise. [Téléservice de notification CNIL](https://cnil.fr/fr/services-en-ligne/notifier-une-violation-de-donnees-personnelles)
 
 **Décision d’ouverture.** Le responsable de service inscrit la date, le périmètre du pilote, les avis recueillis, les écarts résiduels, leurs responsables et leurs échéances. La recette exige au minimum une vérification des accès sur deux postes, une preuve de restauration, un essai des droits des usagers, une vérification de la purge et une revue d’accessibilité. Les essais de démonstration utilisent des cartes et des noms inventés sur un environnement séparé.
 

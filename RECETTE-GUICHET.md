@@ -52,3 +52,10 @@ La recette SQL contrôle aussi les corrections de dimensions et d’effectifs, l
 La recette SQL du projet Supabase a vérifié l’activation d’un poste, le refus de la gestion des postes par Agent et le refus de lecture après révocation. Le paquet GitHub Pages contient uniquement le guichet connecté. La recette navigateur couvre le thème sombre de l’entrée, l’activation d’un navigateur et le retour en Agent après rechargement.
 
 Les 120 fiches et les 100 activités d’essai ont été archivées dans `guichet_prive.archive_essais_avant_ludion`. Les consultations, réservations, inscriptions, statistiques et corbeilles repartent vides. Les réglages des postes, les horaires et les boîtes de service sont repris. Les noms de jeux vidéo fournis en exemple ont été retirés. Les essais connectés qui écrivent des données exigent un projet de recette distinct.
+
+## Confidentialité et exploitation
+
+- Neuf scénarios navigateur et trois tests de calendrier passent. La simulation d’une session inactive ou expirée vérifie que l’annuaire et les dialogues personnels disparaissent de l’écran.
+- L’audit Supabase confirme la sécurité par ligne sur les tables métier et l’absence de lecture directe par les rôles clients sur le schéma privé. Les avertissements concernant les sessions anonymes couvrent aussi les sessions Agent autorisées, lues après validation du poste.
+- Les cinq recettes SQL passent sur PostgreSQL embarqué. Une base fictive a été sauvegardée et restaurée dans une instance isolée, avec vérification d’une fiche et des droits. La restauration sur l’hébergement du service reste à effectuer. La liste de sauvegardes physiques Supabase est vide.
+- Les alertes de dépendances et le canal de signalement privé sont activés sur GitHub. `npm audit` signale zéro vulnérabilité au moment du contrôle.
