@@ -57,7 +57,7 @@ Chaque jour en Europe/Paris, agréger les activités par dimensions non nominati
 
 Toutes les règles métier se revérifient dans les transactions du serveur. Une tentative rejouée après perte de réponse ne double pas une saisie. Les conflits conservent le brouillon. Les sessions se synchronisent environ toutes les deux secondes. Ctrl+Z annule une opération prise en charge lorsque le focus ne se trouve pas dans un champ de saisie. Le rechargement déconnecte et peut perdre les brouillons.
 
-La démonstration publique reste autonome et fonctionnelle avec des données fictives. Aucune donnée de service réelle ne doit entrer dans la base de développement. Recette sur deux postes physiques, douchette, accessibilité complète, sauvegarde/restauration et autorisation institutionnelle restent à organiser avant exploitation.
+La démonstration locale utilise des données fictives. Les essais d’écriture utilisent un projet isolé. Avant exploitation avec des données réelles, vérifier le parcours sur deux postes, la douchette, l’accessibilité et la restauration. Compléter le [dossier d’exploitation](EXPLOITATION.md).
 
 
 ## Administration organisée

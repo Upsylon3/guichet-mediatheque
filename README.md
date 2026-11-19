@@ -26,13 +26,13 @@ La démonstration `index.html` s’ouvre aussi directement depuis le disque. Ell
 
 ## Documentation
 
-[Guide d’utilisation et de développement](DEVELOPPEMENT.md) · [Cahier des charges](CAHIER-DES-CHARGES.md) · [Recette](RECETTE-GUICHET.md) · [Passation](PASSATION.md) · [Revue institutionnelle](REVUE-COLLECTIVITE.md) · [Droits et composants](DROITS.md)
+[Guide d’utilisation et de développement](DEVELOPPEMENT.md) · [Cahier des charges](CAHIER-DES-CHARGES.md) · [Recette](RECETTE-GUICHET.md) · [Passation](PASSATION.md) · [Exploitation et données personnelles](EXPLOITATION.md) · [Droits et composants](DROITS.md)
 
 ## Vérification et construction
 
 `npm ci`, `npx playwright install chromium`, `npm run build`, puis `npm test`. Les essais connectés utilisent une configuration et le mot de passe administrateur fictif dans des fichiers ignorés par Git. Le workflow public vérifie la démonstration sans secrets. `supabase/tests/cloture.sql` vérifie clôture, statistiques et quota dans une transaction annulée.
 
-Les usages réels, les sauvegardes d’exploitation et la recette sur le matériel de la collectivité restent à valider avant mise en service.
+Avant d’utiliser de vraies données, compléter le [dossier d’exploitation](EXPLOITATION.md), tester les sauvegardes et faire la recette sur le matériel du guichet.
 
 
 ## Essais et modèles

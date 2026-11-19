@@ -10,7 +10,7 @@ Pour publier la refonte, suivre l’ordre de mise en ligne dans [le guide de dé
 
 Après modification de `dev/app.js`, `dev/app.css`, `dev/demo.js` ou du gabarit `templates/guichet.html`, exécuter `npm run build`. Les scripts reconstruisent les pages et les empreintes CSP. Le schéma et ses changements figurent dans `supabase/migrations/`.
 
-Les essais utilisent exclusivement des données fictives. La recette sur le matériel et le réseau du service, les validations institutionnelles et les procédures de sauvegarde/restauration restent nécessaires avant usage réel.
+Les essais utilisent exclusivement des données fictives. Avant usage réel, faire la recette sur le matériel et le réseau du guichet, tester la restauration et compléter le [dossier d’exploitation](EXPLOITATION.md).
 
 Les liens vers GitHub et les documents du projet ont été retirés des pages du guichet. La documentation reste dans le dépôt. Pour un changement limité aux textes, liens ou styles, reconstruire les pages et vérifier le résultat ciblé ; la suite métier complète reste pertinente pour une modification des règles ou des transactions.
 

@@ -20,7 +20,7 @@ Recette du 14 novembre 2026 sur le projet distant fictif, complétée par les v�
 
 ## Limites de la recette
 
-Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du guichet. Douchette réelle, audit complet d’accessibilité, latence représentative, sauvegarde et restauration d’exploitation, et validation institutionnelle restent à réaliser sur place. La base de développement n’accueille aucune donnée réelle.
+Deux contextes de navigateur ne remplacent pas les deux ordinateurs physiques du guichet. La douchette réelle, la latence représentative, l’accessibilité complète et la restauration d’exploitation restent à vérifier. La base de développement n’accueille aucune donnée réelle.
 
 
 ## Administration organisée et renommage

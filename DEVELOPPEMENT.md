@@ -55,7 +55,7 @@ Les migrations sont appliquées dans l’ordre de leurs noms et ne doivent pas �
 
 La clôture Europe/Paris calcule les agrégats anonymes des journées terminées et conserve les participations nominatives pendant 30 jours glissants. À la date J, J−30 reste consultable ; seules les dates antérieures sont purgées, avec leurs corbeilles et références de reprise/fusion. Les fiches usagers et les réservations futures sont conservées. Les statistiques des journées modifiées sont remplacées, sans addition répétée, et restent disponibles après la purge. Le quota JV est quotidien et son index minimal expire au changement de jour. Il suit l’UUID de fiche, y compris lors d’un changement de carte. `supabase/tests/cloture.sql` vérifie les totaux, la purge, le quota et sa disparition, dans une transaction annulée.
 
-La démonstration autonome ne contacte aucun service et ses données de passage disparaissent au rechargement. Elle ne remplace pas une validation des protections du serveur partagé. Avant exploitation réelle : validation institutionnelle, matériel, douchette, accessibilité complète, sauvegarde et restauration sur l’infrastructure autorisée.
+La démonstration autonome ne contacte aucun service et ses données de passage disparaissent au rechargement. Elle ne remplace pas une validation des protections du serveur partagé. Avant exploitation réelle, vérifier le matériel, la douchette, l’accessibilité et la restauration sur l’infrastructure choisie. Consigner les résultats dans le [dossier d’exploitation](EXPLOITATION.md).
 
 
 ## Administration organisée

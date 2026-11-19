@@ -43,5 +43,5 @@ Les conseillers Supabase ne signalent pas de table publique sans RLS. Ils relèv
 - Rejouer sur deux ordinateurs physiques du guichet, avec douchette réelle, clavier et réseau représentatifs ; mesurer les cibles de latence proposées au cahier des charges.
 - Vérifier sur le Supabase local Docker lorsque cet environnement est disponible ; il n’a pas été exécuté sur ce poste.
 - Après raccordement des activités : contraintes globales sur les fiches liées, réservations atomiques, conflits de capacité, réglages partagés, clôture Europe/Paris et reprise après interruption.
-- Avant tout pilote réel : accessibilité complète, sauvegarde/restauration, purge et validations institutionnelles du dossier de revue.
+- Avant tout pilote réel : accessibilité complète, sauvegarde et restauration, purge et [conditions d’exploitation](EXPLOITATION.md).
 
