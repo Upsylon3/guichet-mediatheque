@@ -158,6 +158,7 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
     // Le test exerce la vraie entrée connectée, avec seulement le service distant simulé.
     const deviceId = '00000000-0000-0000-0000-000000000099';
     let stations = [];
+    let expireSession = false;
     await page.route('https://*.supabase.co/**', (route) => {
       const url = route.request().url();
       const person = {
@@ -168,6 +169,8 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
         revision: 1,
       };
       const agent = route.request().headers().authorization === 'Bearer agent-fictif';
+      if (expireSession && url.includes('/etat_guichet'))
+        return route.fulfill({ status: 401, json: { message: 'Session expirée' } });
       if (url.includes('/administrer_postes_agents')) {
         const body = route.request().postDataJSON();
         if (body.action === 'activer') stations = [{ compte: deviceId, libelle: body.nom }];
@@ -195,7 +198,7 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
             : [person];
       return route.fulfill({ json: data });
     });
-    await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
+    await page.clock.install({ time: new Date('2026-11-14T12:00:00+01:00') });
     await page.goto(origin + '/dev/index.html');
     assert.equal(staleScriptRequested, false);
     await page.locator('#entryTheme').click();
@@ -243,6 +246,18 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
     await page.locator('main').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#sessionProfile').innerText(), 'Session agent');
     assert.equal(await page.locator('#openAdmin').isVisible(), false);
+    await page.locator('#openUsers').click();
+    await page.locator('#userList button').click();
+    await page.locator('#personDialog').waitFor({ state: 'visible' });
+    await page.clock.fastForward(15 * 60_000 + 100);
+    await waitText(page, '#loginMsg', '15 minutes d’inactivité');
+    assert.equal(await page.locator('main').isVisible(), false);
+    assert.equal(await page.locator('#personDialog').isVisible(), false);
+    await page.locator('#login [name=agentLogin]').click();
+    await page.locator('main').waitFor({ state: 'visible' });
+    expireSession = true;
+    await waitText(page, '#loginMsg', 'Session expirée');
+    assert.equal(await page.locator('main').isVisible(), false);
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();

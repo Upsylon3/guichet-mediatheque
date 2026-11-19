@@ -8,6 +8,28 @@ globalThis.guichetDirectory = (() => {
     apiKey = '',
     lastProfile = '';
   const directory = { profile: '', onReady: null };
+  const idleDelay = 15 * 60 * 1000;
+  let idleTimer;
+  function concealWorkspace() {
+    document.querySelector('main').hidden = true;
+    for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
+  }
+  function lockWorkspace(message, allowProfileChange = false) {
+    clearTimeout(idleTimer);
+    token = '';
+    directory.profile = '';
+    if (allowProfileChange) lastProfile = '';
+    concealWorkspace();
+    const form = document.getElementById('login');
+    form.hidden = false;
+    document.getElementById('loginMsg').textContent = message;
+    directory.enableLogin();
+  }
+  function scheduleIdleLock() {
+    if (!token || document.querySelector('main').hidden) return;
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => lockWorkspace('Guichet verrouillé après 15 minutes d’inactivité.'), idleDelay);
+  }
   // Uniformiser les en-têtes, le délai maximal et les erreurs du service.
   async function request(path, { method = 'GET', body, prefer, bearer = token } = {}) {
     const response = await fetch(base + path, {
@@ -19,28 +41,19 @@ globalThis.guichetDirectory = (() => {
         ...(prefer ? { Prefer: prefer } : {}),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
+      cache: 'no-store',
       signal: AbortSignal.timeout(8000),
     });
     const data = await response.text();
     if (!response.ok) {
       if (response.status === 401 && bearer && bearer === token) {
-        document.getElementById('login').hidden = false;
-        directory.enableLogin();
-        throw new Error(
-          'Session expirée. Reconnectez-vous en haut de page ; votre saisie reste affichée.',
-        );
+        const message = 'Session expirée. Ouvrez une nouvelle session pour retrouver le guichet.';
+        lockWorkspace(message);
+        throw new Error(message);
       }
       if (response.status === 403) {
-        if (directory.profile === 'agent' && path === '/rest/v1/rpc/etat_guichet') {
-          directory.profile = '';
-          lastProfile = '';
-          token = '';
-          document.querySelector('main').hidden = true;
-          for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
-          document.getElementById('login').hidden = false;
-          document.getElementById('loginMsg').textContent = 'Ce poste n’est plus autorisé.';
-          directory.enableLogin();
-        }
+        if (bearer && bearer === token && path === '/rest/v1/rpc/etat_guichet')
+          lockWorkspace(directory.profile === 'agent' ? 'Ce poste n’est plus autorisé.' : 'Cette session n’est plus autorisée.', true);
         throw new Error('Action refusée par le serveur.');
       }
       let problem;
@@ -237,7 +250,7 @@ globalThis.guichetDirectory = (() => {
       for (const name of ['agentLogin', 'adminLogin', 'submit']) f[name].disabled = true;
       msg.textContent = 'Connexion en cours…';
       try {
-        const config = await fetch(configUrl).then((response) => {
+        const config = await fetch(configUrl, { cache: 'no-store' }).then((response) => {
           if (!response.ok) throw new Error('Configuration absente.');
           return response.json();
         });
@@ -270,6 +283,7 @@ globalThis.guichetDirectory = (() => {
         status.textContent = profile === 'agent' ? 'Session agent' : 'Session administrateur';
         status.hidden = false;
         document.getElementById('logout').hidden = false;
+        scheduleIdleLock();
       } catch (error) {
         token = '';
         directory.profile = '';
@@ -292,7 +306,22 @@ globalThis.guichetDirectory = (() => {
       event.preventDefault();
       if (!adminFields.hidden) signIn('administrateur');
     };
-    document.getElementById('logout').onclick = () => window.location.reload();
+    document.getElementById('logout').onclick = async () => {
+      const adminToken = lastProfile === 'administrateur' ? token : '';
+      lockWorkspace('Session fermée.', true);
+      if (adminToken) {
+        for (const name of ['agentLogin', 'adminLogin', 'submit']) f[name].disabled = true;
+        await request('/auth/v1/logout?scope=local', { method: 'POST', bearer: adminToken }).catch(() => {});
+      }
+      window.location.reload();
+    };
+    for (const event of ['pointerdown', 'keydown', 'input', 'wheel'])
+      document.addEventListener(event, scheduleIdleLock, { passive: true });
+    // Ne pas réafficher les données d’un écran restauré depuis l’historique.
+    window.addEventListener('pagehide', concealWorkspace);
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) window.location.reload();
+    });
     directory.enableLogin();
   }
   if (document.readyState === 'loading')
