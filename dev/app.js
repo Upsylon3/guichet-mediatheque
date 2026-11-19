@@ -102,8 +102,8 @@ const cardPattern = api.demo
 // Adapter la structure commune au mode autonome ou au guichet connecté.
 document.querySelector('header .muted').textContent = api.demo
   ? 'Démonstration autonome · données fictives'
-  : 'Développement partagé · données fictives uniquement';
-$('role').closest('label').hidden = !api.demo;
+  : 'Guichet médiathèque';
+if (api.demo) $('role').closest('label').hidden = false;
 for (const input of document.querySelectorAll('input[name=card]')) {
   if (!api.demo) {
     input.maxLength = 7;
@@ -118,7 +118,7 @@ for (const input of document.querySelectorAll('input[name=card]')) {
 for (const label of document.querySelectorAll('label'))
   if (
     label.firstChild?.nodeType === Node.TEXT_NODE &&
-    label.firstChild.textContent === 'Carte fictive'
+    label.firstChild.textContent === 'Carte (7 chiffres)'
   )
     label.firstChild.textContent = api.demo
       ? 'Carte fictive'
@@ -1101,7 +1101,8 @@ function videoForm(moving = [], picked = {}) {
       !cfg ||
       cfg.enabled === false ||
       state.settings.closedDates?.includes(f.date.value);
-    form.querySelector('button.primary').disabled = closed;
+    const noGames = !cfg?.games?.length;
+    form.querySelector('button.primary').disabled = closed || noGames;
     if (reset) {
       f.slot.innerHTML = opts(
         (closed ? [] : cfg.slots || []).map((s) => s.slice(0, 5)),
@@ -1127,6 +1128,7 @@ function videoForm(moving = [], picked = {}) {
       opts(shared ? [shared] : cfg?.games || [], shared || game);
     $('vfmsg').textContent = closed
       ? 'Jeux vidéo fermés pour ce poste à cette date. Choisir une date d’ouverture : mercredi, samedi, vacances scolaires Zone C ou exception administrative.'
+      : noGames ? 'Aucun jeu configuré pour ce poste.'
       : remaining +
         ' place(s) disponible(s). ' +
         (shared ? 'Jeu en cours : ' + shared : '');
@@ -1313,9 +1315,11 @@ function calendarSummaries(date) {
   }
   const count = state.videos.filter((video) => video.date === date).length;
   if (count) return [count + ' réservation(s)'];
-  const open = Object.keys(state.settings.stations).some((post) =>
-    !state.settings.closedDates?.includes(date) && station(post, date).enabled !== false && station(post, date).slots.length,
-  );
+  const open = !state.settings.closedDates?.includes(date) &&
+    Object.keys(state.settings.stations).some((post) => {
+      const config = station(post, date);
+      return config.enabled !== false && config.slots.length && config.games.length;
+    });
   return open ? ['Créneaux ouverts'] : [];
 }
 function selectActivityDate(date, open = false) {
@@ -2230,7 +2234,7 @@ function setupWorkspace() {
   const aside = document.createElement('aside');
   aside.id = 'sidebar';
   aside.setAttribute('aria-label', 'Menu du guichet');
-  aside.innerHTML = '<div class="brand">Guichet<br>médiathèque</div>';
+  aside.innerHTML = '<div class="brand"><span class="libraryMark" aria-hidden="true"></span>Ludion</div>';
   main.prepend(aside);
   aside.append(nav);
   const buttons = [...nav.querySelectorAll('button')];
@@ -2302,9 +2306,12 @@ function setupWorkspace() {
     'Annuler la dernière opération (Ctrl+Z, hors champ de saisie)';
   const setTheme = (value) => {
     document.documentElement.dataset.theme = value;
-    theme.textContent = value === 'dark' ? 'Mode clair' : 'Mode sombre';
-    theme.setAttribute('aria-pressed', String(value === 'dark'));
+    for (const control of themeControls) {
+      control.textContent = value === 'dark' ? 'Mode clair' : 'Mode sombre';
+      control.setAttribute('aria-pressed', String(value === 'dark'));
+    }
   };
+  const themeControls = [theme, $('entryTheme')].filter(Boolean);
   try {
     setTheme(
       localStorage.getItem('guichet-theme') ||
@@ -2313,7 +2320,7 @@ function setupWorkspace() {
   } catch {
     setTheme('light');
   }
-  theme.onclick = () => {
+  for (const control of themeControls) control.onclick = () => {
     const value =
       document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     setTheme(value);
@@ -2456,9 +2463,10 @@ function renderVideoPlanning() {
         ),
         closed =
           cfg.enabled === false || state.settings.closedDates?.includes(date);
+      const hasGames = cfg.games.length > 0;
       const title = document.createElement('strong');
       title.textContent =
-        list[0]?.game || (closed ? 'Poste fermé' : 'Jeu à choisir');
+        list[0]?.game || (closed ? 'Poste fermé' : hasGames ? 'Jeu à choisir' : 'Catalogue vide');
       td.append(title);
       for (const x of list) {
         const line = document.createElement('div');
@@ -2486,9 +2494,9 @@ function renderVideoPlanning() {
       const space = document.createElement('small');
       space.textContent = closed
         ? 'Fermé'
-        : Math.max(0, cfg.capacity - list.length) + ' place(s) libre(s)';
+        : hasGames ? Math.max(0, cfg.capacity - list.length) + ' place(s) libre(s)' : '';
       td.append(space);
-      if (!closed && date >= day() && list.length < cfg.capacity) {
+      if (!closed && hasGames && date >= day() && list.length < cfg.capacity) {
         const booking = document.createElement('button');
         booking.textContent = 'Inscrire';
         booking.setAttribute('aria-label', 'Inscrire · ' + post + ' · ' + range);
@@ -2696,6 +2704,66 @@ function loadBox(code) {
   f.boxTitle.value = box?.title || '';
   f.boxSector.value = box?.sector || 'Jeunesse';
   delete $('config').dataset.dirty;
+}
+function openAgentDevices() {
+  modal('Postes agents', `
+    <p>Une fois activé, ce navigateur peut ouvrir le guichet en mode Agent en un clic.</p>
+    <form id="agentDeviceForm">
+      ${field('Nom de ce poste', 'label', '', 'text', 'required maxlength="80"')}
+      <button type="submit" class="primary">Activer ce navigateur</button>
+    </form>
+    <p id="agentDeviceStatus" role="status"></p><div id="agentDeviceList"></div>
+  `);
+  const form = $('agentDeviceForm'),
+    message = $('agentDeviceStatus'),
+    list = $('agentDeviceList');
+  async function load(devices = null) {
+    const rows = devices ?? await api.devices();
+    const current = api.activeDevice();
+    form.hidden = rows.some((device) => device.compte === current);
+    list.replaceChildren();
+    if (!rows.length) list.textContent = 'Aucun poste activé.';
+    for (const device of rows) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const label = document.createElement('span');
+      label.textContent = device.libelle + (device.compte === current ? ' · Ce navigateur' : '');
+      const revoke = document.createElement('button');
+      revoke.type = 'button';
+      revoke.textContent = 'Révoquer';
+      revoke.setAttribute('aria-label', 'Révoquer ' + device.libelle);
+      revoke.onclick = async () => {
+        if (!confirm('Révoquer l’accès du poste « ' + device.libelle + ' » ?')) return;
+        revoke.disabled = true;
+        try {
+          await load(await api.devices('revoquer', device.compte));
+          message.textContent = 'Poste révoqué.';
+        } catch (error) {
+          message.textContent = error.message;
+        } finally {
+          revoke.disabled = false;
+        }
+      };
+      row.append(label, revoke);
+      list.append(row);
+    }
+  }
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+    const button = form.querySelector('button');
+    button.disabled = true;
+    message.textContent = 'Activation en cours…';
+    try {
+      await api.activateDevice(form.elements.label.value.trim());
+      await load();
+      message.textContent = 'Ce navigateur est activé.';
+    } catch (error) {
+      message.textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
+  };
+  load().catch((error) => { message.textContent = error.message; });
 }
 const adminEditors = [];
 function adminCollection(input, type, singular) {
@@ -2992,6 +3060,13 @@ function setupAdministration() {
     ],
     'Ces autorisations s’appliquent à toutes les sessions Agent. La gestion des modèles est indépendante de celle des séances. Les statistiques, autres paramètres et suppressions de fiches restent réservés à l’administration.',
   );
+  if (!api.demo) {
+    const devices = document.createElement('button');
+    devices.type = 'button';
+    devices.textContent = 'Gérer les postes agents';
+    devices.onclick = openAgentDevices;
+    panels.acces.prepend(devices);
+  }
   actions.classList.add('adminActions');
   actions.querySelector('button').id = 'adminSave';
   msg.className = 'adminFeedback';

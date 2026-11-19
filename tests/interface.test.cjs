@@ -286,9 +286,10 @@ test(
     }
   },
 );
-test('Accès Agent sans identifiant ni mot de passe', async () => {
+test('Une session anonyme issue d’un poste inconnu reste sans habilitation', async () => {
   const session = await api('/auth/v1/signup', null, {});
   assert.equal(session.status, 200);
   assert.equal(session.data.user.is_anonymous, true);
-  assert.equal((await api('/rest/v1/rpc/mon_profil', session.data.access_token, {})).data, 'agent');
+  assert.equal((await api('/rest/v1/rpc/mon_profil', session.data.access_token, {})).data, null);
+  assert.equal((await api('/rest/v1/rpc/etat_guichet', session.data.access_token, {})).status, 403);
 });

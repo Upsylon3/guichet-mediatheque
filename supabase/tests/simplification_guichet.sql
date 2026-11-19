@@ -4,6 +4,7 @@ select pg_advisory_xact_lock(14458001);
 do $test$
 declare
   acteur uuid := gen_random_uuid();
+  poste uuid := gen_random_uuid();
   date_seance date := guichet_prive.jour() + 2;
   numero text;
   seance uuid;
@@ -11,10 +12,19 @@ declare
   modele jsonb;
 begin
   insert into auth.users(id,email) values(acteur,'simplification-guichet@example.invalid');
+  insert into auth.users(id,is_anonymous) values(poste,true);
   insert into guichet_prive.habilitations(compte,profil) values(acteur,'administrateur');
   perform set_config('request.jwt.claim.sub',acteur::text,true);
-  perform set_config('request.jwt.claims',jsonb_build_object('sub',acteur,'is_anonymous',true)::text,true);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',acteur,'is_anonymous',false)::text,true);
+  perform public.administrer_postes_agents('activer',poste,'Navigateur de recette');
+  perform set_config('request.jwt.claim.sub',poste::text,true);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',poste,'is_anonymous',true)::text,true);
   if public.mon_profil() is distinct from 'agent' then raise exception 'Session agent mal habilitée'; end if;
+  begin
+    perform public.administrer_postes_agents('lister');
+    raise exception 'La gestion des postes est accessible à un agent';
+  exception when insufficient_privilege then null;
+  end;
   begin
     perform public.statistiques_guichet(date_seance,date_seance);
     raise exception 'Statistiques accessibles à une session agent';
@@ -23,6 +33,18 @@ begin
   if guichet_prive.autoriser_session_anonyme('{"user":{"is_anonymous":true}}') ? 'error'
     or not (guichet_prive.autoriser_session_anonyme('{"user":{"is_anonymous":false}}') ? 'error')
   then raise exception 'Contrôle de création des sessions incorrect'; end if;
+  perform set_config('request.jwt.claim.sub',acteur::text,true);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',acteur,'is_anonymous',false)::text,true);
+  perform public.administrer_postes_agents('revoquer',poste);
+  perform set_config('request.jwt.claim.sub',poste::text,true);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',poste,'is_anonymous',true)::text,true);
+  if public.mon_profil() is not null then raise exception 'Un poste révoqué reste habilité'; end if;
+  begin
+    perform public.etat_guichet();
+    raise exception 'L’état partagé est accessible après révocation';
+  exception when insufficient_privilege then null;
+  end;
+  perform set_config('request.jwt.claim.sub',acteur::text,true);
   perform set_config('request.jwt.claims',jsonb_build_object('sub',acteur,'is_anonymous',false)::text,true);
 
   modele := '{"title":"Recette accès","time":"10:00","endTime":"11:00","mode":"inscription","count":true,"room":"Créazone"}';

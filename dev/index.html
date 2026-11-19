@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-VB2BUUgj74Cd5wSg8Pz+nl86+a5P0LHmAbD+pm3T+s8=' 'self'; style-src 'sha256-cyC154j4lU/RyzeT/3xF9GKb120u2Er/b5MSx5ppbFU=' 'self'; connect-src 'self' https://tmsmjerslmogjhyzkfrn.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-R/2Hi4+82OpI6qqiQH2RezGO85OgS9JroXWjrsURq6c=' 'self'; style-src 'sha256-Z9BPewwEAjG7gsicXyhivrYD9DWv7Xl1x2hA4LcFC0s=' 'self'; connect-src 'self' https://tmsmjerslmogjhyzkfrn.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Ludion · Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -262,25 +262,34 @@ td:last-child button {
 /* Palette commune, puis variantes du mode sombre. */
 :root {
   color-scheme: light;
-  --bg: #f2f4f7;
-  --surface: #fff;
-  --ink: #203247;
-  --muted: #5b6b7e;
-  --border: #ccd5df;
-  --accent: #245b87;
-  --active: #e2edf8;
-  --sidebar: #173653;
+  --bg: #f1ede4;
+  --surface: #fffdf6;
+  --ink: #172e43;
+  --muted: #526270;
+  --border: #d2c8b8;
+  --accent: #255770;
+  --active: #e1ebe9;
+  --sidebar: #172e48;
+  --action: #eac075;
+  --action-ink: #162938;
+  --focus: #a26018;
+  --entry-glow: #e8dfd0;
+  --display: Georgia, serif;
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #111a24;
-  --surface: #1b2938;
-  --ink: #e0e9f3;
-  --muted: #adbed0;
-  --border: #45576c;
-  --accent: #93caff;
-  --active: #29435b;
-  --sidebar: #101e2d;
+  --bg: #121b22;
+  --surface: #1c2934;
+  --ink: #f4ecdb;
+  --muted: #b4c2cb;
+  --border: #485865;
+  --accent: #a5cfe0;
+  --active: #284453;
+  --sidebar: #0e1823;
+  --action: #eac075;
+  --action-ink: #162938;
+  --focus: #f3c878;
+  --entry-glow: #223643;
 }
 body {
   background: var(--bg);
@@ -299,6 +308,22 @@ main header {
   padding-bottom: 18px;
   margin-bottom: 18px;
   border-bottom: 1px solid var(--border);
+}
+main header h1,
+main section h2,
+dialog h2 {
+  font-family: var(--display);
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+main header h1 {
+  font-size: clamp(1.75rem, 3vw, 2.75rem);
+}
+main > section + section {
+  margin-top: .9rem;
+}
+.serviceLinks a {
+  text-underline-offset: .2em;
 }
 .serviceLinks {
   display: flex;
@@ -357,11 +382,14 @@ dialog {
   background: var(--surface);
   color: var(--ink);
   border-color: var(--border);
-  border-radius: 6px;
+  border-radius: .8rem;
+}
+dialog::backdrop {
+  background: #102435a6;
 }
 body:has(#login:not([hidden])) {
   min-height: 100svh;
-  background: radial-gradient(ellipse at 18% 20%, #e8dfd0, #f5f2eb 58%);
+  background: radial-gradient(ellipse at 18% 20%, var(--entry-glow), var(--bg) 58%);
 }
 #access {
   background: transparent;
@@ -388,12 +416,11 @@ body:has(#login:not([hidden])) {
   grid-template-columns: 1.15fr 1fr;
   width: min(100%, 59rem);
   overflow: hidden;
-  border: 1px solid #d9d0c2;
+  border: 1px solid var(--border);
   border-radius: 1.15rem;
-  background: #fffdf8;
-  color: #172b40;
+  background: var(--surface);
+  color: var(--ink);
   box-shadow: 0 1.3rem 4rem #252d3922;
-  color-scheme: light;
 }
 .entryIntro,
 .entryControls {
@@ -417,7 +444,7 @@ body:has(#login:not([hidden])) {
   margin-bottom: 1.5rem;
 }
 .entryIntro h1 {
-  font-family: Georgia, serif;
+  font-family: var(--display);
   font-size: clamp(2.35rem, 5vw, 4.35rem);
   font-weight: 400;
   line-height: 1;
@@ -434,9 +461,21 @@ body:has(#login:not([hidden])) {
   margin: 0;
   font-size: 1.45rem;
 }
+.entryHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+#login #entryTheme {
+  padding: .25rem .6rem;
+  min-height: 2rem;
+  font-size: .8rem;
+}
 .entryNote,
 #loginMsg {
-  color: #516377;
+  color: var(--muted);
 }
 .loginOptions {
   display: grid;
@@ -445,14 +484,14 @@ body:has(#login:not([hidden])) {
 }
 #login button {
   min-height: 2.8rem;
-  border-color: #9ca9b5;
-  background: #fffdf8;
-  color: #172b40;
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--ink);
 }
 #login .primary {
-  border-color: #173653;
-  background: #173653;
-  color: #fffdf8;
+  border-color: var(--action);
+  background: var(--action);
+  color: var(--action-ink);
 }
 #login button:hover:not(:disabled) {
   box-shadow: inset 0 0 0 1px currentColor;
@@ -472,17 +511,12 @@ body:has(#login:not([hidden])) {
 }
 #adminLoginFields input {
   width: 100%;
-  border-color: #9ca9b5;
-  background: white;
-  color: #172b40;
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--ink);
 }
 #loginMsg:empty {
-  display: none;
-}
-.entryDemo {
-  display: inline-block;
-  margin-top: 1.3rem;
-  color: #254f75;
+  margin: 0;
 }
 .sessionTools {
   display: flex;
@@ -557,10 +591,15 @@ body:has(#login:not([hidden])) {
   z-index: 2;
 }
 .brand {
-  font-size: 24px;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  font: 500 2rem var(--display);
   line-height: 1.25;
   padding: 0 12px 22px;
+}
+.brand .libraryMark {
+  width: 2.05rem;
 }
 #sidebar nav {
   display: flex;
@@ -582,9 +621,9 @@ body:has(#login:not([hidden])) {
   padding: 12px;
 }
 #sidebar button[aria-current='true'] {
-  background: #345e84;
+  background: #2d4b64;
   color: white;
-  border-left: 3px solid #b8daf8;
+  border-left: 3px solid var(--action);
 }
 #sidebar button:hover {
   background: #284c6b;
@@ -613,6 +652,23 @@ button[aria-pressed='true'] {
   background: var(--accent);
   color: var(--surface);
   border-color: var(--accent);
+}
+button.primary,
+.adminActions > button,
+#personForm button[type="submit"] {
+  background: var(--action);
+  color: var(--action-ink);
+  border-color: var(--action);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-color: var(--focus);
+}
+thead th {
+  background: var(--active);
 }
 button[aria-current='true'] {
   background: var(--active);
@@ -920,16 +976,16 @@ dialog {
   overflow-wrap: anywhere;
 }
 
-</style><link rel="stylesheet" href="./app.css?v=3c670283007ef343">
+</style><link rel="stylesheet" href="./app.css?v=38faab6cac25507e">
   <section id="access"><form id="login" aria-labelledby="entryTitle">
 <div class="entryIntro">
   <span class="libraryMark" aria-hidden="true"></span>
-  <h1 id="entryTitle">Guichet<br>médiathèque</h1>
-  <p>Jeux vidéo, jeux de société et animations</p>
+  <h1 id="entryTitle">Ludion</h1>
+  <p>Guichet médiathèque</p>
 </div>
 <div class="entryControls">
-  <h2>Ouvrir une session</h2>
-  <p class="entryNote">Espace de test · données fictives</p>
+  <div class="entryHeading"><h2>Ouvrir une session</h2><button id="entryTheme" type="button">Mode sombre</button></div>
+  <p class="entryNote">Jeux vidéo, jeux de société et animations</p>
   <div class="loginOptions">
     <button name="agentLogin" type="button" class="primary" disabled>Entrer en tant qu’agent <span aria-hidden="true">→</span></button>
     <button name="adminLogin" type="button" aria-expanded="false" aria-controls="adminLoginFields" disabled>Accès administrateur <span aria-hidden="true">+</span></button>
@@ -938,18 +994,16 @@ dialog {
     <button name="submit" class="primary" disabled>Se connecter</button>
   </div>
   <p id="loginMsg" role="status"></p>
-  <a class="entryDemo" href="../">Ouvrir la démonstration ↗</a>
 </div></form>
 <div class="sessionTools"><p id="sessionProfile" hidden></p><p id="syncStatus" role="status"></p><button id="logout" type="button" hidden>Se déconnecter</button></div>
-</section><main hidden><header><div class="workspaceBrand"><span class="libraryMark" aria-hidden="true"></span><div><h1>Guichet médiathèque</h1><p class="muted">Essai avec des cartes ESSAI-01 à ESSAI-9999 · données usagers
-          effacées au rechargement</p></div></div><div class="serviceLinks"><a
+</section><main hidden><header><div class="workspaceBrand"><span class="libraryMark" aria-hidden="true"></span><div><h1>Ludion</h1><p class="muted">Guichet médiathèque</p></div></div><div class="serviceLinks"><a
         href="https://mediatheques.montpellier3m.fr/accueil-general.aspx"
         target="_blank"
         rel="noopener">Catalogue du réseau ↗</a><a href="https://sin-averell.ville-montpellier.org/vsair/Vsmart.Start.cls#1789803745335" target="_blank" rel="noopener">V-smart ↗</a></div></header>
     <div class="bar"><label>Rechercher un usager par carte ou par nom<input
           id="lookup"
-          placeholder="ESSAI-01"
-          autocomplete="off" /></label><label>Profil de démonstration<select id="role"><option>Agent</option><option>Administrateur</option></select></label></div><div id="results" role="status"></div>
+          placeholder="0000001 ou nom"
+          autocomplete="off" /></label></div><div id="results" role="status"></div>
     <div class="actions"><button id="openUsers">Usagers</button><button id="openAdmin" hidden>Administration</button></div>
     <section id="users" hidden><div class="bar"><h2>Usagers</h2><button id="createUser">Ajouter un usager</button></div>
       <label>Rechercher par carte ou par nom<input
@@ -964,11 +1018,11 @@ dialog {
         <button id="closePerson" type="button">Fermer</button>
       </div>
       <form id="personForm" hidden autocomplete="off"><div class="fields">
-          <label>Carte fictive<input
+          <label>Carte (7 chiffres)<input
               name="card"
               required
-              pattern="ESSAI-[0-9]{1,4}"
-              placeholder="ESSAI-01"/></label>
+              pattern="[0-9]{7}"
+              placeholder="0000001"/></label>
           <label>Nom<input name="last" /></label><label>Prénom<input name="first" /></label><label>Date de naissance<input type="date" name="birth" /></label></div>
         <details id="noteDetails"><summary>Note interne</summary><label>Note sur la fiche<input maxlength="500" name="note" /></label></details>
         <div class="actions"><button type="submit">Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
@@ -999,10 +1053,10 @@ dialog {
       <h3>Totaux des jours précédents</h3><div id="totals"></div></section>
     <nav aria-label="Activités"><button data-tab="soc" aria-current="true">Jeux de société</button><button data-tab="vid">Jeux vidéo</button><button data-tab="ani">Animations</button></nav>
     <section id="soc"><div class="bar"><h2>Consultation sur place</h2><label>Secteur<select id="sector"><option>Jeunesse</option><option>Pop Zone</option></select></label></div>
-      <form autocomplete="off" id="board"><div class="fields"><label>Carte fictive<input
+      <form autocomplete="off" id="board"><div class="fields"><label>Carte (7 chiffres)<input
               name="card"
               required
-              placeholder="ESSAI-01" /></label><output name="known"></output><label>Numéro ou titre de boîte<input name="box" required list="boxSuggestions" /></label><label>Enfants<input
+              placeholder="0000001" /></label><output name="known"></output><label>Numéro ou titre de boîte<input name="box" required list="boxSuggestions" /></label><label>Enfants<input
               name="kids"
               type="number"
               min="0"
@@ -1022,4 +1076,4 @@ dialog {
               name="birth"
               type="date" /></label></div><div class="actions"><button>Enregistrer la fiche</button></div></form></section></main>
   <dialog id="modal" aria-labelledby="heading"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>
-  <script src="./directory.js?v=edfbd86cf450757a"></script><script src="./app.js?v=3e623e12dda38882"></script></html>
+  <script src="./directory.js?v=dbe1fd8942a7d39e"></script><script src="./app.js?v=7474a6a3b2fb1152"></script></html>

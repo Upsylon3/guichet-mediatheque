@@ -10,7 +10,7 @@ Recette du 14 novembre 2026 sur le projet distant fictif, complétée par les v�
 
 `tests/interface.test.cjs` ouvre deux contextes séparés : administrateur sur bureau et agent à 360 px. Une fiche créée par l’agent apparaît dans l’autre session. La recherche par nom la retrouve, l’agent ne peut pas la supprimer et la suppression administrative se propage. Le scénario couvre aussi le planning, Ctrl+Z, le mode sombre, la confirmation après J+15, l’heure de fin obligatoire, le CSV statistique et la fermeture forcée.
 
-## Démonstration publique
+## Démonstration locale
 
 `tests/demo.test.cjs` vérifie les trois activités, la fiche facultative, les cartes ESSAI, le profil simulé, la perte des activités après rechargement, l’absence de requête distante, le format à 360 px et la séparation de la connexion partagée. La CI exécute ces tests sans mot de passe.
 
@@ -46,3 +46,9 @@ La recette SQL contrôle aussi les corrections de dimensions et d’effectifs, l
 - Sur Chromium, un créneau exceptionnel saisi au moyen des champs horaires est apparu dans le calendrier et a été proposé à l’inscription. Contrôle visuel sur bureau et à 360 px.
 - Toutes les migrations et les cinq recettes SQL passent dans PostgreSQL embarqué avec Auth et Cron simulés. `supabase/tests/simplification_guichet.sql` vérifie le profil Agent des sessions anonymes, le refus des statistiques, les séances simultanées, le modèle sans salle, l’âge obligatoire et le rejet des accompagnateurs.
 - La migration de refonte a été appliquée au projet fictif et `simplification_guichet.sql` y passe dans une transaction annulée. La fonction de connexion administrateur déployée renvoie 401 pour un mot de passe incorrect. La session anonyme reçoit le profil Agent et charge l’état partagé. Les statistiques et la création d’un compte permanent sont refusées avec un statut 403. L’ouverture de session avec le mot de passe privé et la recette à deux sessions restent à confirmer.
+
+## Mise en service de Ludion le 19 novembre 2026
+
+La recette SQL du projet Supabase a vérifié l’activation d’un poste, le refus de la gestion des postes par Agent et le refus de lecture après révocation. Le paquet GitHub Pages contient uniquement le guichet connecté. La recette navigateur couvre le thème sombre de l’entrée, l’activation d’un navigateur et le retour en Agent après rechargement.
+
+Les 120 fiches et les 100 activités d’essai ont été archivées dans `guichet_prive.archive_essais_avant_ludion`. Les consultations, réservations, inscriptions, statistiques et corbeilles repartent vides. Les réglages des postes, les horaires et les boîtes de service sont repris. Les noms de jeux vidéo fournis en exemple ont été retirés. Les essais connectés qui écrivent des données exigent un projet de recette distinct.

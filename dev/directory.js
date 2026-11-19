@@ -6,16 +6,15 @@ globalThis.guichetDirectory = (() => {
   let base = '';
   let token = '',
     apiKey = '',
-    lastProfile = '',
-    agentRefreshToken = '';
+    lastProfile = '';
   const directory = { profile: '', onReady: null };
   // Uniformiser les en-têtes, le délai maximal et les erreurs du service.
-  async function request(path, { method = 'GET', body, prefer } = {}) {
+  async function request(path, { method = 'GET', body, prefer, bearer = token } = {}) {
     const response = await fetch(base + path, {
       method,
       headers: {
         apikey: apiKey,
-        ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        ...(bearer ? { Authorization: 'Bearer ' + bearer } : {}),
         'Content-Type': 'application/json',
         ...(prefer ? { Prefer: prefer } : {}),
       },
@@ -24,15 +23,25 @@ globalThis.guichetDirectory = (() => {
     });
     const data = await response.text();
     if (!response.ok) {
-      if (response.status === 401 && token) {
+      if (response.status === 401 && bearer && bearer === token) {
         document.getElementById('login').hidden = false;
         directory.enableLogin();
         throw new Error(
           'Session expirée. Reconnectez-vous en haut de page ; votre saisie reste affichée.',
         );
       }
-      if (response.status === 403)
+      if (response.status === 403) {
+        if (directory.profile === 'agent' && path === '/rest/v1/rpc/etat_guichet') {
+          directory.profile = '';
+          token = '';
+          document.querySelector('main').hidden = true;
+          for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
+          document.getElementById('login').hidden = false;
+          document.getElementById('loginMsg').textContent = 'Ce poste n’est plus autorisé.';
+          directory.enableLogin();
+        }
         throw new Error('Action refusée par le serveur.');
+      }
       let problem;
       try {
         problem = JSON.parse(data);
@@ -158,6 +167,57 @@ globalThis.guichetDirectory = (() => {
     });
   directory.currentProfile = () =>
     request('/rest/v1/rpc/mon_profil', { method: 'POST', body: {} });
+  const deviceKey = () => 'ludion-poste-agent:' + base;
+  function readDevice() {
+    try {
+      return JSON.parse(localStorage.getItem(deviceKey())) || null;
+    } catch {
+      return null;
+    }
+  }
+  directory.activeDevice = () => readDevice()?.id;
+  directory.devices = (action = 'lister', identifiant = null, nom = null) =>
+    request('/rest/v1/rpc/administrer_postes_agents', {
+      method: 'POST',
+      body: { action, identifiant, nom },
+    });
+  directory.activateDevice = async (name) => {
+    const session = await request('/auth/v1/signup', {
+      method: 'POST', body: {}, bearer: '',
+    });
+    const id = session?.user?.id;
+    if (!id || !session.user.is_anonymous || !session.refresh_token)
+      throw new Error('Impossible de préparer ce poste.');
+    await directory.devices('activer', id, name);
+    try {
+      localStorage.setItem(deviceKey(), JSON.stringify({ id, refresh: session.refresh_token }));
+    } catch {
+      await directory.devices('revoquer', id);
+      throw new Error('Autorisez le stockage local pour activer ce navigateur.');
+    }
+  };
+  async function agentSession() {
+    const renew = async () => {
+      const device = readDevice();
+      if (!device?.refresh)
+        throw new Error('Ce navigateur doit d’abord être activé par un administrateur.');
+      let session;
+      try {
+        session = await request('/auth/v1/token?grant_type=refresh_token', {
+          method: 'POST', body: { refresh_token: device.refresh }, bearer: '',
+        });
+      } catch (error) {
+        if ([400, 401].includes(error.status)) {
+          localStorage.removeItem(deviceKey());
+          throw new Error('Ce poste doit être réactivé par un administrateur.');
+        }
+        throw error;
+      }
+      localStorage.setItem(deviceKey(), JSON.stringify({ id: device.id, refresh: session.refresh_token }));
+      return session;
+    };
+    return navigator.locks ? navigator.locks.request(deviceKey(), renew) : renew();
+  }
   directory.enableLogin = () => {
     const form = document.getElementById('login');
     if (!form?.onsubmit || typeof directory.onReady !== 'function') return;
@@ -166,7 +226,7 @@ globalThis.guichetDirectory = (() => {
     form.elements.agentLogin.disabled = lastProfile === 'administrateur';
     form.elements.adminLogin.disabled = lastProfile === 'agent';
   };
-  // Les jetons restent en mémoire et disparaissent quand la page est rechargée.
+  // Les accès administrateur restent en mémoire. Le poste conserve sa session Agent.
   function initializeLogin() {
     const form = document.getElementById('login'),
       f = form.elements,
@@ -184,28 +244,20 @@ globalThis.guichetDirectory = (() => {
         base = config.url;
         token = '';
         const session = profile === 'agent'
-          ? await (agentRefreshToken
-              ? request('/auth/v1/token?grant_type=refresh_token', {
-                  method: 'POST',
-                  body: { refresh_token: agentRefreshToken },
-                }).catch((error) => {
-                  if (error.status >= 400 && error.status < 500 && error.status !== 429)
-                    agentRefreshToken = '';
-                  throw error;
-                })
-              : request('/auth/v1/signup', { method: 'POST', body: {} }))
+          ? await agentSession()
           : await request('/functions/v1/connexion-administration', {
               method: 'POST',
               body: { password: f.password.value },
             });
         token = session.access_token;
-        if (!token || (await directory.currentProfile()) !== profile)
-          throw new Error('Profil indisponible.');
+        if (!token || (await directory.currentProfile()) !== profile) {
+          if (profile === 'agent') localStorage.removeItem(deviceKey());
+          throw new Error(profile === 'agent' ? 'Ce poste doit être réactivé par un administrateur.' : 'Profil indisponible.');
+        }
         directory.profile = profile;
         await directory.onReady();
         lastProfile = profile;
         if (profile === 'agent') {
-          agentRefreshToken = session.refresh_token || '';
           adminFields.hidden = true;
           f.adminLogin.setAttribute('aria-expanded', 'false');
         }

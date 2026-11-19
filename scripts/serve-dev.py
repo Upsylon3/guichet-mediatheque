@@ -12,12 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 LOGIN = """<section id="access"><form id="login" aria-labelledby="entryTitle">
 <div class="entryIntro">
   <span class="libraryMark" aria-hidden="true"></span>
-  <h1 id="entryTitle">Guichet<br>médiathèque</h1>
-  <p>Jeux vidéo, jeux de société et animations</p>
+  <h1 id="entryTitle">Ludion</h1>
+  <p>Guichet médiathèque</p>
 </div>
 <div class="entryControls">
-  <h2>Ouvrir une session</h2>
-  <p class="entryNote">Espace de test · données fictives</p>
+  <div class="entryHeading"><h2>Ouvrir une session</h2><button id="entryTheme" type="button">Mode sombre</button></div>
+  <p class="entryNote">Jeux vidéo, jeux de société et animations</p>
   <div class="loginOptions">
     <button name="agentLogin" type="button" class="primary" disabled>Entrer en tant qu’agent <span aria-hidden="true">→</span></button>
     <button name="adminLogin" type="button" aria-expanded="false" aria-controls="adminLoginFields" disabled>Accès administrateur <span aria-hidden="true">+</span></button>
@@ -26,7 +26,6 @@ LOGIN = """<section id="access"><form id="login" aria-labelledby="entryTitle">
     <button name="submit" class="primary" disabled>Se connecter</button>
   </div>
   <p id="loginMsg" role="status"></p>
-  <a class="entryDemo" href="../">Ouvrir la démonstration ↗</a>
 </div></form>
 <div class="sessionTools"><p id="sessionProfile" hidden></p><p id="syncStatus" role="status"></p><button id="logout" type="button" hidden>Se déconnecter</button></div>
 </section>"""
@@ -49,6 +48,7 @@ def dev_page(url):
         "</style>", f'</style><link rel="stylesheet" href="{asset("app.css")}">', 1
     )
     page = page.replace("connect-src 'none'", "connect-src 'self' " + url)
+    page = re.sub(r'<label hidden>Profil de démonstration<select id="role">.*?</select></label>', "", page)
     page = page.replace("<main>", LOGIN + "<main hidden>", 1)
     return re.sub(
         r"<script>.*?</script>",

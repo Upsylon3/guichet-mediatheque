@@ -5,16 +5,17 @@ const fs = require('node:fs'),
 const { sampleDayPlan } = require('../dev/sample-data.js');
 const { isDeepStrictEqual } = require('node:util');
 const root = path.join(__dirname, '..'),
-  cfg = JSON.parse(fs.readFileSync(path.join(root, 'dev/config.json'))),
+  testConfig = JSON.parse(fs.readFileSync(path.join(root, '.env.local.json'))),
+  cfg = { url: testConfig.SUPABASE_URL, anonKey: testConfig.ANON_KEY },
   account = JSON.parse(
     fs.readFileSync(path.join(root, '.env.accounts.json')),
   ).administrateur;
 if (
   !process.argv.includes('--seed-fictional') ||
-  new URL(cfg.url).hostname !== 'tmsmjerslmogjhyzkfrn.supabase.co'
+  new URL(cfg.url).hostname === 'tmsmjerslmogjhyzkfrn.supabase.co'
 )
   throw Error(
-    'Utiliser --seed-fictional sur le projet réservé au développement fictif.',
+    'Utiliser --seed-fictional sur un projet isolé de recette, distinct de Ludion.',
   );
 let token;
 async function request(route, body, method = 'POST', prefer) {

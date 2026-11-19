@@ -2,16 +2,18 @@
 
 ## Accès
 
-Le nouvel écran du guichet partagé propose Agent en un clic et Administrateur par mot de passe. Supabase crée une identité de session anonyme pour Agent. L’administration conserve une identité technique, dont le mot de passe se vérifie sur le serveur. Les deux versions sont publiées sur GitHub Pages : la démonstration à la racine et le guichet partagé sous `/dev/`.
+Ludion propose Agent en un clic sur les navigateurs activés et Administrateur par mot de passe. La page d’ouverture et le guichet partagent le réglage de thème, initialisé selon la préférence système.
 
 Lancement local : `python scripts/serve-dev.py --config dev/config.json`, puis `http://127.0.0.1:8000/dev.html`. Le serveur écoute seulement sur 127.0.0.1 et ne sert aucun fichier privé. Python 3.10+ suffit pour l’interface. Le mot de passe administrateur fictif et la configuration de test se trouvent dans `.env.accounts.json` et `.env.local.json`, ignorés par Git. La configuration publiée contient seulement une URL et une clé publique publishable, sans secret d’administration.
 
-### Préparer la mise en ligne du nouvel accès
+### Activer ou révoquer un poste Agent
 
-1. Vérifier la cible Supabase de développement fictif et l’UUID de l’identité administrateur existante dans `guichet_prive.habilitations`. Sur une base d’essai neuve, `python scripts/prepare-dev-accounts.py` prépare un identifiant technique et son SQL privé.
-2. Appliquer `20261118172658_simplification_guichet.sql`. Déployer la fonction Edge `connexion-administration` avec `verify_jwt=false`. La fonction utilise l’identité technique créée par le script de préparation. Pour une autre adresse, définir `GUICHET_ADMIN_EMAIL` dans les secrets du projet. Le mot de passe est celui d’Authentication.
-3. Configurer le hook Auth « Before User Created » sur `guichet_prive.autoriser_session_anonyme`. Activer ensuite l’ouverture des inscriptions et les connexions anonymes. Le hook autorise seulement les sessions anonymes. Une session Agent sans mot de passe donne accès en lecture et en écriture aux données fictives selon les droits d’agent. Pour une version de service, réserver l’accès à un environnement contrôlé avant d’y saisir des données réelles.
-4. Exécuter la recette SQL puis `npm test` avec le mot de passe administrateur fictif dans `.env.accounts.json`. Vérifier les refus d’un mot de passe erroné, de création de compte nominatif et d’accès aux opérations administratives pour Agent. Publier les pages après ces contrôles. Pour couper l’accès Agent sans mot de passe, désactiver les connexions anonymes et retirer la branche anonyme de `guichet_prive.profil()` pour invalider aussi les jetons déjà émis.
+1. Ouvrir Ludion dans le navigateur habituel du poste et choisir **Accès administrateur**.
+2. Dans **Administration** → **Accès des agents** → **Gérer les postes agents**, nommer le poste et choisir **Activer ce navigateur**.
+3. Se déconnecter, puis choisir **Entrer en tant qu’agent**. La prochaine connexion Agent se fait en un clic dans ce navigateur. Un autre profil de navigateur ou la suppression de son stockage local requiert une nouvelle activation.
+4. Révoquer un poste depuis la même liste si son accès doit prendre fin. Le serveur coupe immédiatement les droits associés à la session. Le guichet ouvert se verrouille au prochain rafraîchissement.
+
+Supabase Auth conserve le hook `guichet_prive.autoriser_session_anonyme`. Le hook refuse les inscriptions permanentes et seules les identités inscrites dans `guichet_prive.postes_agents` obtiennent le rôle Agent. Le mot de passe de l’identité technique administrateur se vérifie dans la fonction Edge existante.
 
 ## Prise de poste
 
@@ -67,7 +69,7 @@ L’interface ne propose ni import par collage ni export nominatif, ni raccourci
 
 Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. La création, la modification, le renommage et la suppression des modèles se trouvent dans Administration → Animations. Ces actions sont administratives par défaut. Dans Accès des agents, le droit Gérer les modèles d’animations peut être délégué aux agents réguliers, indépendamment de la gestion des séances. Cette délégation ouvre uniquement la gestion des modèles, sans les autres paramètres ni les statistiques. Comme les autres délégations actuelles, elle s’applique au groupe des agents. Modifier ou supprimer un modèle ne modifie pas les séances existantes. Date, récurrence et inscrits ne sont pas copiés dans le modèle. Le type est un classement facultatif pour les listes et statistiques.
 
-La démonstration autonome se recharge avec une journée fictive déjà remplie. Ses modifications de passage restent en mémoire. Pour préparer aussi la base partagée, lancer `npm run seed:demo` avec le compte administrateur fictif local configuré. Ce script est limité au projet de développement connu et conserve les données existantes. Il fournit 120 fiches fictives, des consultations, des réservations JV, des animations du jour et à J+7/J+16 ainsi que trois modèles. Une seconde exécution le même jour évite les doublons. Les données fictives sont repérables par Démo ou DÉMO.
+La démonstration autonome sert aux essais locaux et à la CI. `npm run seed:demo` utilise les fichiers privés de recette et exige un projet Supabase distinct du guichet publié.
 
 ## Inscription rapide et extraction statistique
 
@@ -81,12 +83,12 @@ Le guichet ne comporte aucun lien vers le dépôt GitHub ou la documentation du 
 
 ## Publication sur GitHub Pages
 
-- Démonstration autonome : https://upsylon3.github.io/guichet-mediatheque/
-- Guichet partagé avec connexion : https://upsylon3.github.io/guichet-mediatheque/dev/
+- Ludion : https://upsylon3.github.io/guichet-mediatheque/
+- Autre adresse du même guichet : https://upsylon3.github.io/guichet-mediatheque/dev/
 
-Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement des deux versions ensemble. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
+Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement du guichet connecté aux deux adresses. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
 
-`scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.
+`scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet restent dans Supabase. La démonstration autonome sert aux essais locaux. Les anciens liens Githack ne sont plus les adresses de référence.
 
 Les fermetures et changements de capacité des postes contrôlent les réservations du jour et futures, sans annuler les participations déjà passées. La modification des séances à venir d’une série préserve ses anciennes séances conservées dans l’historique.
 
