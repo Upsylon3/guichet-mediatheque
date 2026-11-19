@@ -775,12 +775,25 @@ function boxCode(input, sector) {
   const value = input.value.trim();
   const boxes = state.settings.boxes || {};
   input.setCustomValidity('');
-  if (Object.hasOwn(boxes, value)) return value;
-  const matches = Object.entries(boxes).filter(([, box]) =>
+  // Les inventaires Jeunesse et Pop Zone peuvent partager un même code-barres.
+  // Priorité au secteur courant pour éviter de sélectionner la boîte homonyme
+  // de l'autre secteur après un scan ou une saisie du code physique.
+  const matchesByCode = Object.entries(boxes).filter(([key, box]) =>
+    box.sector === sector &&
+    (key === value || box.sourceCode === value ||
+      key === (sector === 'Jeunesse' ? 'ENF:' : 'POP:') + value),
+  );
+  if (matchesByCode.length === 1) return matchesByCode[0][0];
+  if (matchesByCode.length > 1) {
+    input.setCustomValidity('Plusieurs boîtes portent ce numéro dans ce secteur.');
+    return value;
+  }
+  if (Object.hasOwn(boxes, value) && boxes[value].sector === sector) return value;
+  const matchesByTitle = Object.entries(boxes).filter(([, box]) =>
     box.sector === sector && searchKey(box.title) === searchKey(value),
   );
-  input.setCustomValidity(matches.length > 1 ? 'Plusieurs boîtes portent ce titre. Choisissez leur numéro.' : '');
-  return matches.length === 1 ? matches[0][0] : value;
+  input.setCustomValidity(matchesByTitle.length > 1 ? 'Plusieurs boîtes portent ce titre. Choisissez leur numéro.' : '');
+  return matchesByTitle.length === 1 ? matchesByTitle[0][0] : value;
 }
 $('board').elements.box.oninput = () => {
   const code = boxCode($('board').elements.box, $('sector').value);
