@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr"><meta charset="utf-8" /><meta name="referrer" content="no-referrer" /><meta
     http-equiv="Content-Security-Policy"
-    content="default-src 'none'; script-src 'sha256-5SEuWiTm7CdNlRTyRKvVfpBhTpt4qzMrp/X2wb4RSpk=' 'self'; style-src 'sha256-Z9BPewwEAjG7gsicXyhivrYD9DWv7Xl1x2hA4LcFC0s=' 'self'; connect-src 'self' https://tmsmjerslmogjhyzkfrn.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Ludion · Guichet médiathèque</title>
+    content="default-src 'none'; script-src 'sha256-dcC1dB6E5hPggN0WMx3mQCSQLhDTBeF+5ucyAErOPmg=' 'self'; style-src 'sha256-Z9BPewwEAjG7gsicXyhivrYD9DWv7Xl1x2hA4LcFC0s=' 'self'; connect-src 'self' https://tmsmjerslmogjhyzkfrn.supabase.co; form-action 'none'; base-uri 'none'; object-src 'none'"/><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Ludion · Guichet médiathèque</title>
   <!-- Structure commune aux deux versions ; modifier ce modèle puis reconstruire les pages. -->
   <style>
     * {
@@ -1023,7 +1023,7 @@ dialog {
               required
               pattern="[0-9]{7}"
               placeholder="0000001"/></label>
-          <label>Nom<input name="last" /></label><label>Prénom<input name="first" /></label><label>Date de naissance facultative<input type="date" name="birth" /></label></div>
+          <label>Nom<input name="last" required pattern=".*\S.*" /></label><label>Prénom<input name="first" required pattern=".*\S.*" /></label><label>Date de naissance<input type="date" name="birth" required /></label></div>
         <details id="noteDetails"><summary>Note interne</summary><p class="muted" id="noteHelp">Saisir uniquement ce qui est nécessaire à l’accueil. Les informations médicales et familiales sont à traiter par les circuits prévus par le service.</p><label>Note sur la fiche<input maxlength="500" name="note" aria-describedby="noteHelp" /></label></details>
         <div class="actions"><button type="submit">Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
     </dialog>
@@ -1072,8 +1072,6 @@ dialog {
           <button id="now">Aujourd’hui</button>
           <button id="next" aria-label="Mois suivant">›</button></div></div><div class="week" id="calendar"></div></section>
     <p id="notice" role="status"></p><section id="pending" hidden><h2>Fiches à compléter</h2>
-      <form id="identity" autocomplete="off"><div class="fields"><label>Carte<select name="reader"></select></label><label>Nom facultatif<input name="last" /></label><label>Prénom facultatif<input name="first" /></label><label>Date de naissance facultative<input
-              name="birth"
-              type="date" /></label></div><div class="actions"><button>Enregistrer la fiche</button></div></form></section></main>
+      <form id="identity"><div class="fields"><label>Carte<select name="reader" required></select></label></div><div class="actions"><button>Compléter la fiche</button></div></form></section></main>
   <dialog id="modal" aria-labelledby="heading"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>
-  <script src="./directory.js?v=1facb2ad7c29d5ef"></script><script src="./app.js?v=f0fe78ab529cf9b2"></script></html>
+  <script src="./directory.js?v=1facb2ad7c29d5ef"></script><script src="./app.js?v=497da3e011e2023e"></script></html>

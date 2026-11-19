@@ -99,6 +99,7 @@ test(
       await b.locator('#personForm [name=card]').fill(c);
       await b.locator('#personForm [name=first]').fill('Camille');
       await b.locator('#personForm [name=last]').fill('Fictif');
+      await b.locator('#personForm [name=birth]').fill('2000-01-01');
       await b.locator('#personForm button').first().click();
       await waitText(b, '#notice', 'Fiche enregistrée.');
       await a.locator('#openUsers').click();
@@ -129,6 +130,7 @@ test(
       await b.locator('#board [name=box]').fill('FICTIF-CTRLZ');
       await b.locator('#board button').click();
       await waitText(b, '#notice', 'Consultation enregistrée.');
+      await b.getByRole('button', { name: 'Plus tard' }).click();
       await b.locator('main h1').click();
       await b.keyboard.press('Control+z');
       await waitText(b, '#notice', 'Dernière opération annulée.');
@@ -141,6 +143,7 @@ test(
       await b.locator('#vf [name=game]').selectOption('Jeu fictif');
       await b.locator('#vf button.primary').click();
       await waitText(b, '#vfmsg', 'Inscription enregistrée.');
+      await b.getByRole('button', { name: 'Plus tard' }).click();
       await b.locator('#close').click();
       await a.locator('[data-tab=vid]').click();
       await a.locator('#videoToday').click();

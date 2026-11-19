@@ -12,7 +12,7 @@ Recette du 14 novembre 2026 sur le projet distant fictif, complétée par les v�
 
 ## Démonstration locale
 
-`tests/demo.test.cjs` vérifie les trois activités, la fiche facultative, les cartes ESSAI, le profil simulé, la perte des activités après rechargement, l’absence de requête distante, le format à 360 px et la séparation de la connexion partagée. La CI exécute ces tests sans mot de passe.
+`tests/demo.test.cjs` vérifie les trois activités, la fenêtre de complément et la reprise après Plus tard, les cartes ESSAI, le profil simulé, la perte des activités après rechargement, l’absence de requête distante, le format à 360 px et la séparation de la connexion partagée. La CI exécute ces tests sans mot de passe.
 
 ## Clôture et quota
 

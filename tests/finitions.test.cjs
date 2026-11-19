@@ -201,6 +201,7 @@ test(
       await p.locator('#quickGuest [name=age]').fill('10');
       await p.locator('#quickGuest button.primary').click();
       await text(p, '#notice', 'enregistrée.');
+      await p.getByRole('button', { name: 'Plus tard' }).click();
       await p.locator('#calendar .today').click();
       await p
         .locator('#agenda button')
@@ -226,6 +227,7 @@ test(
       await p.locator('#quickGuest button.primary').click();
       await text(p, '#notice', 'enregistrée.');
       assert.equal(await p.locator('#modal').isVisible(), false);
+      await p.getByRole('button', { name: 'Plus tard' }).click();
     } finally {
       await browser.close();
     }
@@ -485,6 +487,8 @@ test('Usagers : fiche et création en dialogue, sur bureau et mobile', async () 
       // Une erreur de création conserve la saisie dans le dialogue ouvert.
       await page.locator('#personForm [name=card]').fill(card);
       await page.locator('#personForm [name=first]').fill('Création fictive');
+      await page.locator('#personForm [name=last]').fill('Fictif');
+      await page.locator('#personForm [name=birth]').fill('2000-01-01');
       await page.locator('#personForm button').first().click();
       await text(page, '#personMsg', 'Carte déjà utilisée');
       assert.equal(await page.locator('#personDialog').isVisible(), true);

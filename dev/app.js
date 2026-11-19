@@ -540,14 +540,14 @@ $('personDialog').addEventListener('cancel', (event) => {
 });
 
 // Charger la fiche détaillée à la demande, séparément du cache de recherche.
-async function openPerson(card = '') {
+async function openPerson(card = '', completion = false) {
   if ($('personForm').dataset.saving) return;
   const request = ++personRequest;
   let p = {};
   const loadingForm = $('personForm');
   for (const input of loadingForm.elements) input.disabled = true;
   try {
-    if (card) p = await api.get(card);
+    if (card) p = completion ? people[card] : await api.get(card);
   } catch (error) {
     notice(error.message);
     return;
@@ -555,30 +555,45 @@ async function openPerson(card = '') {
     if (request === personRequest)
       for (const input of loadingForm.elements) input.disabled = false;
   }
-  if (request !== personRequest) return;
+  if (request !== personRequest || !p || (completion && hasIdentity(p))) return;
   const form = $('personForm'),
-    f = form.elements;
+    f = form.elements,
+    draft = completion ? drafts.get(card) : undefined;
   form.reset();
   form.hidden = false;
   delete form.dataset.operation;
   f.card.value = card;
   f.card.readOnly = !!card;
-  f.first.value = p.prenom || '';
-  f.last.value = p.nom || '';
-  f.birth.value = p.date_naissance || '';
+  f.first.value = draft?.first ?? p.prenom ?? '';
+  f.last.value = draft?.last ?? p.nom ?? '';
+  f.birth.value = draft?.birth ?? p.date_naissance ?? '';
   f.birth.max = day();
   f.note.value = p.note_interne || '';
-  form.dataset.revision = p.revision || '';
-  $('personTitle').textContent = card ? 'Fiche usager' : 'Nouvel usager';
-  $('noteDetails').hidden = !card;
+  form.dataset.revision = draft?.revision ?? p.revision ?? '';
+  form.dataset.completion = String(completion);
+  $('personTitle').textContent = completion ? 'Compléter la fiche usager' : card ? 'Fiche usager' : 'Nouvel usager';
+  $('closePerson').textContent = completion ? 'Plus tard' : 'Fermer';
+  $('noteDetails').hidden = !card || completion;
   $('noteDetails').open = false;
-  $('replaceCard').hidden = !card;
-  $('deleteUser').hidden = !card || !admin();
+  $('replaceCard').hidden = !card || completion;
+  $('deleteUser').hidden = !card || !admin() || completion;
   $('personMsg').textContent = '';
-  $('mergeUser').hidden = !card || !admin();
+  $('mergeUser').hidden = !card || !admin() || completion;
   if (!$('personDialog').open) $('personDialog').showModal();
-  (card ? f.last : f.card).focus();
+  const next = completion && [f.last, f.first, f.birth].find((input) => !input.value);
+  (next || (card ? f.last : f.card)).focus();
 }
+$('personForm').oninput = (e) => {
+  const form = e.currentTarget;
+  if (form.dataset.completion !== 'true') return;
+  const f = form.elements;
+  drafts.set(f.card.value, {
+    first: f.first.value,
+    last: f.last.value,
+    birth: f.birth.value,
+    revision: form.dataset.revision,
+  });
+};
 $('personForm').onsubmit = (e) => {
   e.preventDefault();
   const f = e.target.elements,
@@ -590,10 +605,10 @@ $('personForm').onsubmit = (e) => {
       api.save(
         card,
         {
-          prenom: f.first.value.trim() || null,
-          nom: f.last.value.trim() || null,
-          date_naissance: f.birth.value || null,
-          note_interne: f.note.value.trim() || null,
+          prenom: f.first.value.trim(),
+          nom: f.last.value.trim(),
+          date_naissance: f.birth.value,
+          ...(e.target.dataset.completion === 'true' ? {} : { note_interne: f.note.value.trim() || null }),
         },
         !f.card.readOnly,
         +e.target.dataset.revision || undefined,
@@ -636,91 +651,34 @@ $('deleteUser').onclick = () => {
     },
   );
 };
-function queue(cards) {
-  for (const card of cards)
-    if (
-      people[card] &&
-      !people[card].prenom &&
-      !people[card].nom &&
-      !people[card].date_naissance
-    )
-      pending.add(card);
-  renderPending();
+function hasIdentity(person) {
+  return Boolean(person?.prenom?.trim() && person?.nom?.trim() && person?.date_naissance);
 }
-function focusIdentity(cards) {
+function offerIdentity(cards) {
+  for (const card of cards)
+    if (people[card] && !hasIdentity(people[card])) pending.add(card);
+  renderPending();
   const card = cards.find((value) => pending.has(value));
-  if (card && !$('pending').hidden) {
-    const form = $('identity');
-    form.elements.reader.value = card;
-    readDraft();
-    return form.elements.last;
-  }
+  if (card && !$('personDialog').open) return openPerson(card, true);
 }
 function renderPending() {
   const f = $('identity').elements,
     selected = f.reader.value;
   for (const card of pending)
-    if (
-      !people[card] ||
-      (!drafts.has(card) &&
-        (people[card].prenom ||
-          people[card].nom ||
-          people[card].date_naissance))
-    )
+    if (!people[card] || hasIdentity(people[card])) {
       pending.delete(card);
+      drafts.delete(card);
+    }
   f.reader.replaceChildren(
     ...[...pending].map((card) => new Option(cardLabel(card), card)),
   );
   if (pending.has(selected)) f.reader.value = selected;
   $('pending').hidden =
     pending.size === 0 || !['soc', 'vid', 'ani', 'users'].includes(activeTab);
-  if (f.reader.value !== selected) readDraft();
 }
-function readDraft() {
-  const f = $('identity').elements,
-    d = drafts.get(f.reader.value) || {};
-  for (const k of ['first', 'last', 'birth']) f[k].value = d[k] || '';
-  f.birth.max = day();
-  $('identity').dataset.revision =
-    d.revision || people[f.reader.value]?.revision || '';
-}
-$('identity').elements.reader.onchange = readDraft;
-$('identity').oninput = () => {
-  const f = $('identity').elements;
-  drafts.set(f.reader.value, {
-    first: f.first.value,
-    last: f.last.value,
-    birth: f.birth.value,
-    revision:
-      $('identity').dataset.revision || people[f.reader.value]?.revision,
-  });
-};
 $('identity').onsubmit = (e) => {
   e.preventDefault();
-  const f = e.target.elements,
-    card = f.reader.value;
-  submit(
-    e.target,
-    'notice',
-    () =>
-      api.save(
-        card,
-        {
-          prenom: f.first.value.trim() || null,
-          nom: f.last.value.trim() || null,
-          date_naissance: f.birth.value || null,
-        },
-        false,
-        +e.target.dataset.revision || undefined,
-      ),
-    null,
-    () => {
-      pending.delete(card);
-      drafts.delete(card);
-      renderPending();
-      notice('Fiche enregistrée.');
-    },
-  );
+  openPerson(e.target.elements.reader.value, true);
 };
 
 function search(selectedCard) {
@@ -849,8 +807,7 @@ $('board').onsubmit = (e) => {
       kids: +f.kids.value,
       adults: +f.adults.value,
     },
-    () => {
-      queue([card]);
+    async () => {
       e.target.reset();
       if (date !== selectedDate) {
         month = new Date(date.slice(0, 7) + '-01T12:00:00');
@@ -858,7 +815,8 @@ $('board').onsubmit = (e) => {
       }
       f.date.value = selectedDate || day();
       notice('Consultation enregistrée.');
-      return focusIdentity([card]) || f.card;
+      await offerIdentity([card]);
+      if (!$('personDialog').open) return f.card;
     },
     (result) => inverseAdd('board', result),
   );
@@ -964,8 +922,8 @@ function editBoard(item) {
       data,
       () => {
         $('modal').close();
-        queue([data.card]);
         notice('Consultation corrigée.');
+        return offerIdentity([data.card]);
       },
       (result) => ({
         action: 'board.save',
@@ -1163,8 +1121,7 @@ function videoForm(moving = [], picked = {}) {
       'vfmsg',
       moving.length ? 'video.move' : 'video.book',
       data,
-      (result) => {
-        queue(group.map((p) => p.card));
+      async () => {
         lastVideo = {
           date: data.date,
           post: data.post,
@@ -1182,12 +1139,8 @@ function videoForm(moving = [], picked = {}) {
         $('vfmsg').textContent =
           'Inscription enregistrée. ' + $('vfmsg').textContent;
         notice('Inscription aux jeux vidéo enregistrée.');
-        const identity = focusIdentity(group.map((player) => player.card));
-        if (identity && !api.demo) {
-          $('modal').close();
-          return identity;
-        }
-        return form.querySelector('[name=card]');
+        await offerIdentity(group.map((player) => player.card));
+        if (!$('personDialog').open) return form.querySelector('[name=card]');
       },
       (result) =>
         moving.length
@@ -1514,10 +1467,9 @@ function quickRegistration() {
       'guest.book',
       { eventId: ev.id, players: group, confirmEarly: beyondHorizon(ev.date) },
       () => {
-        queue(group.map((x) => x.card));
         $('modal').close();
         notice('Inscription à « ' + ev.title + ' » enregistrée.');
-        return focusIdentity(group.map((player) => player.card));
+        return offerIdentity(group.map((player) => player.card));
       },
       (result) => inverseAdd('guest', result),
     );
@@ -1588,12 +1540,9 @@ function detailEvent(id) {
       'guest.book',
       { eventId: id, players: group, confirmEarly: beyondHorizon(ev.date) },
       () => {
-        queue(group.map((p) => p.card));
-        const identity = focusIdentity(group.map((player) => player.card));
-        if (identity && !api.demo) $('modal').close();
-        else detailEvent(id);
+        detailEvent(id);
         notice('Personne inscrite.');
-        if (!api.demo) return identity;
+        return offerIdentity(group.map((player) => player.card));
       },
       (result) => inverseAdd('guest', result),
     );

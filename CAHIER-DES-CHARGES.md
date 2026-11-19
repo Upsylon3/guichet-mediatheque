@@ -15,7 +15,7 @@ Lorsqu’une inscription JV est refusée à cause de la limite quotidienne, le m
 
 Une consultation comporte une carte de sept chiffres, une boîte que l’on peut rechercher par numéro ou titre, un secteur Jeunesse ou Pop Zone, une date et les effectifs enfants/adultes. Une personne consulte et partage le jeu avec les autres. La carte n’identifie donc pas chaque personne de ce groupe. Une consultation avec deux enfants et un adulte compte une consultation et trois personnes. Aucun mouvement de prêt.
 
-Le secteur reste mémorisé sur le navigateur. Après validation, les champs du passage s’effacent et le curseur revient sur la carte. L’identité facultative se complète après passage. Les corrections autorisées conservent les contrôles de révision.
+Le secteur reste mémorisé sur le navigateur. Après validation, les champs du passage s’effacent. Si l’identité est complète, le curseur revient sur la carte. Sinon, la fenêtre de complément s’ouvre. Les corrections autorisées conservent les contrôles de révision.
 
 ## Jeux vidéo
 
@@ -41,7 +41,9 @@ Séries hebdomadaires ou mensuelles, 1 à 52 occurrences et intervalle de 1 à 1
 
 ## Annuaire
 
-Les champs de carte acceptent jusqu’à sept chiffres et conservent les zéros initiaux. Au septième chiffre, la saisie passe au champ suivant. Le tableau des usagers, trié et paginé, et la recherche générale retrouvent une fiche par nom, prénom ou numéro. Prénom, nom, naissance et note facultatifs. Notes uniquement dans la fiche détaillée. Deux homonymes restent distincts.
+Les champs de carte acceptent jusqu’à sept chiffres et conservent les zéros initiaux. Au septième chiffre, la saisie passe au champ suivant. Le tableau des usagers, trié et paginé, et la recherche générale retrouvent une fiche par nom, prénom ou numéro. Le nom, le prénom et la date de naissance sont obligatoires pour enregistrer la fiche. La note reste facultative et visible uniquement dans la fiche détaillée. Deux homonymes restent distincts.
+
+Après l’enregistrement d’une activité ou d’une inscription, une fenêtre propose de compléter la première fiche dont l’identité est incomplète. Le bouton Plus tard ferme la fenêtre et la saisie d’activité reste acquise. Les fiches du groupe peuvent être reprises depuis Fiches à compléter.
 
 Une activité acceptée crée au besoin la fiche minimale dans la même transaction. Une activité refusée ne crée pas de fiche. Le changement de numéro s’effectue depuis la fiche retrouvée par nom ou carte, avec aperçu d’identité et confirmation. Il conserve UUID, identité, inscriptions et quota. Un numéro déjà attribué est refusé et renvoie vers la fusion administrative. Aucun rapprochement automatique sur le nom.
 

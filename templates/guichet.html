@@ -209,7 +209,7 @@
               required
               pattern="[0-9]{7}"
               placeholder="0000001"/></label>
-          <label>Nom<input name="last" /></label><label>Prénom<input name="first" /></label><label>Date de naissance facultative<input type="date" name="birth" /></label></div>
+          <label>Nom<input name="last" required pattern=".*\S.*" /></label><label>Prénom<input name="first" required pattern=".*\S.*" /></label><label>Date de naissance<input type="date" name="birth" required /></label></div>
         <details id="noteDetails"><summary>Note interne</summary><p class="muted" id="noteHelp">Saisir uniquement ce qui est nécessaire à l’accueil. Les informations médicales et familiales sont à traiter par les circuits prévus par le service.</p><label>Note sur la fiche<input maxlength="500" name="note" aria-describedby="noteHelp" /></label></details>
         <div class="actions"><button type="submit">Enregistrer</button><button type="button" id="deleteUser" hidden>Supprimer la fiche</button></div><p role="status" id="personMsg"></p></form>
     </dialog>
@@ -258,8 +258,6 @@
           <button id="now">Aujourd’hui</button>
           <button id="next" aria-label="Mois suivant">›</button></div></div><div class="week" id="calendar"></div></section>
     <p id="notice" role="status"></p><section id="pending" hidden><h2>Fiches à compléter</h2>
-      <form id="identity" autocomplete="off"><div class="fields"><label>Carte<select name="reader"></select></label><label>Nom facultatif<input name="last" /></label><label>Prénom facultatif<input name="first" /></label><label>Date de naissance facultative<input
-              name="birth"
-              type="date" /></label></div><div class="actions"><button>Enregistrer la fiche</button></div></form></section></main>
+      <form id="identity"><div class="fields"><label>Carte<select name="reader" required></select></label></div><div class="actions"><button>Compléter la fiche</button></div></form></section></main>
   <dialog id="modal" aria-labelledby="heading"><div class="bar"><h2 id="heading"></h2><button id="close" aria-label="Fermer">×</button></div><div id="body"></div></dialog>
   <!-- APPLICATION --></html>

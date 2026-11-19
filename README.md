@@ -15,7 +15,7 @@ Le menu latéral ouvre Jeux vidéo, Jeux de société, Animations et Usagers. Le
 - Jeux vidéo : calendrier mensuel et planning par poste et par horaire pour le jour choisi, une carte par joueur, une inscription par jour. Aucun accompagnateur sans carte.
 - Jeux de société : une carte pour la consultation, avec les effectifs des enfants et des adultes qui partagent la boîte.
 - Animations : bouton Inscrire pour choisir rapidement une séance dans une liste chronologique avec salle et places disponibles, ou accès par le calendrier. Une carte et un âge par participant inscrit. Deux horaires sont requis, avec Créazone ou Salle JV comme mention facultative. Au-delà de J+15, les agents confirment un avertissement avant inscription.
-- Usagers : recherche par nom ou carte, identité facultative, note détaillée, changement de carte conservant fiche et inscriptions. Suppression et fusion réservées à l’administration.
+- Usagers : recherche par nom ou carte, note interne et changement de carte conservant la fiche et les inscriptions. Une fenêtre propose de compléter les fiches incomplètes après une saisie. L’enregistrement d’une fiche exige le nom, le prénom et la date de naissance. La suppression et la fusion sont réservées à l’administration.
 - Statistiques : filtres de période et de dimensions, regroupement jour/semaine/mois et extraction CSV des indicateurs filtrés, sans carte ni identité, réservées aux administrateurs.
 
 Les données confirmées se synchronisent entre les sessions sans rechargement. Ctrl+Z annule la dernière opération prise en charge, sauf pendant la modification d’un champ où l’annulation de texte reste prioritaire.
