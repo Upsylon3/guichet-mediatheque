@@ -1,6 +1,8 @@
 -- Recette privilégiée ; changements fictifs intégralement annulés.
 begin;
+create or replace function guichet_prive.jour() returns date language sql stable set search_path='' as $$ select date '2026-11-18' $$;
 select pg_advisory_xact_lock(14458001);
+update guichet_prive.reglages set contenu=jsonb_set(contenu,'{stations,MARIO,games}','["Circuit"]');
 do $test$
 declare d date:=guichet_prive.jour(); numero text; cible text; profil_test uuid;
  ancien uuid:=gen_random_uuid(); borne uuid:=gen_random_uuid(); recent uuid:=gen_random_uuid();

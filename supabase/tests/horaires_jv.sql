@@ -2,6 +2,10 @@
 begin;
 create or replace function guichet_prive.jour() returns date language sql stable set search_path='' as $$ select date '2026-11-14' $$;
 select pg_advisory_xact_lock(14458001);
+update guichet_prive.reglages set contenu=jsonb_set(
+  jsonb_set(contenu,'{stations,MARIO,games}','["Circuit"]'),
+  '{stations,SPYRO,games}','["Voyage"]'
+);
 do $test$
 declare
   acteur uuid:=gen_random_uuid();

@@ -1,10 +1,10 @@
-# Guichet médiathèque
+# Ludion
 
 Application d’accueil pour les jeux de société, les jeux vidéo, les animations et un annuaire partagé.
 
-[Guichet partagé de développement](https://upsylon3.github.io/guichet-mediatheque/dev/) · [Démonstration publique autonome](https://upsylon3.github.io/guichet-mediatheque/)
+[Ouvrir Ludion](https://upsylon3.github.io/guichet-mediatheque/)
 
-**Données fictives uniquement.** Dans la nouvelle version, Agent ouvre une session en un clic. Administrateur utilise le mot de passe du service. La base de développement distante se situe à Paris. Aucun besoin de virtualisation.
+Agent ouvre une session en un clic sur les navigateurs activés par un administrateur. Administrateur utilise le mot de passe du service. La base Supabase se situe à Paris.
 
 ## Utilisation
 
@@ -41,18 +41,18 @@ L’interface ne propose ni import par collage ni export nominatif, ni raccourci
 
 Dans une nouvelle animation, Partir d’un modèle remplit les paramètres. Les modèles se créent, se modifient, se renomment et se suppriment dans Administration → Animations, sans créer de séance ni modifier les séances existantes. Ce droit est réservé aux administrateurs par défaut. Administration → Accès des agents permet de déléguer Gérer les modèles d’animations au groupe des agents, indépendamment de la gestion des séances ; seuls les modèles deviennent alors accessibles dans Administration. Date, récurrence et inscrits ne sont pas copiés dans le modèle. Le type est un classement facultatif pour les listes et statistiques.
 
-La démonstration autonome se recharge avec une journée fictive déjà remplie. Ses modifications de passage restent en mémoire. Pour préparer aussi la base partagée, lancer `npm run seed:demo` avec le compte administrateur fictif local configuré. Ce script est limité au projet de développement connu et conserve les données existantes. Il fournit 120 fiches fictives, des consultations, des réservations JV, des animations du jour et à J+7/J+16 ainsi que trois modèles. Une seconde exécution le même jour évite les doublons. Les données fictives sont repérables par Démo ou DÉMO.
+La démonstration autonome sert aux essais locaux et à la CI. `npm run seed:demo` utilise les fichiers privés de recette et exige un projet Supabase distinct du guichet publié.
 
 La documentation reste accessible depuis le dépôt et les documents remis au service. Les pages du guichet n’affichent aucun lien vers le dépôt GitHub ni vers les documents du projet. Les raccourcis métier Catalogue et V-smart restent disponibles.
 
 ## Publication sur GitHub Pages
 
-- Démonstration autonome : https://upsylon3.github.io/guichet-mediatheque/
-- Guichet partagé avec connexion : https://upsylon3.github.io/guichet-mediatheque/dev/
+- Ludion : https://upsylon3.github.io/guichet-mediatheque/
+- Autre adresse du même guichet : https://upsylon3.github.io/guichet-mediatheque/dev/
 
-Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement des deux versions ensemble. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
+Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement du guichet connecté aux deux adresses. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
 
-`scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.
+`scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet restent dans Supabase. La démonstration autonome sert uniquement aux essais locaux. Les anciens liens Githack ne sont plus les adresses de référence.
 
 Les participations sont conservées pendant 30 jours glissants, avec leurs corbeilles et références de reprise. La recherche par carte et les listes permettent de consulter les activités récentes ; le planning JV Aujourd’hui reste limité au jour actuel. Les statistiques anonymes sont actualisées quotidiennement sans doublons et conservées au-delà. Les fiches usagers et réservations futures ne sont pas effacées par cette purge. Les détails déjà supprimés avant ce changement ne peuvent pas être reconstitués.
 

@@ -79,25 +79,34 @@ td:last-child button {
 /* Palette commune, puis variantes du mode sombre. */
 :root {
   color-scheme: light;
-  --bg: #f2f4f7;
-  --surface: #fff;
-  --ink: #203247;
-  --muted: #5b6b7e;
-  --border: #ccd5df;
-  --accent: #245b87;
-  --active: #e2edf8;
-  --sidebar: #173653;
+  --bg: #f1ede4;
+  --surface: #fffdf6;
+  --ink: #172e43;
+  --muted: #526270;
+  --border: #d2c8b8;
+  --accent: #255770;
+  --active: #e1ebe9;
+  --sidebar: #172e48;
+  --action: #eac075;
+  --action-ink: #162938;
+  --focus: #a26018;
+  --entry-glow: #e8dfd0;
+  --display: Georgia, serif;
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #111a24;
-  --surface: #1b2938;
-  --ink: #e0e9f3;
-  --muted: #adbed0;
-  --border: #45576c;
-  --accent: #93caff;
-  --active: #29435b;
-  --sidebar: #101e2d;
+  --bg: #121b22;
+  --surface: #1c2934;
+  --ink: #f4ecdb;
+  --muted: #b4c2cb;
+  --border: #485865;
+  --accent: #a5cfe0;
+  --active: #284453;
+  --sidebar: #0e1823;
+  --action: #eac075;
+  --action-ink: #162938;
+  --focus: #f3c878;
+  --entry-glow: #223643;
 }
 body {
   background: var(--bg);
@@ -116,6 +125,22 @@ main header {
   padding-bottom: 18px;
   margin-bottom: 18px;
   border-bottom: 1px solid var(--border);
+}
+main header h1,
+main section h2,
+dialog h2 {
+  font-family: var(--display);
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+main header h1 {
+  font-size: clamp(1.75rem, 3vw, 2.75rem);
+}
+main > section + section {
+  margin-top: .9rem;
+}
+.serviceLinks a {
+  text-underline-offset: .2em;
 }
 .serviceLinks {
   display: flex;
@@ -174,11 +199,14 @@ dialog {
   background: var(--surface);
   color: var(--ink);
   border-color: var(--border);
-  border-radius: 6px;
+  border-radius: .8rem;
+}
+dialog::backdrop {
+  background: #102435a6;
 }
 body:has(#login:not([hidden])) {
   min-height: 100svh;
-  background: radial-gradient(ellipse at 18% 20%, #e8dfd0, #f5f2eb 58%);
+  background: radial-gradient(ellipse at 18% 20%, var(--entry-glow), var(--bg) 58%);
 }
 #access {
   background: transparent;
@@ -205,12 +233,11 @@ body:has(#login:not([hidden])) {
   grid-template-columns: 1.15fr 1fr;
   width: min(100%, 59rem);
   overflow: hidden;
-  border: 1px solid #d9d0c2;
+  border: 1px solid var(--border);
   border-radius: 1.15rem;
-  background: #fffdf8;
-  color: #172b40;
+  background: var(--surface);
+  color: var(--ink);
   box-shadow: 0 1.3rem 4rem #252d3922;
-  color-scheme: light;
 }
 .entryIntro,
 .entryControls {
@@ -234,7 +261,7 @@ body:has(#login:not([hidden])) {
   margin-bottom: 1.5rem;
 }
 .entryIntro h1 {
-  font-family: Georgia, serif;
+  font-family: var(--display);
   font-size: clamp(2.35rem, 5vw, 4.35rem);
   font-weight: 400;
   line-height: 1;
@@ -251,9 +278,21 @@ body:has(#login:not([hidden])) {
   margin: 0;
   font-size: 1.45rem;
 }
+.entryHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+#login #entryTheme {
+  padding: .25rem .6rem;
+  min-height: 2rem;
+  font-size: .8rem;
+}
 .entryNote,
 #loginMsg {
-  color: #516377;
+  color: var(--muted);
 }
 .loginOptions {
   display: grid;
@@ -262,14 +301,14 @@ body:has(#login:not([hidden])) {
 }
 #login button {
   min-height: 2.8rem;
-  border-color: #9ca9b5;
-  background: #fffdf8;
-  color: #172b40;
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--ink);
 }
 #login .primary {
-  border-color: #173653;
-  background: #173653;
-  color: #fffdf8;
+  border-color: var(--action);
+  background: var(--action);
+  color: var(--action-ink);
 }
 #login button:hover:not(:disabled) {
   box-shadow: inset 0 0 0 1px currentColor;
@@ -289,17 +328,12 @@ body:has(#login:not([hidden])) {
 }
 #adminLoginFields input {
   width: 100%;
-  border-color: #9ca9b5;
-  background: white;
-  color: #172b40;
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--ink);
 }
 #loginMsg:empty {
-  display: none;
-}
-.entryDemo {
-  display: inline-block;
-  margin-top: 1.3rem;
-  color: #254f75;
+  margin: 0;
 }
 .sessionTools {
   display: flex;
@@ -374,10 +408,15 @@ body:has(#login:not([hidden])) {
   z-index: 2;
 }
 .brand {
-  font-size: 24px;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  font: 500 2rem var(--display);
   line-height: 1.25;
   padding: 0 12px 22px;
+}
+.brand .libraryMark {
+  width: 2.05rem;
 }
 #sidebar nav {
   display: flex;
@@ -399,9 +438,9 @@ body:has(#login:not([hidden])) {
   padding: 12px;
 }
 #sidebar button[aria-current='true'] {
-  background: #345e84;
+  background: #2d4b64;
   color: white;
-  border-left: 3px solid #b8daf8;
+  border-left: 3px solid var(--action);
 }
 #sidebar button:hover {
   background: #284c6b;
@@ -430,6 +469,23 @@ button[aria-pressed='true'] {
   background: var(--accent);
   color: var(--surface);
   border-color: var(--accent);
+}
+button.primary,
+.adminActions > button,
+#personForm button[type="submit"] {
+  background: var(--action);
+  color: var(--action-ink);
+  border-color: var(--action);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-color: var(--focus);
+}
+thead th {
+  background: var(--active);
 }
 button[aria-current='true'] {
   background: var(--active);

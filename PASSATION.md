@@ -4,7 +4,7 @@ Lire [le cahier des charges](CAHIER-DES-CHARGES.md), [le guide](DEVELOPPEMENT.md
 
 La refonte du 18 novembre 2026 couvre quatre chantiers. Accès Agent en un clic et Administrateur par mot de passe. Annuaire paginé et recherches par nom, carte ou titre de boîte. Calendrier principal commun aux trois activités. Administration simplifiée et règles d’animation alignées entre la démonstration et Supabase. Animations propose une inscription rapide chronologique. Les modèles se gèrent dans Administration → Animations, avec un droit distinct délégable depuis Accès des agents ; les séances existantes ne changent pas avec leur modèle.
 
-La version partagée utilise la base distante de développement à Paris. La démonstration autonome compile les mêmes parcours avec un service en mémoire, sans réseau. Les secrets et comptes restent hors Git.
+Ludion utilise le projet Supabase à Paris. La démonstration autonome reste disponible pour les essais locaux. Les secrets restent hors Git.
 
 Pour publier la refonte, suivre l’ordre de mise en ligne dans [le guide de développement](DEVELOPPEMENT.md). Le changement de règles serveur et la préparation des deux profils précèdent la recette connectée et la publication des pages.
 
@@ -16,10 +16,10 @@ Les liens vers GitHub et les documents du projet ont été retirés des pages du
 
 ## Publication sur GitHub Pages
 
-- Démonstration autonome : https://upsylon3.github.io/guichet-mediatheque/
-- Guichet partagé avec connexion : https://upsylon3.github.io/guichet-mediatheque/dev/
+- Ludion : https://upsylon3.github.io/guichet-mediatheque/
+- Autre adresse du même guichet : https://upsylon3.github.io/guichet-mediatheque/dev/
 
-Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement des deux versions ensemble. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
+Après modification des sources, lancer `npm run build`, vérifier le changement puis inclure les pages générées dans le commit. Une fusion dans `main` lance le workflow Vérification et publication du guichet : reconstruction, contrôles de la démonstration, préparation des fichiers publics et déploiement du guichet connecté aux deux adresses. Les liens restent les mêmes après chaque déploiement réussi. Attendre la fin du job publication, puis recharger la page pour utiliser la nouvelle version. Un rechargement déconnecte et peut perdre un brouillon.
 
 `scripts/prepare-pages.py` copie une liste explicite de fichiers dans `_site/`. Ni les documents du projet, ni les comptes de test, ni les fichiers privés ne font partie du site publié. Le dépôt GitHub reste public. Les données du guichet partagé restent dans sa base distante ; la démonstration autonome reste sans connexion applicative. Les anciens liens Githack ne sont plus les adresses de référence.
 

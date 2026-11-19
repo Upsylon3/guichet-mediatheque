@@ -4,7 +4,10 @@ const fs = require('node:fs'),
   assert = require('node:assert/strict');
 const config = JSON.parse(fs.readFileSync('.env.local.json')),
   accounts = JSON.parse(fs.readFileSync('.env.accounts.json'));
+if (new URL(config.SUPABASE_URL).hostname === 'tmsmjerslmogjhyzkfrn.supabase.co')
+  throw new Error('Utiliser un projet Supabase isolé pour la recette connectée.');
 const fixture = { ids: [], cards: [], operations: [] };
+const testDevices = new Set();
 async function api(path, token, body, method = 'POST') {
   const r = await fetch(config.SUPABASE_URL + path, {
     method,
@@ -20,17 +23,32 @@ async function api(path, token, body, method = 'POST') {
   return { status: r.status, data: text ? JSON.parse(text) : null };
 }
 async function login(role) {
-  const r = role === 'agent'
-    ? await api('/auth/v1/signup', null, {})
-    : await api('/functions/v1/connexion-administration', null, {
+  if (role === 'agent') return (await newAgentDevice()).access_token;
+  const r = await api('/functions/v1/connexion-administration', null, {
         password: accounts.administrateur.password,
       });
   assert.equal(r.status, 200, r.data?.message);
   return r.data.access_token;
 }
+async function newAgentDevice() {
+  const admin = await login('administrateur');
+  const session = await api('/auth/v1/signup', null, {});
+  assert.equal(session.status, 200, session.data?.message);
+  const id = session.data.user.id;
+  const activated = await api('/rest/v1/rpc/administrer_postes_agents', admin, {
+    action: 'activer', identifiant: id, nom: 'Poste fictif de recette',
+  });
+  assert.equal(activated.status, 200, activated.data?.message);
+  testDevices.add(id);
+  return session.data;
+}
 async function enter(page, origin, role) {
   await page.goto(origin + '/dev/index.html');
   if (role === 'agent') {
+    const device = await newAgentDevice();
+    await page.evaluate(({ url, id, refresh }) => {
+      localStorage.setItem('ludion-poste-agent:' + url, JSON.stringify({ id, refresh }));
+    }, { url: config.SUPABASE_URL, id: device.user.id, refresh: device.refresh_token });
     await page.locator('#login [name=agentLogin]').click();
   } else {
     await page.locator('#login [name=adminLogin]').click();
@@ -90,6 +108,11 @@ const plus = (date, n) => {
   return d.toISOString().slice(0, 10);
 };
 async function cleanup(token, original) {
+  for (const id of testDevices) {
+    const revoked = await api('/rest/v1/rpc/administrer_postes_agents', token, { action: 'revoquer', identifiant: id });
+    assert.equal(revoked.status, 200);
+    testDevices.delete(id);
+  }
   try {
     const s = await state(token);
     fixture.ids.push(

@@ -51,6 +51,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Déployer les deux versions
+      - name: Déployer Ludion
         id: deployment
         uses: actions/deploy-pages@v4

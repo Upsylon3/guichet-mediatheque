@@ -156,6 +156,8 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
       },
     );
     // Le test exerce la vraie entrée connectée, avec seulement le service distant simulé.
+    const deviceId = '00000000-0000-0000-0000-000000000099';
+    let stations = [];
     await page.route('https://*.supabase.co/**', (route) => {
       const url = route.request().url();
       const person = {
@@ -166,10 +168,17 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
         revision: 1,
       };
       const agent = route.request().headers().authorization === 'Bearer agent-fictif';
+      if (url.includes('/administrer_postes_agents')) {
+        const body = route.request().postDataJSON();
+        if (body.action === 'activer') stations = [{ compte: deviceId, libelle: body.nom }];
+        return route.fulfill({ json: stations });
+      }
       const data = url.includes('/functions/v1/connexion-administration')
         ? { access_token: 'administration-fictive' }
         : url.includes('/auth/v1/signup')
-          ? { access_token: 'agent-fictif' }
+          ? { user: { id: deviceId, is_anonymous: true }, refresh_token: 'poste-fictif' }
+        : url.includes('/auth/v1/token?grant_type=refresh_token')
+          ? { access_token: 'agent-fictif', refresh_token: 'poste-renouvele' }
         : url.includes('/mon_profil')
           ? (agent ? 'agent' : 'administrateur')
           : url.includes('/etat_guichet')
@@ -189,6 +198,10 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
     await page.clock.setFixedTime(new Date('2026-11-14T12:00:00+01:00'));
     await page.goto(origin + '/dev/index.html');
     assert.equal(staleScriptRequested, false);
+    await page.locator('#entryTheme').click();
+    assert.equal(await page.locator('#entryTheme').getAttribute('aria-pressed'), 'true');
+    await page.locator('#login [name=agentLogin]').click();
+    await waitText(page, '#loginMsg', 'activé par un administrateur');
     await page.locator('#login [name=adminLogin]').click();
     await page.locator('#login [name=password]').fill('mot-de-passe-fictif');
     await page.locator('#login [name=submit]').click();
@@ -217,7 +230,15 @@ test('Page connectée : contourner les anciens scripts en cache pour ouvrir les 
       await page.locator('#personForm [name=first]').inputValue(),
       'Camille',
     );
+    await page.locator('#closePerson').click();
+    await page.locator('#openAdmin').click();
+    await page.locator('[data-admin-tab=acces]').click();
+    await page.getByRole('button', { name: 'Gérer les postes agents' }).click();
+    await page.locator('#agentDeviceForm [name=label]').fill('Poste de recette');
+    await page.locator('#agentDeviceForm button').click();
+    await waitText(page, '#agentDeviceStatus', 'Ce navigateur est activé');
     await page.reload();
+    assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
     await page.locator('#login [name=agentLogin]').click();
     await page.locator('main').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#sessionProfile').innerText(), 'Session agent');
