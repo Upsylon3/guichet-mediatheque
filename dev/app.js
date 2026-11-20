@@ -1096,9 +1096,18 @@ function videoForm(moving = [], picked = {}) {
         : (cfg?.capacity || 0) - bookings.length;
     const shared = bookings[0]?.game,
       game = f.game.value || initial.game || '';
-    f.game.innerHTML =
-      '<option value="">Choisir un jeu</option>' +
-      opts(shared ? [shared] : cfg?.games || [], shared || game);
+    const availableTitles = shared ? [shared] : cfg?.games || [];
+    const videoMetadata = state.settings.videoCatalog || [];
+    const gameOptions = availableTitles.map((title) => {
+      const entry = videoMetadata.find((item) =>
+        item.title === title && (!item.stations?.length || item.stations.includes(f.post.value)),
+      );
+      const label = entry
+        ? `${title} · ${entry.ageMin ?? 8}+ · ${entry.maxPlayers || '?'} joueur(s)`
+        : title;
+      return `<option value="${esc(title)}" ${title === (shared || game) ? 'selected' : ''}>${esc(label)}</option>`;
+    }).join('');
+    f.game.innerHTML = '<option value="">Choisir un jeu</option>' + gameOptions;
     $('vfmsg').textContent = closed
       ? 'Jeux vidéo fermés pour ce poste à cette date. Choisir une date d’ouverture : mercredi, samedi, vacances scolaires Zone C ou exception administrative.'
       : noGames ? 'Aucun jeu configuré pour ce poste.'
